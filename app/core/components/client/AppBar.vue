@@ -14,9 +14,11 @@ defineProps({
     <div class="app-bar-content">
       <h1 class="app-title">{{ title }}</h1>
 
-      <div class="notification-wrapper">
-        <i class="fi fi-rr-bell bell-icon"></i>
-        <span class="notification-dot"></span>
+      <div class="notification-box">
+        <div class="notification-wrapper">
+          <i class="fi fi-rr-bell bell-icon"></i>
+          <span class="notification-dot"></span>
+        </div>
       </div>
     </div>
   </nav>
@@ -49,10 +51,24 @@ defineProps({
 
 .app-title {
   font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-weight: 800; /* Un peu plus gras pour le style */
+  color: v-bind('AppColor.tertiary.base');
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.8px;
+}
+
+/* LE BOX AUTOUR */
+.notification-box {
+  background-color: #f8f9fa; /* Fond très léger */
+  border: 1px solid #eee;    /* Bordure fine */
+  border-radius: 14px;       /* Arrondi moderne */
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.notification-box:hover {
+  background-color: #f0f0f0;
+  border-color: #e0e0e0;
 }
 
 .notification-wrapper {
@@ -61,29 +77,23 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  transition: background-color 0.2s;
-}
-
-.notification-wrapper:hover {
-  background-color: #f5f5f5;
+  width: 42px;
+  height: 42px;
 }
 
 .bell-icon {
-  font-size: 22px;
+  font-size: 20px;
   color: #333;
 }
 
 .notification-dot {
   position: absolute;
-  top: 8px;
-  right: 12px;
-  width: 10px;
-  height: 10px;
+  top: 3px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
   background-color: v-bind('AppColor.primary.base');
-  border: 2px solid v-bind('AppColor.surface.pure');
+  border: 2.5px solid #f8f9fa; /* Match avec le fond du box */
   border-radius: 50%;
 }
 </style>
