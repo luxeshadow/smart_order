@@ -28,7 +28,8 @@ export const useToast = () => {
           color: "#1a1a1a",
           borderRadius: "10px",
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-          padding: "12px 20px"
+          padding: "12px 20px",
+          margin:"5px"
         }
       }).showToast();
     } else {
