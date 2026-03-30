@@ -13,7 +13,50 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ['@pinia/nuxt'],
+  modules: [
+    '@pinia/nuxt',
+    '@vite-pwa/nuxt'
+  ],
+
+  // @ts-ignore - Correction de l'erreur TypeScript pour Nuxt 4
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Smart Orders',
+      short_name: 'SmartOrders',
+      description: 'Gestion intelligente des commandes',
+      theme_color: '#ffffff',
+      background_color: '#ffffff',
+      display: 'standalone',
+      orientation: 'portrait',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+    },
+    devOptions: {
+      enabled: true,
+      type: 'classic'
+    }
+  },
 
   imports: {
     dirs: ['core/**']
