@@ -55,7 +55,7 @@ const isInteractive = computed(() => !props.loading && !props.disabled)
   height: 56px;
   border: none;
   outline: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: v-bind('color'); 
   color: white;
   font-size: 16px;
