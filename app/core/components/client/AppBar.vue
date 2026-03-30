@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { AppColor } from '@/core/constants/app_colors'
+import { AppImage } from '@/core/constants/app_images'
 
 defineProps({
   title: {
@@ -12,7 +13,9 @@ defineProps({
 <template>
   <nav class="app-bar">
     <div class="app-bar-content">
-      <h1 class="app-title">{{ title }}</h1>
+      <div class="logo-wrapper">
+        <img :src="AppImage.Logo" alt="Logo" class="app-logo" />
+      </div>
 
       <div class="notification-box">
         <div class="notification-wrapper">
@@ -49,19 +52,24 @@ defineProps({
   align-items: center;
 }
 
-.app-title {
-  font-size: 1.25rem;
-  font-weight: 800; /* Un peu plus gras pour le style */
-  color: v-bind('AppColor.tertiary.base');
-  margin: 0;
-  letter-spacing: -0.8px;
+/* Style pour le Logo */
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  height: 40px; /* Ajuste selon la taille voulue */
+}
+
+.app-logo {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
 }
 
 /* LE BOX AUTOUR */
 .notification-box {
-  background-color: #f8f9fa; /* Fond très léger */
-  border: 1px solid #eee;    /* Bordure fine */
-  border-radius: 14px;       /* Arrondi moderne */
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 14px;
   padding: 4px;
   transition: all 0.2s ease;
 }
@@ -93,7 +101,7 @@ defineProps({
   width: 9px;
   height: 9px;
   background-color: v-bind('AppColor.primary.base');
-  border: 2.5px solid #f8f9fa; /* Match avec le fond du box */
+  border: 2.5px solid #f8f9fa;
   border-radius: 50%;
 }
 </style>
