@@ -1,4 +1,3 @@
-// composables/useToast.ts
 export const useToast = () => {
   const showToast = (
     text: string, 
@@ -13,9 +12,9 @@ export const useToast = () => {
     if (lib) {
       lib({
         text: `
-          <div style="display: flex; align-items: center; gap: 12px; min-width: 200px;">
-            <i class="fi ${icon}" style="font-size: 20px; color: ${type === 'error' ? '#ff4757' : type === 'success' ? '#2ecc71' : color};"></i>
-            <span style="font-weight: 500; font-family: 'Inter', sans-serif;">${text}</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fi ${icon}" style="font-size: 20px; color: ${type === 'error' ? '#ff4757' : type === 'success' ? '#2ecc71' : color}; flex-shrink: 0;"></i>
+            <span style="font-weight: 500; font-family: 'Inter', sans-serif; font-size: 14px;">${text}</span>
           </div>
         `,
         duration: 3500,
@@ -26,10 +25,14 @@ export const useToast = () => {
         style: {
           background: "white",
           color: "#1a1a1a",
-          borderRadius: "10px",
+          borderRadius: "12px",
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
           padding: "12px 20px",
-          margin:"5px"
+          // Corrections pour mobile :
+          margin: "0 15px", // Ajoute l'espace sur les côtés
+          maxWidth: "calc(100% - 30px)", // Empêche de toucher les bords
+          width: "fit-content", // S'adapte au texte
+          display: "inline-block" 
         }
       }).showToast();
     } else {
