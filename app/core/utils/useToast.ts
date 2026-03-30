@@ -29,7 +29,7 @@ export const useToast = () => {
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
           padding: "12px 20px",
           // Corrections pour mobile :
-          margin: "0 15px", // Ajoute l'espace sur les côtés
+          margin: "0 5px", // Ajoute l'espace sur les côtés
           maxWidth: "calc(100% - 30px)", // Empêche de toucher les bords
           width: "fit-content", // S'adapte au texte
           display: "inline-block" 
