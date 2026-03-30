@@ -159,7 +159,7 @@ const handleRegister = async () => {
 
 .subtitle {
   color: #666;
-  font-size: 14px;
+  font-size: 18px;
   margin-bottom: 25px;
 }
 
