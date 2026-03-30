@@ -26,6 +26,7 @@ export default defineNuxtConfig({
       short_name: 'SmartOrders',
       description: 'Gestion intelligente des commandes',
       theme_color: '#ffffff',
+      start_url: '/home',
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',
