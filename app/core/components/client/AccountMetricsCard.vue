@@ -7,7 +7,7 @@ defineProps({
   dailyProducts: { type: Number, default: 45 },
   mainBalance: { type: String, default: "2,450,000" },
   profitBalance: { type: String, default: "+125,000" },
-  // Simulation des niveaux activés
+  refundBalance: { type: String, default: "30,000" }, // Nouvelle prop
   activeLevels: { type: Array, default: () => [1, 2] } 
 })
 
@@ -44,9 +44,17 @@ const levels = [
           <p class="label">Solde Principal</p>
           <h2 class="value main">{{ mainBalance }} <small>XOF</small></h2>
         </div>
-        <div class="balance-item">
-          <p class="label">Gain Journalier</p>
-          <h2 class="value profit">{{ profitBalance }} <small>XOF</small></h2>
+        
+        <div class="balance-grid">
+          <div class="balance-item">
+            <p class="label">Gain Journalier</p>
+            <h2 class="value profit">{{ profitBalance }} <small>XOF</small></h2>
+          </div>
+
+          <div class="balance-item">
+            <p class="label">Remboursement</p>
+            <h2 class="value refund">{{ refundBalance }} <small>XOF</small></h2>
+          </div>
         </div>
       </div>
 
@@ -116,7 +124,7 @@ const levels = [
   padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
 .header-row {
@@ -146,6 +154,13 @@ const levels = [
 .balance-section {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+/* Grille pour les deux petits soldes */
+.balance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
@@ -154,12 +169,13 @@ const levels = [
   font-weight: 600;
   color: #aaa;
   margin: 0;
+  margin-bottom: 2px;
 }
 
 .value {
   margin: 0;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .value.main {
@@ -168,12 +184,17 @@ const levels = [
 }
 
 .value.profit {
-  font-size: 18px;
-  color: #4CAF50; /* Vert pour les gains */
+  font-size: 16px;
+  color: #4CAF50;
+}
+
+.value.refund {
+  font-size: 16px;
+  color: #ff9800; /* Orange pour le remboursement */
 }
 
 .value small {
-  font-size: 12px;
+  font-size: 10px;
   opacity: 0.6;
 }
 
