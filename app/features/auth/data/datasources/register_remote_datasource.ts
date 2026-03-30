@@ -1,28 +1,31 @@
-// import { supabase } from '../supabase/client'
 import { UserModel } from '../models/user_model'
-import { AuthException, DatabaseException,UserAlreadyExistsException } from '@/core/errors/exception'
+import { AuthException, DatabaseException, UserAlreadyExistsException } from '@/core/errors/exception'
 import type { RegisterParam } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
+  private supabase: any
+
+  constructor(supabaseClient: any) {
+    this.supabase = supabaseClient
+  }
 
   async register(param: RegisterParam): Promise<UserModel> {
-
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: checkError } = await this.supabase
       .from('users')
       .select('id')
       .eq('phone_number', param.phoneNumber)
       .maybeSingle()
-    if (existingUser) {
-      throw new UserAlreadyExistsException()
-    }
-    
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+
+    if (checkError) throw new DatabaseException(checkError.message)
+    if (existingUser) throw new UserAlreadyExistsException("Ce numéro de téléphone est déjà utilisé.")
+
+    const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: `${param.phoneNumber}@app.com`,
-      password: param.password
+      password: param.password,
     })
 
     if (authError || !authData.user) {
-      throw new AuthException()
+      throw new AuthException(authError?.message || "Erreur lors de la création de l'identifiant.")
     }
 
     const userId = authData.user.id
@@ -34,14 +37,14 @@ export class RegisterRemoteDatasource {
       role: param.role,
     })
 
-    const { data, error } = await supabase
+    const { data, error: insertError } = await this.supabase
       .from('users')
       .insert(userModel.toSupabase())
       .select()
       .single()
 
-    if (error || !data) {
-      throw new DatabaseException();
+    if (insertError || !data) {
+      throw new DatabaseException(insertError?.message || "Erreur lors de la création du profil utilisateur.");
     }
 
     return UserModel.fromSupabase(data)

@@ -1,4 +1,5 @@
-import type { UseCase } from '@/core/usecase/usecase' // Import du contrat
+// RegisterUseCase.ts
+import type { UseCase } from '@/core/usecase/usecase'
 import type { RegisterRepository } from '../../domain/repository/register_repository'
 import type { RegisterParam } from '../params/register_params'
 import type { User } from '../../domain/entities/user'
@@ -6,7 +7,6 @@ import { Failure, AuthFailure } from '@/core/errors/failure'
 import { RegisterValidator } from '../../presentation/validators/register_validator'
 
 export class RegisterUseCase implements UseCase<User, RegisterParam> {
-  
   private repository: RegisterRepository
 
   constructor(repository: RegisterRepository) {
@@ -14,7 +14,6 @@ export class RegisterUseCase implements UseCase<User, RegisterParam> {
   }
 
   async execute(param: RegisterParam): Promise<User | Failure> {
-    
     const validationError = RegisterValidator.validate(param)
 
     if (validationError) {
