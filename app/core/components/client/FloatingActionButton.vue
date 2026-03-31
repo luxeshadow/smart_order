@@ -130,7 +130,7 @@ const actions = [
   width: 60px; /* Légèrement plus grand pour 3 boutons */
   height: 60px;
   background-color: v-bind('AppColor.surface.pure');
-  border-radius: 28px; /* Forme plus carrée pour matcher ton style */
+  border-radius: 20px; /* Forme plus carrée pour matcher ton style */
   display: flex;
   flex-direction: column;
   align-items: center;
