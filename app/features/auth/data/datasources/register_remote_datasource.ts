@@ -22,6 +22,7 @@ export class RegisterRemoteDatasource {
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: param.email,
       password: param.password,
+      phone: param.phoneNumber,
     })
 
     if (authError || !authData.user) {
