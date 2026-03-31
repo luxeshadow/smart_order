@@ -83,7 +83,7 @@ const handleLogin = async () => {
           label="Adresse Email*"
           type="email"
           v-model="form.email"
-          icon="fi-rr-envelope"
+          icon="fi-rr-at"
           placeholder="votre@email.com"
         />
 

@@ -51,7 +51,7 @@ const handleRegister = async () => {
       return
     }
 
-    showToast("Compte créé avec succès valider l'otp pour terminer !", "fi-rr-check", "success", "#2ecc71")
+    showToast("Compte créé valider l'otp pour terminer !", "fi-rr-check", "success", "#2ecc71")
     
     setTimeout(() => {
       router.push({
