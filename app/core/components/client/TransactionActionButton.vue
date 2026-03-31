@@ -77,13 +77,13 @@ onUnmounted(() => {
 
     <div class="actions-container">
       <div @click="handleProtectedAction('/deposit')" class="action-btn">
-        <i :class="AppIcon.add" class="icon add"></i>
-        <span>Dépôt</span>
+        <i class="fi fi-rr-arrow-trend-up"></i>
+        <span>Recharger</span>
       </div>
 
       <div @click="handleProtectedAction('/withdraw')" class="action-btn">
-        <i class="fi fi-rr-minus icon minus"></i>
-        <span>Retrait</span>
+        <i class="fi fi-rr-arrow-trend-down"></i>
+        <span>récupération</span>
       </div>
     </div>
   </div>
