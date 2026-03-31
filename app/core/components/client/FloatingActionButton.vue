@@ -13,7 +13,7 @@ const toggleMenu = () => {
 const actions = [
   { id: 'Transact',    name: 'Transact',    icon: AppIcon.order, route: '/transaction/add' },
   { id: 'Vente', name: 'Vente',  icon: AppIcon.box,   route: '/sell/add' },
-  { id: 'user', name: 'Profile',  icon: AppIcon.user, route: '/user/add' },
+  { id: 'Profile', name: 'Profile',  icon: AppIcon.user, route: '/user/add' },
 ]
 </script>
 
@@ -150,7 +150,7 @@ const actions = [
   font-size: 9px;
   font-weight: 800;
   color: #333;
-  text-transform: uppercase;
+  text-transform: Camelcase;
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
