@@ -143,7 +143,7 @@ onUnmounted(() => {
   width: auto;
 }
 .title {
-  font-size: 22px;
+  font-size: 23px;
   font-weight: 800;
   color: v-bind("AppColor.tertiary.base");
   margin-bottom: 8px;
