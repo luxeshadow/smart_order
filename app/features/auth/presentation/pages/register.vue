@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AuthButton from '../components/AuthButton.vue'
-import AuthInput from '../components/AuthInput.vue'
+import Button from '@/core/components/client/Button.vue'
+import Input from '@/core/components/client/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { RegisterUseCase } from '../../application/usecases/register_usecase'
@@ -80,20 +80,20 @@ const handleRegister = async () => {
       </header>
 
       <div class="form-group">
-        <AuthInput
+        <Input
           id="user"
           label="Nom d'utilisateur*"
           v-model="form.userName"
           icon="fi-rr-user"
         />
-         <AuthInput
+         <Input
           id="email"
           label="Email*"
           v-model="form.email"
           icon="fi-rr-at"
         />
 
-        <AuthInput
+        <Input
           id="phone"
           label="Téléphone*"
           type="tel"
@@ -101,7 +101,7 @@ const handleRegister = async () => {
           icon="fi-rr-phone-call"
         />
 
-        <AuthInput
+        <Input
           id="pass"
           label="Mot de passe*"
           type="password"
@@ -109,7 +109,7 @@ const handleRegister = async () => {
           icon="fi-rr-lock"
         />
 
-        <AuthInput
+        <Input
           id="confirm-pass"
           label="Confirmer le mot de passe*"
           type="password"
@@ -118,7 +118,7 @@ const handleRegister = async () => {
         />
       </div>
 
-      <AuthButton
+      <Button
         label="S'inscrire"
         :loading="isLoading"
         @click="handleRegister"

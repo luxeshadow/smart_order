@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Button from '@/core/constants/components/client/Button.vue'
-import Input from '@/core/constants/components/client/Input.vue'
+import Button from '@/core/components/client/Button.vue'
+import Input from '@/core/components/client/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { LoginUseCase } from '../../application/usecases/login_usecase'
@@ -78,7 +78,7 @@ const handleLogin = async () => {
       </header>
 
       <div class="form-group">
-        <AuthInput
+        <Input
           id="identifier"
           label="Email ou Téléphone*"
           v-model="form.identifier"
@@ -86,7 +86,7 @@ const handleLogin = async () => {
           placeholder="exemple@mail.com ou +225..."
         />
 
-        <AuthInput
+        <Input
           id="password"
           label="Mot de passe*"
           type="password"
@@ -102,7 +102,7 @@ const handleLogin = async () => {
         </div>
       </div>
 
-      <AuthButton
+      <Button
         label="Se connecter"
         :loading="isLoading"
         @click="handleLogin"

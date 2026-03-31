@@ -11,53 +11,51 @@ export class LoginRemoteDatasource {
 
   async login(param: LoginParam): Promise<UserModel> {
     try {
-      let emailToUse = param.email
-      if (param.phoneNumber && !param.email) {
-        const { data: userData, error: dbError } = await this.supabase
-          .from('users')
-          .select('email')
-          .eq('phone_number', param.phoneNumber)
-          .maybeSingle()
+      const loginCredentials: any = {
+        password: param.password,
+      };
 
-        if (dbError) throw new DatabaseException(dbError.message)
-        if (!userData) throw new AuthException("Aucun compte n'est associé à ce numéro de téléphone.")
-        
-        emailToUse = userData.email
+      if (param.phoneNumber && !param.email) {
+        // Si l'utilisateur utilise son téléphone
+        loginCredentials.phone = param.phoneNumber;
+      } else {
+        // Sinon, on utilise l'email
+        loginCredentials.email = param.email;
       }
 
-      // 2. Tentative de connexion avec l'email et le mot de passe
-      const { data: authData, error: authError } = await this.supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password: param.password,
-      })
+      // 2. Tentative de connexion directe avec Supabase Auth
+      // Supabase cherchera automatiquement dans la table interne 'auth.users'
+      const { data: authData, error: authError } = await this.supabase.auth.signInWithPassword(loginCredentials);
 
       if (authError || !authData.user) {
-        throw new AuthException(this.translateError(authError?.message))
+        throw new AuthException(this.translateError(authError?.message));
       }
 
-      // 3. Récupération des infos complètes du profil dans ta table 'users'
-      const { data: userData, error: userError } = await this.supabase
+      // 3. Récupération des infos du profil dans votre table 'public.users'
+      // On utilise l'ID récupéré de l'auth pour trouver le profil correspondant
+      const { data: profileData, error: userError } = await this.supabase
         .from('users')
         .select('*')
         .eq('id', authData.user.id)
-        .single()
+        .single();
 
-      if (userError || !userData) {
-        throw new DatabaseException("Impossible de récupérer le profil utilisateur.")
+      if (userError || !profileData) {
+        throw new DatabaseException("Impossible de récupérer le profil utilisateur.");
       }
 
-      return UserModel.fromSupabase(userData)
+      // On retourne le modèle complet
+      return UserModel.fromSupabase(profileData);
 
     } catch (error: any) {
-      if (error instanceof AuthException || error instanceof DatabaseException) throw error
-      throw new DatabaseException(error.message || "Erreur de connexion au serveur.")
+      if (error instanceof AuthException || error instanceof DatabaseException) throw error;
+      throw new DatabaseException(error.message || "Erreur de connexion au serveur.");
     }
   }
 
   private translateError(message?: string): string {
-    if (!message) return "Identifiants invalides."
-    if (message.includes("Invalid login credentials")) return "Email/Téléphone ou mot de passe incorrect."
-    if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email avant de vous connecter."
-    return message
+    if (!message) return "Identifiants invalides.";
+    if (message.includes("Invalid login credentials")) return "Email/Téléphone ou mot de passe incorrect.";
+    if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email avant de vous connecter.";
+    return message;
   }
 }
