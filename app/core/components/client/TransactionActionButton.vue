@@ -1,39 +1,42 @@
 <script setup lang="ts">
-import { AppColor } from '@/core/constants/app_colors'
-import { AppIcon } from '@/core/constants/app_icons'
-import { useAuthStore } from '../../../features/auth/presentation/stores/auth_store'
+import { storeToRefs } from "pinia";
+import { AppColor } from "@/core/constants/app_colors";
+import { AppIcon } from "@/core/constants/app_icons";
+import { useAuthStore } from "@/features/auth/presentation/stores/auth_store";
 
-const router = useRouter()
+const router = useRouter();
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore); 
 
-const showAlert = ref(false)
-let timer: any = null
+const showAlert = ref(false);
+let timer: any = null;
 
 const handleProtectedAction = (path: string) => {
- 
-  const authStore = useAuthStore()
-
-  if (!authStore.isAuthenticated) {
-    // Si pas connecté, on fait tomber le container
-    triggerAlert()
+  if (!isAuthenticated.value) {
+    triggerAlert();
   } else {
-    // Si connecté, on navigue normalement
-    router.push(path)
+    router.push(path);
   }
-}
+};
 
 const triggerAlert = () => {
-  if (timer) clearTimeout(timer)
-  showAlert.value = true
-  
+  if (timer) clearTimeout(timer);
+  showAlert.value = true;
+
   timer = setTimeout(() => {
-    showAlert.value = false
-  }, 3000)
-}
+    showAlert.value = false;
+  }, 3000);
+};
 
 const closeAlert = () => {
-  showAlert.value = false
-  if (timer) clearTimeout(timer)
-}
+  showAlert.value = false;
+  if (timer) clearTimeout(timer);
+};
+
+// Nettoyage automatique du timer si on quitte la page
+onUnmounted(() => {
+  if (timer) clearTimeout(timer);
+});
 </script>
 
 <template>
@@ -41,22 +44,25 @@ const closeAlert = () => {
     <Transition name="drop">
       <div v-if="showAlert" class="auth-alert-container">
         <div class="alert-content">
-          <button class="close-btn" @click="closeAlert">
+          <button class="close-btn" @click="closeAlert" aria-label="Fermer">
             <i class="fi fi-rr-cross-small"></i>
           </button>
-          
+
           <div class="alert-header">
             <i class="fi fi-rr-lock icon-lock"></i>
             <h3>Connexion requise</h3>
           </div>
-          
-          <p class="alert-text">Pour continuer, veuillez vous connecter ou vous inscrire.</p>
-          
+
+          <p class="alert-text">
+            Pour continuer, veuillez vous connecter ou vous inscrire.
+          </p>
+
           <div class="alert-actions">
-            <NuxtLink to="auth/login" class="btn-auth login">
+            <NuxtLink to="/auth/login" class="btn-auth login" @click="closeAlert">
               <i class="fi fi-rr-sign-in-alt"></i> Connexion
             </NuxtLink>
-            <NuxtLink to="auth/register" class="btn-auth register">
+
+            <NuxtLink to="/auth/register" class="btn-auth register" @click="closeAlert">
               <i class="fi fi-rr-user-add"></i> Inscription
             </NuxtLink>
           </div>
@@ -79,12 +85,12 @@ const closeAlert = () => {
 </template>
 
 <style scoped>
+
 .actions-section {
   padding: 15px;
   position: relative;
 }
 
-/* CONTAINER ALERTE */
 .auth-alert-container {
   position: fixed;
   top: 20px;
@@ -101,7 +107,7 @@ const closeAlert = () => {
   max-width: 400px;
   padding: 20px;
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   border: 1px solid #f0f0f0;
   position: relative;
 }
@@ -109,7 +115,7 @@ const closeAlert = () => {
 .close-btn {
   position: absolute;
   top: 15px;
-  left: 15px; /* Placé à gauche comme demandé */
+  left: 15px;
   background: #f5f5f5;
   border: none;
   border-radius: 50%;
@@ -132,7 +138,7 @@ const closeAlert = () => {
 
 .icon-lock {
   font-size: 20px;
-  color: v-bind('AppColor.primary.base'); /* Cadenas Primary */
+  color: v-bind("AppColor.primary.base");
 }
 
 .alert-header h3 {
@@ -167,7 +173,7 @@ const closeAlert = () => {
 }
 
 .login {
-  background-color: v-bind('AppColor.primary.base');
+  background-color: v-bind("AppColor.primary.base");
   color: white;
 }
 
@@ -176,7 +182,6 @@ const closeAlert = () => {
   color: #333;
 }
 
-/* ACTIONS BUTTONS ORIGINAUX */
 .actions-container {
   display: flex;
   gap: 12px;
@@ -192,15 +197,14 @@ const closeAlert = () => {
   padding: 14px;
   border-radius: 18px;
   background-color: transparent;
-  border: 1.5px solid v-bind('AppColor.primary.base');
-  color: v-bind('AppColor.primary.base');
+  border: 1.5px solid v-bind("AppColor.primary.base");
+  color: v-bind("AppColor.primary.base");
   cursor: pointer;
   font-weight: 700;
   font-size: 14px;
   transition: all 0.2s;
 }
 
-/* ANIMATION "FALL" */
 .drop-enter-active {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

@@ -126,7 +126,7 @@ const handleRegister = async () => {
 
       <div class="footer-link">
         <span>Déjà membre ?</span>
-        <NuxtLink to="/login" class="login-link" :style="{ color: AppColor.primary.base }">
+        <NuxtLink to="auth/login" class="login-link" :style="{ color: AppColor.primary.base }">
           Se connecter
         </NuxtLink>
       </div>

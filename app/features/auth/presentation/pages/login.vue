@@ -49,7 +49,6 @@ const handleLogin = async () => {
 
     showToast(`Bienvenue, ${result.username} !`, "fi-rr-check", "success", "#2ecc71")
 
-    // 2. Redirection selon le rôle
     setTimeout(() => {
       if (result.role === 'admin') {
         router.push('/admin/dashboard')
@@ -178,7 +177,8 @@ const handleLogin = async () => {
 
 .register-link {
   font-weight: 700;
-  text-decoration: none;
+ text-decoration: underline; 
+  text-underline-offset: 4px;
   transition: opacity 0.2s ease;
 }
 
