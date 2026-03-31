@@ -14,37 +14,28 @@ export class LoginRemoteDatasource {
       const loginCredentials: any = {
         password: param.password,
       };
-
       if (param.phoneNumber && !param.email) {
-        // Si l'utilisateur utilise son téléphone
         loginCredentials.phone = param.phoneNumber;
       } else {
-        // Sinon, on utilise l'email
         loginCredentials.email = param.email;
       }
 
-      // 2. Tentative de connexion directe avec Supabase Auth
-      // Supabase cherchera automatiquement dans la table interne 'auth.users'
       const { data: authData, error: authError } = await this.supabase.auth.signInWithPassword(loginCredentials);
 
       if (authError || !authData.user) {
         throw new AuthException(this.translateError(authError?.message));
       }
-
-      // 3. Récupération des infos du profil dans votre table 'public.users'
-      // On utilise l'ID récupéré de l'auth pour trouver le profil correspondant
-      const { data: profileData, error: userError } = await this.supabase
+      const { data: userData, error: userError } = await this.supabase
         .from('users')
         .select('*')
         .eq('id', authData.user.id)
         .single();
 
-      if (userError || !profileData) {
+      if (userError || !userData) {
         throw new DatabaseException("Impossible de récupérer le profil utilisateur.");
       }
 
-      // On retourne le modèle complet
-      return UserModel.fromSupabase(profileData);
+      return UserModel.fromSupabase(userData);
 
     } catch (error: any) {
       if (error instanceof AuthException || error instanceof DatabaseException) throw error;
