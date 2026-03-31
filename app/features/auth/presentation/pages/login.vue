@@ -7,7 +7,7 @@ import { LoginUseCase } from '../../application/usecases/login_usecase'
 import { LoginRepositoryImpl } from '../../data/repositories/login_repository_impl'
 import { Failure } from '@/core/errors/failure'
 import { useToast } from '../../../../core/utils/useToast'
-import { useAuthStore } from '../../presentation/stores/auth'
+import { useAuthStore } from '../stores/auth_store'
 
 const { showToast } = useToast()
 const router = useRouter()
