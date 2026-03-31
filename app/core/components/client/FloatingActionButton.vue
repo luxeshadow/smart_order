@@ -130,7 +130,7 @@ const actions = [
   width: 60px; /* Légèrement plus grand pour 3 boutons */
   height: 60px;
   background-color: v-bind('AppColor.surface.pure');
-  border-radius: 18px; /* Forme plus carrée pour matcher ton style */
+  border-radius: 50%; /* Forme plus carrée pour matcher ton style */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -147,7 +147,7 @@ const actions = [
 }
 
 .action-label {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
   color: #333;
   text-transform: uppercase;
