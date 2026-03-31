@@ -11,6 +11,12 @@ const { isAuthenticated } = storeToRefs(authStore);
 const showAlert = ref(false);
 let timer: any = null;
 
+// Fonction pour fermer proprement le modal et rediriger
+const goToAuth = (path: string) => {
+  closeAlert();
+  router.push(path);
+};
+
 const handleProtectedAction = (path: string) => {
   if (!isAuthenticated.value) {
     triggerAlert();
@@ -25,7 +31,7 @@ const triggerAlert = () => {
 
   timer = setTimeout(() => {
     showAlert.value = false;
-  }, 3000);
+  }, 4000); // Un peu plus long pour laisser le temps de lire
 };
 
 const closeAlert = () => {
@@ -33,7 +39,6 @@ const closeAlert = () => {
   if (timer) clearTimeout(timer);
 };
 
-// Nettoyage automatique du timer si on quitte la page
 onUnmounted(() => {
   if (timer) clearTimeout(timer);
 });
@@ -54,17 +59,17 @@ onUnmounted(() => {
           </div>
 
           <p class="alert-text">
-            Pour continuer, veuillez vous connecter ou vous inscrire.
+            Pour continuer, veuillez vous connecter ou vous inscrire sur <strong>Smart Order</strong>.
           </p>
 
           <div class="alert-actions">
-            <NuxtLink to="/auth/login" class="btn-auth login" @click="closeAlert">
+            <button class="btn-auth login" @click="goToAuth('/auth/login')">
               <i class="fi fi-rr-sign-in-alt"></i> Connexion
-            </NuxtLink>
+            </button>
 
-            <NuxtLink to="/auth/register" class="btn-auth register" @click="closeAlert">
+            <button class="btn-auth register" @click="goToAuth('/auth/register')">
               <i class="fi fi-rr-user-add"></i> Inscription
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
@@ -85,7 +90,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 .actions-section {
   padding: 15px;
   position: relative;
@@ -107,7 +111,7 @@ onUnmounted(() => {
   max-width: 400px;
   padding: 20px;
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   border: 1px solid #f0f0f0;
   position: relative;
 }
@@ -115,17 +119,22 @@ onUnmounted(() => {
 .close-btn {
   position: absolute;
   top: 15px;
-  left: 15px;
+  right: 15px; /* Déplacé à droite pour plus d'ergonomie */
   background: #f5f5f5;
   border: none;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
   color: #666;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
+}
+
+.close-btn:hover {
+  background: #eeeeee;
 }
 
 .alert-header {
@@ -133,7 +142,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .icon-lock {
@@ -145,31 +154,39 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 800;
   margin: 0;
+  color: #2d3436;
 }
 
 .alert-text {
   font-size: 14px;
-  color: #666;
+  color: #636e72;
   text-align: center;
-  margin: 12px 0 20px 0;
+  margin: 15px 0 25px 0;
+  line-height: 1.5;
 }
 
 .alert-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-auth {
   flex: 1;
-  padding: 12px;
-  border-radius: 14px;
-  text-decoration: none;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
   font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-auth:active {
+  transform: scale(0.96);
 }
 
 .login {
@@ -178,8 +195,8 @@ onUnmounted(() => {
 }
 
 .register {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f1f2f6;
+  color: #2d3436;
 }
 
 .actions-container {
@@ -193,30 +210,34 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 18px;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
   background-color: transparent;
   border: 1.5px solid v-bind("AppColor.primary.base");
   color: v-bind("AppColor.primary.base");
   cursor: pointer;
   font-weight: 700;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: v-bind("AppColor.primary.base + '08'"); /* Effet hover léger */
 }
 
 .drop-enter-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .drop-leave-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.3s cubic-bezier(0.4, 0, 1, 1);
 }
 .drop-enter-from {
-  transform: translateY(-150px);
+  transform: translateY(-120%);
   opacity: 0;
 }
 .drop-leave-to {
-  transform: translateY(-20px);
+  transform: translateY(-50px);
   opacity: 0;
 }
 </style>
