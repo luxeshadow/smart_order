@@ -135,7 +135,7 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 15px;
   border-top: 1px solid #f8f8f8;
-  padding-top: 25px;
+  padding-top: 15px;
 }
 
 .links-row {
