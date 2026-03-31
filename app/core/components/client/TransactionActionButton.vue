@@ -83,7 +83,7 @@ onUnmounted(() => {
 
       <div @click="handleProtectedAction('/withdraw')" class="action-btn">
         <i class="fi fi-rr-arrow-trend-down"></i>
-        <span>récupération</span>
+        <span>Récupérer</span>
       </div>
     </div>
   </div>
