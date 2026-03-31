@@ -1,4 +1,4 @@
 export interface VerifyOtpParam {
-  phoneNumber: string
+  email: string
   otp: string
 }

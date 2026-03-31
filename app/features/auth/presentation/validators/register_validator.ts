@@ -1,6 +1,6 @@
 export class RegisterValidator {
   static validate(params: any, confirmPassword?: string): string | null {
-    if (!params.userName || !params.phoneNumber || !params.password) {
+    if (!params.userName || !params.phoneNumber || !params.email || !params.password) {
       return "Tous les champs sont obligatoires."
     }
 
@@ -12,6 +12,11 @@ export class RegisterValidator {
     const phoneRegex = /^\+?[1-9]\d{1,14}$/
     if (!phoneRegex.test(params.phoneNumber)) {
       return "Le numéro de téléphone n'est pas valide."
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(params.email)) {
+      return "L'adresse email n'est pas valide."
     }
 
     if (params.password.length < 6) {

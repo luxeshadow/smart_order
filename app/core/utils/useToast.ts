@@ -28,10 +28,9 @@ export const useToast = () => {
           borderRadius: "12px",
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
           padding: "12px 20px",
-          // Corrections pour mobile :
-          margin: "0 5px", // Ajoute l'espace sur les côtés
-          maxWidth: "calc(100% - 30px)", // Empêche de toucher les bords
-          width: "fit-content", // S'adapte au texte
+          margin: "0 5px",
+          maxWidth: "calc(100% - 30px)",
+          width: "fit-content",
           display: "inline-block" 
         }
       }).showToast();

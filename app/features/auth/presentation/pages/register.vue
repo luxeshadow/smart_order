@@ -38,6 +38,7 @@ const handleRegister = async () => {
   try {
     const result = await registerUseCase.execute({
       userName: form.value.userName,
+      email: form.value.email,
       phoneNumber: form.value.phoneNumber,
       password: form.value.password,
       role: form.value.role
@@ -50,10 +51,13 @@ const handleRegister = async () => {
       return
     }
 
-    showToast("Compte créé avec succès !", "fi-rr-check", "success", "#2ecc71")
+    showToast("Compte créé avec succès valider l'otp pour terminer !", "fi-rr-check", "success", "#2ecc71")
     
     setTimeout(() => {
-      router.push('/login')
+      router.push({
+      path: 'auth/verify-otp',
+      query: { email: form.value.email }
+    })
       isLoading.value = false
     }, 1500)
 
@@ -78,14 +82,20 @@ const handleRegister = async () => {
       <div class="form-group">
         <AuthInput
           id="user"
-          label="Nom d'utilisateur"
+          label="Nom d'utilisateur*"
           v-model="form.userName"
           icon="fi-rr-user"
+        />
+         <AuthInput
+          id="email"
+          label="Email*"
+          v-model="form.email"
+          icon="fi-rr-at"
         />
 
         <AuthInput
           id="phone"
-          label="Téléphone"
+          label="Téléphone*"
           type="tel"
           v-model="form.phoneNumber"
           icon="fi-rr-phone-call"
@@ -93,7 +103,7 @@ const handleRegister = async () => {
 
         <AuthInput
           id="pass"
-          label="Mot de passe"
+          label="Mot de passe*"
           type="password"
           v-model="form.password"
           icon="fi-rr-lock"
@@ -101,7 +111,7 @@ const handleRegister = async () => {
 
         <AuthInput
           id="confirm-pass"
-          label="Confirmer le mot de passe"
+          label="Confirmer le mot de passe*"
           type="password"
           v-model="form.confirmPassword"
           icon="fi-rr-lock"

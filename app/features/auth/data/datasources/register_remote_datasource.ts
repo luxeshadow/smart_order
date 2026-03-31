@@ -20,7 +20,7 @@ export class RegisterRemoteDatasource {
     if (existingUser) throw new UserAlreadyExistsException("Ce numéro de téléphone est déjà utilisé.")
 
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email: `${param.phoneNumber}@app.com`,
+      email: param.email,
       password: param.password,
     })
 
@@ -33,6 +33,7 @@ export class RegisterRemoteDatasource {
     const userModel = new UserModel({
       id: userId,
       username: param.userName,
+      email: param.email,
       phoneNumber: param.phoneNumber,
       role: param.role,
     })
