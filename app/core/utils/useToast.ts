@@ -28,7 +28,7 @@ export const useToast = () => {
           borderRadius: "12px",
           boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
           padding: "12px 20px",
-          margin: "0 5px",
+         
           maxWidth: "calc(100% - 30px)",
           width: "fit-content",
           display: "inline-block" 

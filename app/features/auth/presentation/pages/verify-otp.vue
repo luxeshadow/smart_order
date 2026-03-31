@@ -46,7 +46,7 @@ const handleVerify = async () => {
   isLoading.value = true;
   setTimeout(() => {
     showToast("Vérification réussie !", "fi-rr-check", "success", "#2ecc71");
-    router.push("auth/login");
+    router.push("/auth/login");
     isLoading.value = false;
   }, 1500);
 };
