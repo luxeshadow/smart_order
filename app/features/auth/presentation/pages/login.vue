@@ -158,7 +158,6 @@ const handleLogin = async () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 15px;
   margin-bottom: 25px;
 }
 
