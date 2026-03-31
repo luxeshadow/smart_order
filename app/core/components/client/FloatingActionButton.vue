@@ -11,7 +11,7 @@ const toggleMenu = () => {
 
 // RÉDUIT À 3 ACTIONS
 const actions = [
-  { id: 'Transaction',    name: 'Transaction',    icon: AppIcon.order, route: '/transaction/add' },
+  { id: 'Transact',    name: 'Transact',    icon: AppIcon.order, route: '/transaction/add' },
   { id: 'Vente', name: 'Vente',  icon: AppIcon.box,   route: '/sell/add' },
   { id: 'user', name: 'Profile',  icon: AppIcon.user, route: '/user/add' },
 ]
