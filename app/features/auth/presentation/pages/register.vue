@@ -55,7 +55,7 @@ const handleRegister = async () => {
     
     setTimeout(() => {
       router.push({
-      path: 'auth/verify-otp',
+      path: '/auth/verify-otp',
       query: { email: form.value.email }
     })
       isLoading.value = false
