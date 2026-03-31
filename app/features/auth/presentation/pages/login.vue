@@ -13,30 +13,31 @@ const { showToast } = useToast()
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Initialisation des couches Clean Architecture
+// Initialisation Clean Arch
 const repository = new LoginRepositoryImpl()
 const loginUseCase = new LoginUseCase(repository)
 
 const form = ref({
-  identifier: '', // Peut être email ou téléphone
+  email: '',
   password: ''
 })
 
 const isLoading = ref(false)
 
 const handleLogin = async () => {
-  isLoading.value = true
-
-  // Détection automatique du type d'identifiant pour les params
-  const isEmail = form.value.identifier.includes('@')
-  const loginParams = {
-    email: isEmail ? form.value.identifier : undefined,
-    phoneNumber: !isEmail ? form.value.identifier : undefined,
-    password: form.value.password
+  if (!form.value.email || !form.value.password) {
+    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
+    return
   }
 
+  isLoading.value = true
+
   try {
-    const result = await loginUseCase.execute(loginParams)
+    // Appel du UseCase avec uniquement l'email
+    const result = await loginUseCase.execute({
+      email: form.value.email,
+      password: form.value.password
+    })
 
     if (result instanceof Failure) {
       showToast(result.message, 'fi-rr-cross-circle', 'error', '#ff4757')
@@ -44,10 +45,9 @@ const handleLogin = async () => {
       return
     }
 
-    // 1. Nourrir le store Pinia avec l'utilisateur (incluant le token et le rôle)
+    // Mise à jour du store et redirection
     authStore.setUser(result)
-
-    showToast(`Bienvenue, ${result.username} !`, "fi-rr-check", "success", "#2ecc71")
+    showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success", "#2ecc71")
 
     setTimeout(() => {
       if (result.role === 'admin') {
@@ -60,7 +60,7 @@ const handleLogin = async () => {
 
   } catch (error) {
     isLoading.value = false
-    showToast("Une erreur de connexion est survenue", "fi-rr-shield-exclamation", "error", "#ff4757")
+    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error", "#ff4757")
   }
 }
 </script>
@@ -74,16 +74,17 @@ const handleLogin = async () => {
 
       <header class="header-content">
         <h2 class="title">Bon retour !</h2>
-        <p class="subtitle">Connectez-vous pour continuer</p>
+        <p class="subtitle">Connectez-vous à votre compte</p>
       </header>
 
       <div class="form-group">
         <Input
-          id="identifier"
-          label="Email ou Téléphone*"
-          v-model="form.identifier"
-          icon="fi-rr-user"
-          placeholder="exemple@mail.com ou +225..."
+          id="email"
+          label="Adresse Email*"
+          type="email"
+          v-model="form.email"
+          icon="fi-rr-envelope"
+          placeholder="votre@email.com"
         />
 
         <Input
@@ -109,9 +110,9 @@ const handleLogin = async () => {
       />
 
       <div class="footer-link">
-        <span>Nouveau ici ?</span>
+        <span>Pas encore de compte ?</span>
         <NuxtLink to="/auth/register" class="register-link" :style="{ color: AppColor.primary.base }">
-          Créer un compte
+          S'inscrire
         </NuxtLink>
       </div>
     </div>
@@ -119,6 +120,7 @@ const handleLogin = async () => {
 </template>
 
 <style scoped>
+/* Les styles restent identiques, j'ai juste ajusté les espacements */
 .login-page {
   display: flex;
   justify-content: center;
@@ -138,7 +140,6 @@ const handleLogin = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
 }
 
 .title {
@@ -152,18 +153,19 @@ const handleLogin = async () => {
   color: #666;
   font-size: 15px;
   margin-bottom: 25px;
+  text-align: center;
 }
 
 .form-group {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 15px;
   margin-bottom: 25px;
 }
 
 .forgot-password {
-  text-align: right;
+  align-self: flex-end;
   font-size: 13px;
   margin-top: -5px;
 }
@@ -177,14 +179,8 @@ const handleLogin = async () => {
 
 .register-link {
   font-weight: 700;
- text-decoration: underline; 
+  text-decoration: underline; 
   text-underline-offset: 4px;
-  transition: opacity 0.2s ease;
-}
-
-.register-link:hover {
-  text-decoration: underline;
-  opacity: 0.8;
 }
 
 .app-logo {

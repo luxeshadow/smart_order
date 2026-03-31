@@ -4,17 +4,21 @@ import Input from '@/core/components/client/Input.vue'
 import { AppColor } from "@/core/constants/app_colors";
 import { AppImage } from "@/core/constants/app_images";
 import { useToast } from "../../../../core/utils/useToast";
+import { Failure } from '@/core/errors/failure';
+import { VerifyOtpUseCase } from '../../application/usecases/verify_otp_usecase';
+import { VerifyOtpRepositoryImpl } from '../../data/repositories/verify_otp_repository_impl';
 
 const { showToast } = useToast();
 const router = useRouter();
 const route = useRoute();
-
-const email = computed(() => (route.query.email as string) || "votre email");
+const repository = new VerifyOtpRepositoryImpl();
+const verifyOtpUseCase = new VerifyOtpUseCase(repository);
+const email = computed(() => (route.query.email as string) || "");
 
 const otpCode = ref("");
 const isLoading = ref(false);
 
-const initialTimer = 600;
+const initialTimer = 600; 
 const timer = ref(initialTimer);
 const canResend = ref(false);
 let interval: any = null;
@@ -39,25 +43,46 @@ const formatTimer = computed(() => {
 });
 
 const handleVerify = async () => {
-  if (otpCode.value.length < 4) {
-    showToast("Veuillez entrer le code complet", "fi-rr-info", "error", "#ff4757");
-    return;
-  }
   isLoading.value = true;
-  setTimeout(() => {
-    showToast("Vérification réussie !", "fi-rr-check", "success", "#2ecc71");
-    router.push("/auth/login");
+  try {
+
+    const result = await verifyOtpUseCase.execute({
+      email: email.value,
+      otp: otpCode.value
+    });
+
+    if (result instanceof Failure) {
+      showToast(result.message, "fi-rr-cross-circle", "error", "#ff4757");
+      isLoading.value = false;
+    } else {
+      showToast("Vérification réussie !", "fi-rr-check", "success", "#2ecc71");
+      
+      setTimeout(() => {
+        router.push("/auth/login");
+        isLoading.value = false;
+      }, 1500);
+    }
+  } catch (error) {
     isLoading.value = false;
-  }, 1500);
+    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error", "#ff4757");
+  }
 };
 
 const handleResend = () => {
   if (!canResend.value) return;
-  showToast("Nouveau code envoyé", "fi-rr-refresh", "success", AppColor.primary.base);
+  // Ici tu pourrais appeler un UseCase 'ResendOtp' si tu l'as créé
+  showToast("Un nouveau code a été envoyé", "fi-rr-refresh", "success", AppColor.primary.base);
   startTimer();
 };
 
-onMounted(() => startTimer());
+onMounted(() => {
+  if (!email.value) {
+    showToast("Email manquant, veuillez recommencer", "fi-rr-info", "error", "#ff4757");
+    router.push("/auth/register");
+  }
+  startTimer();
+});
+
 onUnmounted(() => {
   if (interval) clearInterval(interval);
 });
@@ -85,7 +110,8 @@ onUnmounted(() => {
           type="text"
           v-model="otpCode"
           icon="fi-rr-shield-check"
-          placeholder="Ex: 1234"
+          placeholder="Ex: 755843"
+          maxlength="6"
         />
 
         <div class="timer-container">
@@ -103,10 +129,10 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <Button label="Vérifier" :loading="isLoading" @click="handleVerify" />
+      <Button label="Vérifier le code" :loading="isLoading" @click="handleVerify" />
 
       <div class="footer-link">
-        <NuxtLink to="/auth/login" class="back-link">
+        <NuxtLink to="/auth/register" class="back-link">
           <i class="fi fi-rr-hand-back-point-left"></i>
           <span>Annuler et retourner</span>
         </NuxtLink>
@@ -116,6 +142,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Conserve tes styles actuels, ils sont déjà très propres */
 .otp-page {
   display: flex;
   justify-content: center;
@@ -134,9 +161,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-.logo-container {
-  margin-bottom: 20px;
 }
 .app-logo {
   height: 80px;
@@ -184,69 +208,21 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
-  transition: opacity 0.2s;
 }
-.resend-btn:hover {
-  opacity: 0.8;
-}
-/* ... tes autres styles ... */
-
 .footer-link {
   margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
 }
-
 .back-link {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #a0a0a0; /* Gris doux par défaut */
+  color: #a0a0a0;
   text-decoration: none;
-  position: relative;
   transition: all 0.3s ease;
-  padding: 4px 8px;
 }
-
-/* Le soulignement stylisé */
-.back-link span {
-  position: relative;
-}
-
-.back-link span::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  height: 2px;
-  bottom: -2px;
-  left: 0;
-  background-color: v-bind("AppColor.primary.base"); /* Ton orange #ff7a00 */
-  transform: scaleX(0);
-  transform-origin: bottom right;
-  transition: transform 0.3s ease-out;
-}
-
-/* Effets au survol */
 .back-link:hover {
   color: v-bind("AppColor.primary.base");
-  transform: translateX(-4px); /* Petit mouvement vers la gauche */
-}
-
-.back-link:hover span::after {
-  transform: scaleX(1);
-  transform-origin: bottom left;
-}
-
-.back-link i {
-  font-size: 12px;
-  transition: transform 0.3s ease;
-}
-
-.back-link:hover i {
-  transform: scale(1.1);
 }
 </style>

@@ -6,8 +6,8 @@ export class VerifyOtpValidator {
       return "Le code de vérification est requis"
     }
 
-    if (otp.length !== 5) {
-      return "Le code doit contenir exactement 5 chiffres"
+    if (otp.length !== 6) {
+      return "Le code doit contenir exactement 6 chiffres"
     }
 
     const isNumeric = /^\d+$/.test(otp)

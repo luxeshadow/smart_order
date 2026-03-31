@@ -1,5 +1,4 @@
 export interface LoginParam {
-  email?: string       
-  phoneNumber?: string 
+  email: string       
   password: string    
 }
