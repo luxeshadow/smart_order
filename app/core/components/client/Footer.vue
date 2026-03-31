@@ -23,7 +23,7 @@ onUnmounted(() => {
       
       <div class="brand-row">
         <div class="logo-wrapper">
-           <h2 class="brand-name">Smart Orders</h2>
+           <h2 class="brand-name">Smart Order</h2>
            <div class="brand-dot"></div>
         </div>
 
