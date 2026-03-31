@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AuthButton from '../components/AuthButton.vue'
-import AuthInput from '../components/AuthInput.vue'
+import Button from '@/core/constants/components/client/Button.vue'
+import Input from '@/core/constants/components/client/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { LoginUseCase } from '../../application/usecases/login_usecase'

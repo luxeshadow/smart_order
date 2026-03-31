@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AppColor } from '@/core/constants/app_colors'
-import { computed } from 'vue' // Ajout de l'import manquant
+import { computed } from 'vue' 
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -127,7 +127,6 @@ const isInteractive = computed(() => !props.loading && !props.disabled)
   transform: none !important;
 }
 
-/* Transition Fade */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.15s ease;
 }

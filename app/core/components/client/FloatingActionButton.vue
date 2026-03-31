@@ -13,7 +13,7 @@ const toggleMenu = () => {
 const actions = [
   { id: 'Transact',    name: 'Transact',    icon: AppIcon.order, route: '/transaction/add' },
   { id: 'Vente', name: 'Vente',  icon: AppIcon.box,   route: '/sell/add' },
-  { id: 'Profile', name: 'Profile',  icon: AppIcon.user, route: '/user/add' },
+  { id: 'Parametre', name: 'Parametre',  icon: AppIcon.user, route: '/user/add' },
 ]
 </script>
 
@@ -127,10 +127,10 @@ const actions = [
 .fab-orbit-menu.is-open .orbit-item:nth-child(3) { transform: translate(-95px, 0px); }
 
 .action-btn {
-  width: 60px; /* Légèrement plus grand pour 3 boutons */
+  width: 60px; 
   height: 60px;
   background-color: v-bind('AppColor.surface.pure');
-  border-radius: 20px; /* Forme plus carrée pour matcher ton style */
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -150,7 +150,6 @@ const actions = [
   font-size: 9px;
   font-weight: 800;
   color: #333;
-  text-transform: Camelcase;
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
