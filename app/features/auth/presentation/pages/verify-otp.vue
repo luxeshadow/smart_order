@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AuthButton from "../components/AuthButton.vue";
-import AuthInput from "../components/AuthInput.vue";
+import Button from '@/core/components/client/Button.vue'
+import Input from '@/core/components/client/Input.vue'
 import { AppColor } from "@/core/constants/app_colors";
 import { AppImage } from "@/core/constants/app_images";
 import { useToast } from "../../../../core/utils/useToast";
@@ -79,7 +79,7 @@ onUnmounted(() => {
       </header>
 
       <div class="form-group">
-        <AuthInput
+        <Input
           id="otp-code"
           label="Code de validation"
           type="text"
@@ -103,7 +103,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <AuthButton label="Vérifier" :loading="isLoading" @click="handleVerify" />
+      <Button label="Vérifier" :loading="isLoading" @click="handleVerify" />
 
       <div class="footer-link">
         <NuxtLink to="/auth/login" class="back-link">
