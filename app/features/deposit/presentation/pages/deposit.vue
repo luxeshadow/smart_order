@@ -150,17 +150,11 @@ onMounted(() => {
 }
 
 .back-btn {
-  background: #f8f9fa;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #2d3436;
-  cursor: pointer;
+background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 4px;
+  transition: all 0.2s ease;
 }
 
 .app-bar-title {
