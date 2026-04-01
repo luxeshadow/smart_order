@@ -11,7 +11,9 @@ const router = useRouter()
 const form = ref({
   phoneNumber: '',
   amount: '',
-  method: 'tmoney' 
+  method: 'tmoney',
+  firstName: '',
+  lastName: ''
 })
 
 const isLoading = ref(false)
@@ -19,10 +21,10 @@ const isDropdownOpen = ref(false)
 
 const paymentMethods = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
-  { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz }
+  { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz },
+  { id: 'ria', label: 'Ria Money Transfer', image: AppImage.Ria } // Remplace par l'image Ria si dispo dans AppImage
 ]
 
-// Calculer la méthode sélectionnée pour l'affichage
 const selectedMethod = computed(() => 
   paymentMethods.find(m => m.id === form.value.method) || paymentMethods[0]
 )
@@ -32,15 +34,21 @@ const selectMethod = (id: string) => {
   isDropdownOpen.value = false
 }
 
-const handleDeposit = async () => {
+const handleWithdraw = async () => {
+  if (form.value.method === 'ria') {
+    showToast("Ce service est actuellement indisponible", "fi-rr-info", "error", "#ff4757")
+    return
+  }
+
   if (!form.value.phoneNumber || !form.value.amount) {
     showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
     return
   }
+
   isLoading.value = true
   try {
     await new Promise(resolve => setTimeout(resolve, 2000))
-    showToast("Demande de recharge envoyée !", "fi-rr-check", "success", "#2ecc71")
+    showToast("Demande de retrait envoyée !", "fi-rr-check", "success", "#2ecc71")
     setTimeout(() => { router.push('/home') }, 1500)
   } catch (error) {
     showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error", "#ff4757")
@@ -49,7 +57,6 @@ const handleDeposit = async () => {
   }
 }
 
-// Fermer le menu si on clique ailleurs
 onMounted(() => {
   window.addEventListener('click', (e: any) => {
     if (!e.target.closest('.custom-select-group')) isDropdownOpen.value = false
@@ -58,29 +65,35 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="deposit-page">
+  <div class="withdraw-page">
     <nav class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-      <span class="app-bar-title">Recharger</span>
+      <span class="app-bar-title">Retrait</span>
       <div class="spacer"></div>
     </nav>
 
-    <div class="deposit-card">
+    <div class="withdraw-card">
       <div class="logo-container">
         <img :src="AppImage.Logo" alt="Smart Order Logo" class="app-logo" />
       </div>
 
       <header class="header-content">
-        <h2 class="title">Recharger mon compte</h2>
-        <p class="subtitle">Complétez les informations ci-dessous</p>
+        <h2 class="title">Retirer de l'argent</h2>
+        <p class="subtitle">Choisissez votre mode de retrait préféré</p>
       </header>
+
+      <Transition name="fade">
+        <div v-if="form.method === 'ria'" class="alert-box">
+          <i class="fi fi-rr-info"></i>
+          <span>Les retraits via Ria sont suspendus pour le moment.</span>
+        </div>
+      </Transition>
 
       <div class="form-group">
         <div class="custom-select-group">
-          <label class="select-label">Méthode de paiement*</label>
-          
+          <label class="select-label">Méthode de retrait*</label>
           <div class="custom-select" :class="{ 'is-open': isDropdownOpen }">
             <div class="selected-option" @click.stop="isDropdownOpen = !isDropdownOpen">
               <div class="method-info">
@@ -107,9 +120,26 @@ onMounted(() => {
           </div>
         </div>
 
+        <template v-if="form.method === 'ria'">
+          <Input
+            id="lastname"
+            label="Nom de famille*"
+            v-model="form.lastName"
+            icon="fi-rr-user"
+            placeholder="Votre nom"
+          />
+          <Input
+            id="firstname"
+            label="Prénom*"
+            v-model="form.firstName"
+            icon="fi-rr-text"
+            placeholder="Votre prénom"
+          />
+        </template>
+
         <Input
           id="phone"
-          label="Numéro de téléphone*"
+          label="Numéro de réception*"
           v-model="form.phoneNumber"
           icon="fi-rr-phone-call"
           placeholder="Ex: 90 00 00 00"
@@ -118,7 +148,7 @@ onMounted(() => {
 
         <Input
           id="amount"
-          label="Montant (FCFA)*"
+          label="Montant à retirer (FCFA)*"
           v-model="form.amount"
           icon="fi-rr-stats"
           placeholder="Ex: 5000"
@@ -127,16 +157,17 @@ onMounted(() => {
       </div>
 
       <Button
-        label="Lancer la recharge"
+        :label="form.method === 'ria' ? 'Indisponible' : 'Confirmer le retrait'"
         :loading="isLoading"
-        @click="handleDeposit"
+        :disabled="form.method === 'ria'"
+        @click="handleWithdraw"
       />
     </div>
   </div>
 </template>
 
 <style scoped>
-/* AppBar */
+/* AppBar & Page Base */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -150,149 +181,68 @@ onMounted(() => {
 }
 
 .back-btn {
-
-  width: 50px;
-  height: 50px;
+  width: 45px; height: 45px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
-  border-radius: 14px;
-  padding: 4px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #2d3436; cursor: pointer;
 }
 
-.app-bar-title {
-  flex: 1;
-  text-align: center;
-  font-weight: 700;
-  font-size: 17px;
-  color: #2d3436;
-}
+.app-bar-title { flex: 1; text-align: center; font-weight: 700; font-size: 17px; }
+.spacer { width: 45px; }
 
-.spacer { width: 40px; }
-
-/* Page & Card */
-.deposit-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f8f9fa;
+.withdraw-page {
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; background-color: #f8f9fa;
   padding: 85px 20px 40px 20px;
 }
 
-.deposit-card {
-  width: 100%;
-  max-width: 420px;
-  background: white;
-  padding: 40px 30px;
-  border-radius: 30px;
+.withdraw-card {
+  width: 100%; max-width: 420px; background: white;
+  padding: 40px 30px; border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* Custom Select CSS */
-.custom-select-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-}
-
-.select-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.custom-select {
-  position: relative;
-  width: 100%;
-}
-
-.selected-option {
-  height: 52px;
-  border: 1.5px solid #e0e0e0;
+/* Alert Box pour Ria */
+.alert-box {
+  background-color: #fff5f5;
+  border: 1px solid #feb2b2;
+  color: #c53030;
+  padding: 12px 15px;
   border-radius: 12px;
-  padding: 0 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  background: white;
-  transition: all 0.2s;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.is-open .selected-option {
-  border-color: v-bind('AppColor.primary.base');
+/* Custom Select */
+.custom-select-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
+.select-label { font-size: 14px; font-weight: 600; color: #333; }
+.selected-option {
+  height: 52px; border: 1.5px solid #e0e0e0; border-radius: 12px;
+  padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; background: white;
 }
-
-.method-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.method-img-mini {
-  width: 28px;
-  height: 28px;
-  object-fit: cover;
-  border-radius: 6px;
-}
+.is-open .selected-option { border-color: v-bind('AppColor.primary.base'); }
+.method-info { display: flex; align-items: center; gap: 12px; }
+.method-img-mini { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; }
 
 .options-menu {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 12px;
-  border: 1.px solid #eee;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  z-index: 100;
-  overflow: hidden;
+  position: absolute; top: 62px; left: 0; right: 0;
+  background: white; border-radius: 12px; border: 1px solid #eee;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; overflow: hidden;
 }
+.option-item { padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.option-item:hover { background: #f8f9fa; }
+.check-icon { margin-left: auto; color: v-bind('AppColor.primary.base'); }
+.arrow-icon { color: #a0a0a0; transition: transform 0.3s; }
+.is-open .arrow-icon { transform: rotate(180deg); }
 
-.option-item {
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.option-item:hover {
-  background: #f8f9fa;
-}
-
-.check-icon {
-  margin-left: auto;
-  color: v-bind('AppColor.primary.base');
-  font-size: 14px;
-}
-
-.arrow-icon {
-  color: #a0a0a0;
-  transition: transform 0.3s;
-}
-
-.is-open .arrow-icon {
-  transform: rotate(180deg);
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .deposit-page {
-    background-color: white;
-    align-items: flex-start;
-    padding: 85px 20px 20px 20px;
-  }
-  .deposit-card {
-    box-shadow: none;
-    border-radius: 0;
-    padding: 20px 0;
-  }
-}
-
+/* Form & Layout */
 .logo-container { text-align: center; margin-bottom: 15px; }
 .app-logo { height: 70px; }
 .header-content { text-align: center; margin-bottom: 25px; }
@@ -300,7 +250,14 @@ onMounted(() => {
 .subtitle { color: #95a5a6; font-size: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
 
-/* Animation */
+@media (max-width: 600px) {
+  .withdraw-page { background-color: white; align-items: flex-start; padding: 85px 20px 20px 20px; }
+  .withdraw-card { box-shadow: none; border-radius: 0; padding: 20px 0; }
+}
+
+/* Animations */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.2s ease; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
 </style>

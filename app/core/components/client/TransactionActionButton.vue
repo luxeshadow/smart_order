@@ -54,7 +54,7 @@ onUnmounted(() => {
         <span>Recharger</span>
       </div>
 
-      <div @click="handleProtectedAction('/withdraw')" class="action-btn">
+      <div @click="handleProtectedAction('transaction/withdrawal')" class="action-btn">
         <i class="fi fi-rr-arrow-trend-down"></i>
         <span>Récupérer</span>
       </div>

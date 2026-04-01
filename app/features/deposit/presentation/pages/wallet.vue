@@ -1,0 +1,157 @@
+<script setup lang="ts">
+import { AppColor } from '@/core/constants/app_colors'
+import { AppImage } from '@/core/constants/app_images'
+import Button from '@/core/components/client/Button.vue'
+import Input from '@/core/components/client/Input.vue'
+
+const router = useRouter()
+
+const form = ref({
+  phoneNumber: '',
+  withdrawPassword: ''
+})
+
+const isLoading = ref(false)
+
+// Liste visuelle basée sur tes constantes AppImage
+const availableMethods = [
+  { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
+  { id: 'flooz', image: AppImage.Flooz, label: 'Flooz' },
+  { id: 'ria', image: AppImage.Ria, label: 'Ria' }
+]
+
+const handleUpdateWallet = async () => {
+  if(!form.value.phoneNumber || !form.value.withdrawPassword) return
+  isLoading.value = true
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1500)
+}
+</script>
+
+<template>
+  <div class="wallet-page">
+    <nav class="app-bar">
+      <button class="back-btn" @click="router.back()">
+        <i class="fi fi-rr-arrow-small-left"></i>
+      </button>
+      <span class="app-bar-title">Mon Portefeuille</span>
+      <div class="spacer"></div>
+    </nav>
+
+    <div class="wallet-card">
+      <div class="gif-container">
+        <img :src="AppImage.money" alt="Wallet Animation" class="wallet-gif" />
+      </div>
+
+      <header class="header-content">
+        <h2 class="title">Paramètres de retrait</h2>
+        <p class="subtitle">Gérez vos informations de paiement</p>
+      </header>
+
+      <div class="form-group">
+        <Input
+          id="phone"
+          label="Numéro de retrait par défaut*"
+          v-model="form.phoneNumber"
+          icon="fi-rr-phone-call"
+          placeholder="Ex: 90 00 00 00"
+          type="tel"
+        />
+
+        <Input
+          id="withdraw-pass"
+          label="Mot de passe de retrait*"
+          v-model="form.withdrawPassword"
+          icon="fi-rr-lock"
+          placeholder="••••••••"
+          type="password"
+        />
+
+        <div class="methods-section">
+          <label class="section-label">Moyens de paiement acceptés</label>
+          <div class="methods-display-grid">
+            <div v-for="method in availableMethods" :key="method.id" class="static-method">
+              <img :src="method.image" :alt="method.label" class="static-img" />
+              <span>{{ method.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Button
+        label="Enregistrer les modifications"
+        :loading="isLoading"
+        @click="handleUpdateWallet"
+      />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* AppBar & Base */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px; background: white;
+  display: flex; align-items: center; padding: 0 15px;
+  z-index: 1000; border-bottom: 1px solid #f1f1f1;
+}
+
+.back-btn {
+  width: 45px; height: 45px;
+  background-color: #f8f9fa; border: 1px solid #eee; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #2d3436; cursor: pointer;
+}
+
+.app-bar-title { flex: 1; text-align: center; font-weight: 700; font-size: 17px; }
+.spacer { width: 45px; }
+
+.wallet-page {
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; background-color: #f8f9fa;
+  padding: 85px 20px 40px 20px;
+}
+
+.wallet-card {
+  width: 100%; max-width: 420px; background: white;
+  padding: 30px; border-radius: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+}
+
+/* GIF Styling */
+.gif-container {
+  width: 100%; display: flex; justify-content: center; margin-bottom: 20px;
+}
+.wallet-gif {
+  width: 100px; height: 100px; object-fit: contain;
+}
+
+.header-content { text-align: center; margin-bottom: 25px; }
+.title { font-size: 22px; font-weight: 800; color: #2d3436; }
+.subtitle { color: #95a5a6; font-size: 14px; }
+
+.form-group { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+
+/* Moyens de paiement Statiques */
+.methods-section { display: flex; flex-direction: column; gap: 12px; }
+.section-label { font-size: 14px; font-weight: 600; color: #333; }
+.methods-display-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.static-method {
+  background: #f8f9fa; border: 1.5px solid #f1f1f1; border-radius: 12px;
+  padding: 10px 5px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.static-img {
+  width: 30px; height: 30px; object-fit: cover; border-radius: 6px;
+}
+.static-method span { font-size: 11px; font-weight: 700; color: #7f8c8d; }
+
+/* Responsive Mobile */
+@media (max-width: 600px) {
+  .wallet-page { background-color: white; align-items: flex-start; padding-top: 85px; }
+  .wallet-card { box-shadow: none; border-radius: 0; padding: 10px 0; }
+}
+</style>
