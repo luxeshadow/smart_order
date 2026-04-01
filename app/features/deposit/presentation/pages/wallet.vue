@@ -43,7 +43,7 @@ const handleUpdateWallet = async () => {
         <div class="video-container">
           <div class="video-overlay"></div>
           <img 
-            :src="AppImage.money" 
+            :src="AppImage.Money" 
             class="gif-player" 
             alt="Wallet Animation"
           />
