@@ -16,18 +16,9 @@ const form = ref({
 
 const isLoading = ref(false)
 
-// Utilisation de tes constantes AppImage
 const paymentMethods = [
-  { 
-    id: 'tmoney', 
-    label: 'T-Money', 
-    image: AppImage.Yas 
-  },
-  { 
-    id: 'flooz', 
-    label: 'Moov Money (Flooz)', 
-    image: AppImage.Flooz 
-  }
+  { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
+  { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz }
 ]
 
 const handleDeposit = async () => {
@@ -35,19 +26,11 @@ const handleDeposit = async () => {
     showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
     return
   }
-
   isLoading.value = true
-
   try {
-    // Logique de recharge ici
     await new Promise(resolve => setTimeout(resolve, 2000))
-
     showToast("Demande de recharge envoyée !", "fi-rr-check", "success", "#2ecc71")
-    
-    setTimeout(() => {
-      router.push('/home')
-    }, 1500)
-
+    setTimeout(() => { router.push('/home') }, 1500)
   } catch (error) {
     showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error", "#ff4757")
   } finally {
@@ -65,25 +48,20 @@ const handleDeposit = async () => {
 
       <header class="header-content">
         <h2 class="title">Recharger mon compte</h2>
-        <p class="subtitle">Sélectionnez votre moyen de paiement</p>
+        <p class="subtitle">Complétez les informations ci-dessous</p>
       </header>
 
       <div class="form-group">
-        <div class="methods-grid">
-          <div 
-            v-for="method in paymentMethods" 
-            :key="method.id"
-            class="method-item"
-            :class="{ 'active': form.method === method.id }"
-            @click="form.method = method.id"
-          >
-            <div class="img-wrapper">
-               <img :src="method.image" :alt="method.label" class="method-img" />
-            </div>
-            <span class="method-label">{{ method.label }}</span>
-            <div class="check-badge" v-if="form.method === method.id">
-              <i class="fi fi-rr-check"></i>
-            </div>
+        <div class="custom-select-group">
+          <label class="select-label">Méthode de paiement*</label>
+          <div class="select-wrapper">
+            <i class="fi fi-rr-wallet left-icon"></i>
+            <select v-model="form.method" class="main-select">
+              <option v-for="m in paymentMethods" :key="m.id" :value="m.id">
+                {{ m.label }}
+              </option>
+            </select>
+            <i class="fi fi-rr-angle-small-down arrow-icon"></i>
           </div>
         </div>
 
@@ -122,44 +100,61 @@ const handleDeposit = async () => {
 </template>
 
 <style scoped>
+/* Conteneur principal */
 .deposit-page {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background-color: #f8f9fa; /* Fond gris sur PC */
   padding: 20px;
 }
 
+/* Carte */
 .deposit-card {
   width: 100%;
   max-width: 420px;
   background: white;
   padding: 40px 30px;
   border-radius: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+}
 
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 600px) {
+  .deposit-page {
+    background-color: white;
+    align-items: flex-start;
+    padding: 0;
+  }
+  .deposit-card {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 40px 20px;
+    max-width: 100%;
+  }
 }
 
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .app-logo {
-  height: 85px;
+  height: 80px;
   width: auto;
 }
 
 .header-content {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .title {
   font-size: 22px;
   font-weight: 800;
   color: #2d3436;
-  margin-bottom: 6px;
 }
 
 .subtitle {
@@ -170,73 +165,62 @@ const handleDeposit = async () => {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-bottom: 30px;
-}
-
-/* Grille des méthodes */
-.methods-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 15px;
-  margin-bottom: 5px;
+  margin-bottom: 25px;
 }
 
-.method-item {
-  position: relative;
-  padding: 20px 10px;
-  border: 2px solid #f1f2f6;
-  border-radius: 20px;
-  cursor: pointer;
+/* Style de la liste déroulante pour matcher tes Inputs */
+.custom-select-group {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.select-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.select-wrapper {
+  position: relative;
+  display: flex;
   align-items: center;
+  height: 52px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: #fff;
+  padding: 0 16px;
   transition: all 0.2s ease;
 }
 
-.img-wrapper {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    border-radius: 12px;
+.left-icon {
+  margin-right: 12px;
+  font-size: 18px;
+  color: #a0a0a0;
 }
 
-.method-img {
-  width: 100%;
+.main-select {
+  flex: 1;
   height: 100%;
-  object-fit: cover;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #1a1a1a;
+  appearance: none; /* Cache la flèche par défaut */
+  cursor: pointer;
 }
 
-.method-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #7f8c8d;
-}
-
-.method-item.active {
-  border-color: v-bind('AppColor.primary.base');
-  background-color: v-bind('AppColor.primary.base + "08"');
-}
-
-.method-item.active .method-label {
-  color: v-bind('AppColor.primary.base');
-}
-
-.check-badge {
+.arrow-icon {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: v-bind('AppColor.primary.base');
-  color: white;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  box-shadow: 0 4px 10px v-bind('AppColor.primary.base + "40"');
+  right: 16px;
+  pointer-events: none;
+  color: #a0a0a0;
+}
+
+.select-wrapper:focus-within {
+  border-color: v-bind('AppColor.primary.base');
 }
 
 .footer-link {
@@ -249,7 +233,6 @@ const handleDeposit = async () => {
   font-weight: 600;
   color: #bdc3c7;
   text-decoration: none;
-  transition: color 0.2s;
 }
 
 .back-link:hover {
