@@ -1,15 +1,17 @@
 export class ResetPasswordValidator {
-  static validate(params: any, confirmPassword?: string): string | null {
-    if (!params.password) {
-      return "Tous les champs sont obligatoires.";
+  static validate(params: any): string | null {
+    if (!params.password || !params.confirmPassword) {
+      return "Veuillez remplir tous les champs.";
     }
+
     if (params.password.length < 6) {
-      return "Le mot de passe doit contenir au moins 6 caractères.";
+      return "Le nouveau mot de passe doit contenir au moins 6 caractères.";
     }
-    
-    if (confirmPassword !== undefined && params.password !== confirmPassword) {
+
+    if (params.password !== params.confirmPassword) {
       return "Les mots de passe ne correspondent pas.";
     }
+
     return null;
   }
 }
