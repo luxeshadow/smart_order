@@ -44,7 +44,7 @@ onUnmounted(() => {
           <a href="#">Conditions</a>
           <a href="#">Contact</a>
         </div>
-        <p class="copyright">&copy; 2026 Smart Orders. Designed for Excellence.</p>
+        <p class="copyright">&copy; 2024 Smart Orders. Designed for Excellence.</p>
       </div>
 
     </div>

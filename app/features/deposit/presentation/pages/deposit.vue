@@ -298,7 +298,7 @@ onMounted(() => {
 .header-content { text-align: center; margin-bottom: 25px; }
 .title { font-size: 22px; font-weight: 800; }
 .subtitle { color: #95a5a6; font-size: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
 
 /* Animation */
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.2s ease; }
