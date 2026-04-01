@@ -127,7 +127,6 @@ const handleDeposit = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f8f9fa;
   padding: 20px;
 }
 
@@ -137,7 +136,7 @@ const handleDeposit = async () => {
   background: white;
   padding: 40px 30px;
   border-radius: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+
 }
 
 .logo-container {
