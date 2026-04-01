@@ -223,7 +223,7 @@ onMounted(() => {
 .custom-select-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
 .select-label { font-size: 14px; font-weight: 600; color: #333; }
 .selected-option {
-    margin-top:10px;
+   
   height: 52px; border: 1.5px solid #e0e0e0; border-radius: 12px;
   padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; background: white;
@@ -233,7 +233,7 @@ onMounted(() => {
 .method-img-mini { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; }
 
 .options-menu {
-  position: absolute; top: 62px; left: 0; right: 0;
+  position: absolute; top: 12px; left: 0; right: 0;
   background: white; border-radius: 12px; border: 1px solid #eee;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; overflow: hidden;
 }

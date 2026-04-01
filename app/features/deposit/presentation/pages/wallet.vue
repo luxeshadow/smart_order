@@ -159,7 +159,7 @@ const handleUpdateWallet = async () => {
 .title { font-size: 22px; font-weight: 800; color: #2d3436; }
 .subtitle { color: #95a5a6; font-size: 14px; }
 
-.form-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
 
 /* Section Moyens de paiement statiques */
 .methods-section { display: flex; flex-direction: column; gap: 12px; }
