@@ -151,9 +151,9 @@ onMounted(() => {
 
 .back-btn {
 
-  width: 50px;
-  height: 50px;
-  background-color: #f8f9fa;
+  width: 45px;
+  height: 45px;
+  background-color: #1276da;
   border: 1px solid #eee;
   border-radius: 14px;
   padding: 4px;
