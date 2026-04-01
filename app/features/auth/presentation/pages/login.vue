@@ -26,7 +26,7 @@ const isLoading = ref(false)
 
 const handleLogin = async () => {
   if (!form.value.email || !form.value.password) {
-    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
+    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error",)
     return
   }
 
@@ -40,14 +40,14 @@ const handleLogin = async () => {
     })
 
     if (result instanceof Failure) {
-      showToast(result.message, 'fi-rr-cross-circle', 'error', '#ff4757')
+      showToast(result.message, 'fi-rr-cross-circle', 'error',)
       isLoading.value = false
       return
     }
 
 
     authStore.setUser(result)
-    showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success", "#2ecc71")
+    showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success",)
 
     setTimeout(() => {
       if (result.role === 'admin') {
@@ -60,7 +60,7 @@ const handleLogin = async () => {
 
   } catch (error) {
     isLoading.value = false
-    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error", "#ff4757")
+    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error",)
   }
 }
 </script>

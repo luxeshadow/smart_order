@@ -26,22 +26,22 @@ const handleReset = async () => {
   isLoading.value = true
 
   try {
+
     const result = await resetPasswordUseCase.execute({
-      password: form.password,
-      confirmPassword: form.confirmPassword
+      password: form.value.password,
+      confirmPassword: form.value.confirmPassword
     })
 
     if (result instanceof Failure) {
-      showToast(result.message, "fi-rr-cross-circle", "error", "#ff4757")
+      showToast(result.message, "fi-rr-cross-circle", "error",)
     } else {
-      showToast("Mot de passe modifié avec succès !", "fi-rr-check", "success", "#2ecc71")
-      
+      showToast("Mot de passe modifié avec succès !", "fi-rr-check", "success",)
       setTimeout(() => {
         router.push('/auth/login')
       }, 1500)
     }
   } catch (error) {
-    showToast("Erreur lors de la modification", "fi-rr-cross-circle", "error", "#ff4757")
+    showToast("Erreur lors de la modification", "fi-rr-cross-circle", "error",)
   } finally {
     isLoading.value = false
   }

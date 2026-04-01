@@ -29,7 +29,7 @@ const handleRegister = async () => {
   if (form.value.password !== form.value.confirmPassword) {
     const msg = "Les mots de passe ne correspondent pas"
     errorMessage.value = msg
-    showToast(msg, 'fi-rr-triangle-warning', 'error', '#ff4757')
+    showToast(msg, 'fi-rr-triangle-warning', 'error',)
     return
   }
   errorMessage.value = null
@@ -46,12 +46,12 @@ const handleRegister = async () => {
 
     if (result instanceof Failure) {
       errorMessage.value = result.message
-      showToast(result.message, 'fi-rr-cross-circle', 'error', '#ff4757')
+      showToast(result.message, 'fi-rr-cross-circle', 'error',)
       isLoading.value = false
       return
     }
 
-    showToast("Compte créé valider l'otp pour terminer !", "fi-rr-check", "success", "#2ecc71")
+    showToast("Compte créé valider l'otp pour terminer !", "fi-rr-check", "success",)
     
     setTimeout(() => {
       router.push({
@@ -63,7 +63,7 @@ const handleRegister = async () => {
 
   } catch (error) {
     isLoading.value = false
-    showToast("Une erreur inattendue est survenue", "fi-rr-shield-exclamation", "error", "#ff4757")
+    showToast("Une erreur inattendue est survenue", "fi-rr-shield-exclamation", "error",)
   }
 }
 </script>

@@ -23,7 +23,7 @@ const isEmailSent = ref(false)
 
 const handleResetPassword = async () => {
   if (!email.value) {
-    showToast("Veuillez entrer votre adresse email", "fi-rr-info", "error", "#ff4757")
+    showToast("Veuillez entrer votre adresse email", "fi-rr-info", "error",)
     return
   }
 
@@ -35,11 +35,11 @@ const handleResetPassword = async () => {
     })
 
     if (result instanceof Failure) {
-      showToast(result.message, "fi-rr-cross-circle", "error", "#ff4757")
+      showToast(result.message, "fi-rr-cross-circle", "error",)
       isLoading.value = false
     } else {
       isEmailSent.value = true
-      showToast("Lien de récupération envoyé !", "fi-rr-paper-plane", "success", "#2ecc71")
+      showToast("Lien de récupération envoyé !", "fi-rr-paper-plane", "success",)
       isLoading.value = false
     }
     

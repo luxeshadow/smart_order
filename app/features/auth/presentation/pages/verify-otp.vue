@@ -45,7 +45,7 @@ const formatTimer = computed(() => {
 
 const handleVerify = async () => {
   if (otpCode.value.length < 6) {
-    showToast("Veuillez entrer le code complet", "fi-rr-info", "error", "#ff4757");
+    showToast("Veuillez entrer le code complet", "fi-rr-info", "error",);
     return;
   }
 
@@ -57,10 +57,10 @@ const handleVerify = async () => {
     });
 
     if (result instanceof Failure) {
-      showToast(result.message, "fi-rr-cross-circle", "error", "#ff4757");
+      showToast(result.message, "fi-rr-cross-circle", "error",);
       isLoading.value = false;
     } else {
-      showToast("Vérification réussie !", "fi-rr-check", "success", "#2ecc71");
+      showToast("Vérification réussie !", "fi-rr-check", "success",);
       setTimeout(() => {
         router.push("/auth/login");
         isLoading.value = false;
@@ -68,7 +68,7 @@ const handleVerify = async () => {
     }
   } catch (error) {
     isLoading.value = false;
-    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error", "#ff4757");
+    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error",);
   }
 };
 
@@ -80,7 +80,7 @@ const handleResend = () => {
 
 onMounted(() => {
   if (!email.value) {
-    showToast("Email manquant, veuillez recommencer", "fi-rr-info", "error", "#ff4757");
+    showToast("Email manquant, veuillez recommencer", "fi-rr-info", "error",);
     router.push("/auth/register");
   }
   startTimer();
