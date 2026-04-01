@@ -13,7 +13,8 @@ const form = ref({
   amount: '',
   method: 'tmoney',
   firstName: '',
-  lastName: ''
+  lastName: '',
+  password: ''
 })
 
 const isLoading = ref(false)
@@ -153,6 +154,15 @@ onMounted(() => {
           icon="fi-rr-stats"
           placeholder="Ex: 5000"
           type="number"
+        />
+
+        <Input
+          id="password"
+          label="Mots de passe du wallet*"
+          v-model="form.password"
+          icon="fi-rr-lock"
+          placeholder="••••••••"
+          type="text"
         />
       </div>
 
