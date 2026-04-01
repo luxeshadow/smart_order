@@ -7,8 +7,8 @@ export class AppImage {
   static readonly Ria = '/assets/images/logo/ria.png'
 
   //Gifs
-  static readonly money = '/assets/images/video/gif/money.gif'
-  
+  static readonly Money = '/assets/videos/gif/money.gif'
+
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'
   static readonly Alibaba = '/assets/images/shops/Alibaba.jpeg'

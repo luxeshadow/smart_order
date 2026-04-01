@@ -223,6 +223,7 @@ onMounted(() => {
 .custom-select-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
 .select-label { font-size: 14px; font-weight: 600; color: #333; }
 .selected-option {
+    margin-top:10px;
   height: 52px; border: 1.5px solid #e0e0e0; border-radius: 12px;
   padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; background: white;
@@ -248,7 +249,7 @@ onMounted(() => {
 .header-content { text-align: center; margin-bottom: 25px; }
 .title { font-size: 22px; font-weight: 800; }
 .subtitle { color: #95a5a6; font-size: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
+.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 
 @media (max-width: 600px) {
   .withdraw-page { background-color: white; align-items: flex-start; padding: 85px 20px 20px 20px; }

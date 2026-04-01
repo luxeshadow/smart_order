@@ -41,7 +41,7 @@ const handleUpdateWallet = async () => {
 
     <div class="wallet-card">
       <div class="gif-container">
-        <img :src="AppImage.money" alt="Wallet Animation" class="wallet-gif" />
+        <img :src="AppImage.Money" alt="Wallet Animation" class="wallet-gif" />
       </div>
 
       <header class="header-content">
@@ -132,7 +132,7 @@ const handleUpdateWallet = async () => {
 .title { font-size: 22px; font-weight: 800; color: #2d3436; }
 .subtitle { color: #95a5a6; font-size: 14px; }
 
-.form-group { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
 
 /* Moyens de paiement Statiques */
 .methods-section { display: flex; flex-direction: column; gap: 12px; }
