@@ -15,11 +15,22 @@ const form = ref({
 })
 
 const isLoading = ref(false)
+const isDropdownOpen = ref(false)
 
 const paymentMethods = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
   { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz }
 ]
+
+// Calculer la méthode sélectionnée pour l'affichage
+const selectedMethod = computed(() => 
+  paymentMethods.find(m => m.id === form.value.method) || paymentMethods[0]
+)
+
+const selectMethod = (id: string) => {
+  form.value.method = id
+  isDropdownOpen.value = false
+}
 
 const handleDeposit = async () => {
   if (!form.value.phoneNumber || !form.value.amount) {
@@ -37,10 +48,25 @@ const handleDeposit = async () => {
     isLoading.value = false
   }
 }
+
+// Fermer le menu si on clique ailleurs
+onMounted(() => {
+  window.addEventListener('click', (e: any) => {
+    if (!e.target.closest('.custom-select-group')) isDropdownOpen.value = false
+  })
+})
 </script>
 
 <template>
   <div class="deposit-page">
+    <nav class="app-bar">
+      <button class="back-btn" @click="router.back()">
+        <i class="fi fi-rr-arrow-small-left"></i>
+      </button>
+      <span class="app-bar-title">Recharger</span>
+      <div class="spacer"></div>
+    </nav>
+
     <div class="deposit-card">
       <div class="logo-container">
         <img :src="AppImage.Logo" alt="Smart Order Logo" class="app-logo" />
@@ -54,14 +80,30 @@ const handleDeposit = async () => {
       <div class="form-group">
         <div class="custom-select-group">
           <label class="select-label">Méthode de paiement*</label>
-          <div class="select-wrapper">
-            <i class="fi fi-rr-wallet left-icon"></i>
-            <select v-model="form.method" class="main-select">
-              <option v-for="m in paymentMethods" :key="m.id" :value="m.id">
-                {{ m.label }}
-              </option>
-            </select>
-            <i class="fi fi-rr-angle-small-down arrow-icon"></i>
+          
+          <div class="custom-select" :class="{ 'is-open': isDropdownOpen }">
+            <div class="selected-option" @click.stop="isDropdownOpen = !isDropdownOpen">
+              <div class="method-info">
+                <img :src="selectedMethod.image" class="method-img-mini" />
+                <span>{{ selectedMethod.label }}</span>
+              </div>
+              <i class="fi fi-rr-angle-small-down arrow-icon"></i>
+            </div>
+
+            <Transition name="fade-slide">
+              <div v-if="isDropdownOpen" class="options-menu">
+                <div 
+                  v-for="m in paymentMethods" 
+                  :key="m.id" 
+                  class="option-item"
+                  @click="selectMethod(m.id)"
+                >
+                  <img :src="m.image" class="method-img-mini" />
+                  <span>{{ m.label }}</span>
+                  <i v-if="form.method === m.id" class="fi fi-rr-check check-icon"></i>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -89,28 +131,58 @@ const handleDeposit = async () => {
         :loading="isLoading"
         @click="handleDeposit"
       />
-
-      <div class="footer-link">
-        <NuxtLink to="/home" class="back-link">
-           Retour à l'accueil
-        </NuxtLink>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Conteneur principal */
+/* AppBar */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  z-index: 1000;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.back-btn {
+  background: #f8f9fa;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #2d3436;
+  cursor: pointer;
+}
+
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #2d3436;
+}
+
+.spacer { width: 40px; }
+
+/* Page & Card */
 .deposit-page {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f8f9fa; /* Fond gris sur PC */
-  padding: 20px;
+  background-color: #f8f9fa;
+  padding: 85px 20px 40px 20px;
 }
 
-/* Carte */
 .deposit-card {
   width: 100%;
   max-width: 420px;
@@ -120,60 +192,12 @@ const handleDeposit = async () => {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* --- RESPONSIVE MOBILE --- */
-@media (max-width: 600px) {
-  .deposit-page {
-    background-color: white;
-    align-items: flex-start;
-    padding: 0;
-  }
-  .deposit-card {
-    box-shadow: none;
-    border-radius: 0;
-    padding: 40px 20px;
-    max-width: 100%;
-  }
-}
-
-.logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.app-logo {
-  height: 80px;
-  width: auto;
-}
-
-.header-content {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.title {
-  font-size: 22px;
-  font-weight: 800;
-  color: #2d3436;
-}
-
-.subtitle {
-  color: #95a5a6;
-  font-size: 14px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-/* Style de la liste déroulante pour matcher tes Inputs */
+/* Custom Select CSS */
 .custom-select-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
 }
 
 .select-label {
@@ -182,60 +206,104 @@ const handleDeposit = async () => {
   color: #333;
 }
 
-.select-wrapper {
+.custom-select {
   position: relative;
-  display: flex;
-  align-items: center;
+  width: 100%;
+}
+
+.selected-option {
   height: 52px;
   border: 1.5px solid #e0e0e0;
   border-radius: 12px;
-  background-color: #fff;
   padding: 0 16px;
-  transition: all 0.2s ease;
-}
-
-.left-icon {
-  margin-right: 12px;
-  font-size: 18px;
-  color: #a0a0a0;
-}
-
-.main-select {
-  flex: 1;
-  height: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 15px;
-  color: #1a1a1a;
-  appearance: none; /* Cache la flèche par défaut */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   cursor: pointer;
+  background: white;
+  transition: all 0.2s;
 }
 
-.arrow-icon {
-  position: absolute;
-  right: 16px;
-  pointer-events: none;
-  color: #a0a0a0;
-}
-
-.select-wrapper:focus-within {
+.is-open .selected-option {
   border-color: v-bind('AppColor.primary.base');
 }
 
-.footer-link {
-  margin-top: 25px;
-  text-align: center;
+.method-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.back-link {
-  font-size: 14px;
-  font-weight: 600;
-  color: #bdc3c7;
-  text-decoration: none;
+.method-img-mini {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
-.back-link:hover {
+.options-menu {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  border: 1.px solid #eee;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.option-item {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.option-item:hover {
+  background: #f8f9fa;
+}
+
+.check-icon {
+  margin-left: auto;
   color: v-bind('AppColor.primary.base');
+  font-size: 14px;
 }
+
+.arrow-icon {
+  color: #a0a0a0;
+  transition: transform 0.3s;
+}
+
+.is-open .arrow-icon {
+  transform: rotate(180deg);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .deposit-page {
+    background-color: white;
+    align-items: flex-start;
+    padding: 85px 20px 20px 20px;
+  }
+  .deposit-card {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 20px 0;
+  }
+}
+
+.logo-container { text-align: center; margin-bottom: 15px; }
+.app-logo { height: 70px; }
+.header-content { text-align: center; margin-bottom: 25px; }
+.title { font-size: 22px; font-weight: 800; }
+.subtitle { color: #95a5a6; font-size: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
+
+/* Animation */
+.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.2s ease; }
+.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
 </style>
