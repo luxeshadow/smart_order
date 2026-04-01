@@ -44,7 +44,7 @@ const handleUpdateWallet = async () => {
           <div class="video-overlay"></div>
           <img 
             :src="AppImage.money" 
-            class="video-player" 
+            class="gif-player" 
             alt="Wallet Animation"
           />
         </div>
@@ -126,7 +126,7 @@ const handleUpdateWallet = async () => {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* Style GIF inspiré de ton composant vidéo */
+/* Style de la bannière GIF */
 .video-wrapper {
   padding: 0 0 20px 0;
 }
@@ -134,7 +134,7 @@ const handleUpdateWallet = async () => {
 .video-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 32 / 12; /* Légèrement plus haut pour un GIF */
+  aspect-ratio: 32 / 12; 
   border-radius: 20px; 
   overflow: hidden;
   background: #f8f9fa;
@@ -143,12 +143,12 @@ const handleUpdateWallet = async () => {
 .video-overlay {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(0deg, rgba(0,0,0,0.1) 0%, transparent 100%);
+  background: linear-gradient(0deg, rgba(0,0,0,0.05) 0%, transparent 100%);
   z-index: 1;
   pointer-events: none;
 }
 
-.video-player {
+.gif-player {
   width: 100%;
   height: 100%;
   object-fit: cover; 
@@ -161,6 +161,7 @@ const handleUpdateWallet = async () => {
 
 .form-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
 
+/* Section Moyens de paiement statiques */
 .methods-section { display: flex; flex-direction: column; gap: 12px; }
 .section-label { font-size: 14px; font-weight: 600; color: #333; }
 .methods-display-grid {
