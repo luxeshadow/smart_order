@@ -1,0 +1,155 @@
+<script setup lang="ts">
+import { AppColor } from "@/core/constants/app_colors";
+
+defineProps<{ show: boolean }>();
+const emit = defineEmits(['close']);
+const router = useRouter();
+const handleNavigation = (path: string) => {
+  emit('close');
+  router.push(path);
+};
+</script>
+
+<template>
+  <Transition name="drop">
+    <div v-if="show" class="auth-alert-container">
+      <div class="alert-content">
+        <button class="close-btn" @click="$emit('close')" aria-label="Fermer">
+          <i class="fi fi-rr-cross-small"></i>
+        </button>
+
+        <div class="alert-header">
+          <i class="fi fi-rr-lock icon-lock"></i>
+          <h3>Connexion requise</h3>
+        </div>
+
+        <p class="alert-text">
+          Pour continuer, veuillez vous connecter ou vous inscrire sur <strong>Smart Order</strong>.
+        </p>
+
+        <div class="alert-actions">
+          <button class="btn-auth login" @click="handleNavigation('/auth/login')">
+            <i class="fi fi-rr-sign-in-alt"></i> Connexion
+          </button>
+
+          <button class="btn-auth register" @click="handleNavigation('/auth/register')">
+            <i class="fi fi-rr-user-add"></i> Inscription
+          </button>
+        </div>
+      </div>
+    </div>
+  </Transition>
+</template>
+
+<style scoped>
+.auth-alert-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+}
+
+.alert-content {
+  background: white;
+  width: 100%;
+  max-width: 400px;
+  padding: 25px;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.icon-lock {
+  font-size: 20px;
+  color: v-bind("AppColor.primary.base");
+}
+
+.alert-header h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  color: #2d3436;
+}
+
+.alert-text {
+  font-size: 14px;
+  color: #636e72;
+  text-align: center;
+  margin: 15px 0 25px 0;
+  line-height: 1.5;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-auth {
+  flex: 1;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-auth:active { transform: scale(0.96); }
+
+.login {
+  background-color: v-bind("AppColor.primary.base");
+  color: white;
+}
+
+.register {
+  background-color: #f1f2f6;
+  color: #2d3436;
+}
+
+.drop-enter-active {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.drop-leave-active {
+  transition: all 0.3s ease;
+}
+.drop-enter-from {
+  transform: translateY(-120%);
+  opacity: 0;
+}
+.drop-leave-to {
+  transform: translateY(-50px);
+  opacity: 0;
+}
+</style>
