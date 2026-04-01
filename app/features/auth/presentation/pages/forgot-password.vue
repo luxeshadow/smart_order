@@ -30,7 +30,6 @@ const handleResetPassword = async () => {
   isLoading.value = true
 
   try {
-    // Appel du UseCase
     const result = await forgotPasswordUseCase.execute({
       email: email.value
     })
@@ -39,7 +38,6 @@ const handleResetPassword = async () => {
       showToast(result.message, "fi-rr-cross-circle", "error", "#ff4757")
       isLoading.value = false
     } else {
-      // Succès : On change l'état de la vue pour afficher le message de confirmation
       isEmailSent.value = true
       showToast("Lien de récupération envoyé !", "fi-rr-paper-plane", "success", "#2ecc71")
       isLoading.value = false
@@ -53,12 +51,16 @@ const handleResetPassword = async () => {
 </script>
 
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
+  <div class="forgot-password-page">
+    <nav class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
+      <span class="app-bar-title">Récupération</span>
+      <div class="spacer"></div>
+    </nav>
 
+    <div class="auth-card">
       <div class="logo-container">
         <img :src="AppImage.Logo" alt="Logo" class="app-logo" />
       </div>
@@ -70,7 +72,10 @@ const handleResetPassword = async () => {
 
       <header class="header-content" v-else>
         <h2 class="title">Vérifiez vos emails</h2>
-        <p class="subtitle">Un lien a été envoyé à <br><strong :style="{ color: AppColor.primary.base }">{{ email }}</strong></p>
+        <p class="subtitle">
+          Un lien a été envoyé à <br>
+          <strong :style="{ color: AppColor.primary.base }">{{ email }}</strong>
+        </p>
       </header>
 
       <div class="form-group" v-if="!isEmailSent">
@@ -84,18 +89,20 @@ const handleResetPassword = async () => {
         />
       </div>
 
-      <Button
-        v-if="!isEmailSent"
-        label="Envoyer le lien"
-        :loading="isLoading"
-        @click="handleResetPassword"
-      />
+      <div class="button-group">
+        <Button
+          v-if="!isEmailSent"
+          label="Envoyer le lien"
+          :loading="isLoading"
+          @click="handleResetPassword"
+        />
 
-      <Button
-        v-else
-        label="Retour à la connexion"
-        @click="router.push('/auth/login')"
-      />
+        <Button
+          v-else
+          label="Retour à la connexion"
+          @click="router.push('/auth/login')"
+        />
+      </div>
 
       <div class="footer-link" v-if="!isEmailSent">
         <span>Vous vous en souvenez ?</span>
@@ -108,69 +115,77 @@ const handleResetPassword = async () => {
 </template>
 
 <style scoped>
-
-.title {
-  font-size: 22px;
-  font-weight: 800;
-  color: #2d3436;
-  margin-bottom: 8px;
-}
-.auth-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 15px;
-}
-
-.auth-card {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
+/* App Bar Style */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px;
   background: white;
-  padding: 40px 30px;
-  border-radius: 28px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
   display: flex;
-  flex-direction: column;
   align-items: center;
+  padding: 0 15px;
+  z-index: 1000;
+  border-bottom: 1px solid #f1f1f1;
 }
 
 .back-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.back-btn:hover {
-  background-color: #f1f2f3;
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #2d3436;
+}
+
+.spacer { width: 45px; }
+
+/* Page & Card Style */
+.forgot-password-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 85px 20px 40px 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 40px 30px;
+  border-radius: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
 }
 
 .logo-container {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .app-logo {
-  height: 80px;
+  height: 70px;
   width: auto;
 }
 
 .header-content {
   text-align: center;
-  width: 100%;
+  margin-bottom: 25px;
 }
 
 .title {
@@ -181,14 +196,15 @@ const handleResetPassword = async () => {
 }
 
 .subtitle {
-  color: #666;
+  color: #95a5a6;
   font-size: 14px;
-  margin-bottom: 25px;
   line-height: 1.5;
 }
 
 .form-group {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 25px;
 }
 
@@ -196,6 +212,7 @@ const handleResetPassword = async () => {
   margin-top: 25px;
   font-size: 14px;
   display: flex;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -205,18 +222,17 @@ const handleResetPassword = async () => {
   text-underline-offset: 4px;
 }
 
+/* Responsive */
 @media (max-width: 600px) {
-  .auth-page {
+  .forgot-password-page {
     background-color: white;
     align-items: flex-start;
-    padding-top: 40px;
+    padding: 85px 20px 20px 20px;
   }
-
   .auth-card {
     box-shadow: none;
     border-radius: 0;
-    padding: 20px;
-    max-width: 100%;
+    padding: 20px 0;
   }
 }
 </style>

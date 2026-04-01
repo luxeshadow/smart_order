@@ -162,7 +162,7 @@ onMounted(() => {
           v-model="form.password"
           icon="fi-rr-lock"
           placeholder="••••••••"
-          type="text"
+          type="password"
         />
       </div>
 
