@@ -15,7 +15,7 @@ const isLoading = ref(false)
 
 const availableMethods = [
   { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
-  { id: 'flooz', image: AppImage.Flooz, label: 'Flooz' },
+  { id: 'flooz', image: AppImage.Flooz, label: 'Moov' },
   { id: 'ria', image: AppImage.Ria, label: 'Ria' }
 ]
 

@@ -19,7 +19,7 @@ const isDropdownOpen = ref(false)
 
 const paymentMethods = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
-  { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz }
+  { id: 'flooz', label: 'Moov Money', image: AppImage.Flooz }
 ]
 
 // Calculer la méthode sélectionnée pour l'affichage
