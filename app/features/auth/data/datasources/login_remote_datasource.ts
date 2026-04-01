@@ -16,9 +16,13 @@ export class LoginRemoteDatasource {
         password: param.password,
       });
 
-      if (authError || !authData.user) {
+      // On vérifie la présence du user ET de la session pour le token
+      if (authError || !authData.user || !authData.session) {
         throw new AuthException(this.translateError(authError?.message));
       }
+
+      // On récupère le token JWT
+      const token = authData.session.access_token;
 
       const { data: userData, error: userError } = await this.supabase
         .from('users')
@@ -30,7 +34,7 @@ export class LoginRemoteDatasource {
         throw new DatabaseException("Impossible de récupérer le profil utilisateur.");
       }
 
-      return UserModel.fromSupabase(userData);
+      return UserModel.fromSupabase(userData, token);
 
     } catch (error: any) {
       if (error instanceof AuthException || error instanceof DatabaseException) throw error;

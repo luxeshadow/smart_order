@@ -45,7 +45,7 @@ const handleLogin = async () => {
       return
     }
 
-    // Mise à jour du store et redirection
+
     authStore.setUser(result)
     showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success", "#2ecc71")
 

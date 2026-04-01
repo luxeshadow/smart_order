@@ -16,7 +16,7 @@ export class VerifyOtpRepositoryImpl implements VerifyOtpRepository {
   async verifyOtp(param: VerifyOtpParam): Promise<void | AuthFailure | DatabaseFailure> {
     try {
       await this.datasource.verifyOtp(param)
-      return // Succès
+      return 
     } catch (error: any) {
       if (error instanceof AuthException) {
         return new AuthFailure(error.message)

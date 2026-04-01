@@ -126,7 +126,6 @@ const handleUpdateWallet = async () => {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* Style de la bannière GIF */
 .video-wrapper {
   padding: 0 0 20px 0;
 }
