@@ -197,4 +197,20 @@ const handleRegister = async () => {
 .login-link:hover {
   opacity: 0.8;
 }
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 600px) {
+  .register-page {
+    background-color: white; /* Fond blanc mobile */
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  .auth-card {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 30px 20px;
+    max-width: 100%;
+  }
+}
+
 </style>

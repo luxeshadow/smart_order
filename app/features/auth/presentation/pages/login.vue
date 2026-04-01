@@ -188,4 +188,19 @@ const handleLogin = async () => {
   width: auto;
   margin-bottom: 10px;
 }
+@media (max-width: 600px) {
+  .login-page {
+    background-color: white; /* Retire le fond gris sur mobile */
+    align-items: flex-start; /* Aligne en haut pour éviter d'être coupé */
+    padding-top: 40px;
+  }
+
+  .auth-card {
+    box-shadow: none; /* Retire l'ombre */
+    border-radius: 0; /* Retire les arrondis */
+    padding: 20px;   /* Plus d'espace sur les bords */
+    max-width: 100%;
+  }
+}
+
 </style>
