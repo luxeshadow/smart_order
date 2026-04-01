@@ -117,7 +117,7 @@ const handleUpdateWallet = async () => {
 .wallet-page {
   display: flex; justify-content: center; align-items: center;
   min-height: 100vh; background-color: #f8f9fa;
-  padding: 85px 20px 40px 20px;
+  padding: 80px 10px 40px 10px;
 }
 
 .wallet-card {

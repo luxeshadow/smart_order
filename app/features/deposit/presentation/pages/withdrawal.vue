@@ -243,7 +243,7 @@ onMounted(() => {
 .method-img-mini { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; }
 
 .options-menu {
-  position: absolute; top: 80px; left: 0; right: 0;
+  position: absolute; top: 83px; left: 0; right: 0;
   background: white; border-radius: 12px; border: 1px solid #eee;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; overflow: hidden;
 }
