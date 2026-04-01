@@ -127,7 +127,7 @@ const handleLogin = async () => {
   align-items: center;
   min-height: 100vh;
   background-color: #f8f9fa;
-  padding: 15px;
+  padding: 10px;
 }
 
 .auth-card {
@@ -199,7 +199,7 @@ const handleLogin = async () => {
   .auth-card {
     box-shadow: none; /* Retire l'ombre */
     border-radius: 0; /* Retire les arrondis */
-    padding: 20px;   /* Plus d'espace sur les bords */
+    padding: 1px;   /* Plus d'espace sur les bords */
     max-width: 100%;
   }
 }
