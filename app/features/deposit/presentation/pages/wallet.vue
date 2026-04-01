@@ -58,7 +58,7 @@ const handleUpdateWallet = async () => {
       <div class="form-group">
         <Input
           id="phone"
-          label="Numéro de retrait par défaut*"
+          label="Numéro de téléphone*"
           v-model="form.phoneNumber"
           icon="fi-rr-phone-call"
           placeholder="Ex: 90 00 00 00"
