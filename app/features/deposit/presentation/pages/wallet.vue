@@ -13,7 +13,6 @@ const form = ref({
 
 const isLoading = ref(false)
 
-// Liste visuelle basée sur tes constantes AppImage
 const availableMethods = [
   { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
   { id: 'flooz', image: AppImage.Flooz, label: 'Flooz' },
@@ -40,8 +39,15 @@ const handleUpdateWallet = async () => {
     </nav>
 
     <div class="wallet-card">
-      <div class="gif-container">
-        <img :src="AppImage.Money" alt="Wallet Animation" class="wallet-gif" />
+      <div class="video-wrapper">
+        <div class="video-container">
+          <div class="video-overlay"></div>
+          <img 
+            :src="AppImage.money" 
+            class="video-player" 
+            alt="Wallet Animation"
+          />
+        </div>
       </div>
 
       <header class="header-content">
@@ -116,25 +122,45 @@ const handleUpdateWallet = async () => {
 
 .wallet-card {
   width: 100%; max-width: 420px; background: white;
-  padding: 30px; border-radius: 30px;
+  padding: 20px 25px 30px 25px; border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* GIF Styling */
-.gif-container {
-  width: 100%; display: flex; justify-content: center; margin-bottom: 20px;
+/* Style GIF inspiré de ton composant vidéo */
+.video-wrapper {
+  padding: 0 0 20px 0;
 }
-.wallet-gif {
-  width: 100px; height: 100px; object-fit: contain;
+
+.video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 32 / 12; /* Légèrement plus haut pour un GIF */
+  border-radius: 20px; 
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(0deg, rgba(0,0,0,0.1) 0%, transparent 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  display: block;
 }
 
 .header-content { text-align: center; margin-bottom: 25px; }
 .title { font-size: 22px; font-weight: 800; color: #2d3436; }
 .subtitle { color: #95a5a6; font-size: 14px; }
 
-.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.form-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
 
-/* Moyens de paiement Statiques */
 .methods-section { display: flex; flex-direction: column; gap: 12px; }
 .section-label { font-size: 14px; font-weight: 600; color: #333; }
 .methods-display-grid {
@@ -144,14 +170,12 @@ const handleUpdateWallet = async () => {
   background: #f8f9fa; border: 1.5px solid #f1f1f1; border-radius: 12px;
   padding: 10px 5px; display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
-.static-img {
-  width: 30px; height: 30px; object-fit: cover; border-radius: 6px;
-}
+.static-img { width: 30px; height: 30px; object-fit: cover; border-radius: 6px; }
 .static-method span { font-size: 11px; font-weight: 700; color: #7f8c8d; }
 
-/* Responsive Mobile */
 @media (max-width: 600px) {
   .wallet-page { background-color: white; align-items: flex-start; padding-top: 85px; }
   .wallet-card { box-shadow: none; border-radius: 0; padding: 10px 0; }
+  .video-container { aspect-ratio: 21 / 9; }
 }
 </style>
