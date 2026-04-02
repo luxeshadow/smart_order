@@ -17,10 +17,6 @@ export class LoginRepositoryImpl implements LoginRepository {
     this.datasource = new LoginRemoteDatasource(supabase)
   }
 
-  /**
-   * Tente de connecter l'utilisateur.
-   * Gère la transformation des Exceptions en Failures.
-   */
   async login(param: LoginParam): Promise<User | AuthFailure | DatabaseFailure> {
     try {
       // Appel à la datasource pour la logique brute Supabase

@@ -20,15 +20,29 @@ const form = ref({
 const isLoading = ref(false)
 const isDropdownOpen = ref(false)
 
-const paymentMethods = [
+type PaymentMethod = {
+  id: string
+  label: string
+  image: string
+}
+
+const paymentMethods: PaymentMethod[] = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
   { id: 'flooz', label: 'Moov Money (Flooz)', image: AppImage.Flooz },
-  { id: 'ria', label: 'Ria Money Transfer', image: AppImage.Ria } // Remplace par l'image Ria si dispo dans AppImage
+  { id: 'ria', label: 'Ria Money Transfer', image: AppImage.Ria }
 ]
 
-const selectedMethod = computed(() => 
-  paymentMethods.find(m => m.id === form.value.method) || paymentMethods[0]
-)
+const defaultMethod: PaymentMethod = {
+  id: 'tmoney',
+  label: 'T-Money',
+  image: AppImage.Yas
+}
+
+const selectedMethod = computed<PaymentMethod>(() => {
+  return (
+    paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
+  )
+})
 
 const selectMethod = (id: string) => {
   form.value.method = id
@@ -37,31 +51,47 @@ const selectMethod = (id: string) => {
 
 const handleWithdraw = async () => {
   if (form.value.method === 'ria') {
-    showToast("Ce service est actuellement indisponible", "fi-rr-info", "error", "#ff4757")
+    showToast("Ce service est actuellement indisponible", "fi-rr-info", "error")
     return
   }
 
-  if (!form.value.phoneNumber || !form.value.amount) {
-    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
+  if (!form.value.phoneNumber || !form.value.amount || !form.value.password) {
+    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error")
     return
   }
 
   isLoading.value = true
+
   try {
+    // TODO: brancher WithdrawUseCase
     await new Promise(resolve => setTimeout(resolve, 2000))
-    showToast("Demande de retrait envoyée !", "fi-rr-check", "success", "#2ecc71")
-    setTimeout(() => { router.push('/home') }, 1500)
+
+    showToast("Demande de retrait envoyée !", "fi-rr-check", "success")
+
+    setTimeout(() => {
+      router.push('/home')
+    }, 1500)
   } catch (error) {
-    showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error", "#ff4757")
+    showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error")
   } finally {
     isLoading.value = false
   }
 }
 
+// Fermeture du menu si clic extérieur
+const closeDropdown = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.custom-select-group')) {
+    isDropdownOpen.value = false
+  }
+}
+
 onMounted(() => {
-  window.addEventListener('click', (e: any) => {
-    if (!e.target.closest('.custom-select-group')) isDropdownOpen.value = false
-  })
+  window.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdown)
 })
 </script>
 
@@ -214,26 +244,21 @@ onMounted(() => {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
-/* Alert Box pour Ria */
+/* Alert Box */
 .alert-box {
   background-color: #fff5f5;
   border: 1px solid #feb2b2;
   color: #c53030;
   padding: 12px 15px;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  font-size: 13px;
-  font-weight: 500;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; font-size: 13px; font-weight: 500;
 }
 
 /* Custom Select */
 .custom-select-group { display: flex; flex-direction: column; gap: 8px; position: relative; }
 .select-label { font-size: 14px; font-weight: 600; color: #333; }
 .selected-option {
-   
   height: 52px; border: 1.5px solid #e0e0e0; border-radius: 12px;
   padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; background: white;
@@ -253,11 +278,11 @@ onMounted(() => {
 .arrow-icon { color: #a0a0a0; transition: transform 0.3s; }
 .is-open .arrow-icon { transform: rotate(180deg); }
 
-/* Form & Layout */
+/* Form Layout */
 .logo-container { text-align: center; margin-bottom: 15px; }
 .app-logo { height: 70px; }
 .header-content { text-align: center; margin-bottom: 25px; }
-.title { font-size: 22px; font-weight: 800; }
+.title { font-size: 22px; font-weight: 800; color: #2d3436; }
 .subtitle { color: #95a5a6; font-size: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 

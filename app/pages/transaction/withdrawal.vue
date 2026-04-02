@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WithdrawalPage from '../../features/deposit/presentation/pages/withdrawal.vue'
+import WithdrawalPage from '../../features/transaction/presentation/pages/withdrawal.vue'
 </script>
 
 <template>

@@ -1,31 +1,46 @@
 <script setup lang="ts">
-import { AppColor } from '@/core/constants/app_colors'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
 import { useToast } from '@/core/utils/useToast'
+import { PaygateService } from '@/services/paygate/paygate_service'
 
 const { showToast } = useToast()
 const router = useRouter()
+const paygateService = new PaygateService()
 
 const form = ref({
   phoneNumber: '',
   amount: '',
-  method: 'tmoney' 
+  method: 'tmoney'
 })
 
 const isLoading = ref(false)
 const isDropdownOpen = ref(false)
 
-const paymentMethods = [
+type PaymentMethod = {
+  id: string
+  label: string
+  image: string
+}
+
+const paymentMethods: PaymentMethod[] = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
   { id: 'flooz', label: 'Moov Money', image: AppImage.Flooz }
 ]
 
-// Calculer la méthode sélectionnée pour l'affichage
-const selectedMethod = computed(() => 
-  paymentMethods.find(m => m.id === form.value.method) || paymentMethods[0]
-)
+const defaultMethod: PaymentMethod = {
+  id: 'tmoney',
+  label: 'T-Money',
+  image: AppImage.Yas
+}
+
+const selectedMethod = computed<PaymentMethod>(() => {
+  return (
+    paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
+  )
+})
 
 const selectMethod = (id: string) => {
   form.value.method = id
@@ -34,26 +49,80 @@ const selectMethod = (id: string) => {
 
 const handleDeposit = async () => {
   if (!form.value.phoneNumber || !form.value.amount) {
-    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error", "#ff4757")
+    showToast(
+      "Veuillez remplir tous les champs",
+      "fi-rr-info",
+      "error",
+      "#ff4757"
+    )
     return
   }
+
   isLoading.value = true
+
   try {
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    showToast("Demande de recharge envoyée !", "fi-rr-check", "success", "#2ecc71")
-    setTimeout(() => { router.push('/home') }, 1500)
-  } catch (error) {
-    showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error", "#ff4757")
+    const identifier = `TX-${Date.now()}`
+
+    const paygateRes = await paygateService.createPayment({
+      phone_number: form.value.phoneNumber,
+      amount: Number(form.value.amount),
+      network: form.value.method === 'flooz' ? 'FLOOZ' : 'TMONEY',
+      description: 'Recharge de compte',
+      identifier
+    })
+
+    showToast(
+      "Validez le paiement sur votre téléphone (20 sec)",
+      "fi-rr-mobile-button",
+      "success",
+      "#2ecc71"
+    )
+    await new Promise(resolve => setTimeout(resolve, 20000))
+
+    const statusRes = await paygateService.checkPaymentStatus(
+      String(paygateRes.tx_reference)
+    )
+
+    if (statusRes.status !== 0) {
+      throw new Error(statusRes.message || 'Paiement échoué')
+    }
+
+    showToast(
+      "Recharge réussie !",
+      "fi-rr-check",
+      "success",
+      "#2ecc71"
+    )
+
+    setTimeout(() => {
+      router.push('/home')
+    }, 1000)
+
+  } catch (error: any) {
+    showToast(
+      error.message || "Erreur lors de la transaction",
+      "fi-rr-shield-exclamation",
+      "error",
+      "#ff4757"
+    )
   } finally {
     isLoading.value = false
   }
 }
 
-// Fermer le menu si on clique ailleurs
+const closeDropdown = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.custom-select-group')) {
+    isDropdownOpen.value = false
+  }
+}
+
 onMounted(() => {
-  window.addEventListener('click', (e: any) => {
-    if (!e.target.closest('.custom-select-group')) isDropdownOpen.value = false
-  })
+  window.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdown)
 })
 </script>
 

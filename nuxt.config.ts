@@ -7,9 +7,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    paygateApiKey: process.env.PAYGATE_API_KEY,
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
+      
     }
   },
 
