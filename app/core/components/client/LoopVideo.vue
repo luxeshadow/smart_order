@@ -2,7 +2,7 @@
 defineProps({
   src: {
     type: String,
-    default: "assets/videos/mp4/video.mp4"
+    default: "assets/videos/mp4/video_1.mp4"
   }
 })
 </script>
