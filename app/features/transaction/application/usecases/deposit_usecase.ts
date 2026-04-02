@@ -13,15 +13,12 @@ export class DepositUseCase implements UseCase<Deposit, DepositParam> {
   }
 
   async execute(param: DepositParam): Promise<Deposit | Failure> {
-    // 1. Validation des champs (Montant > 0, Numéro valide, etc.)
     const validationError = DepositValidator.validate(param)
 
     if (validationError) {
-      // On utilise AuthFailure ou un nouveau DepositFailure selon tes besoins
       return new AuthFailure(validationError)
     }
 
-    // 2. Appel au repository pour l'insertion en base de données
     const result = await this.repository.deposit(param)
     
     return result

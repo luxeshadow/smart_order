@@ -56,11 +56,9 @@ const buttonLabel = computed(() => {
   if (isLoading.value && countdown.value > 0) {
     return `Confirmation (${countdown.value}s)`
   }
-
   if (isLoading.value) {
     return 'Traitement...'
   }
-
   return 'Lancer la recharge'
 })
 
@@ -71,11 +69,7 @@ const selectMethod = (id: string) => {
 
 const startCountdown = (seconds: number) => {
   countdown.value = seconds
-
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-  }
-
+  if (countdownInterval) clearInterval(countdownInterval)
   countdownInterval = setInterval(() => {
     if (countdown.value > 0) {
       countdown.value--
@@ -90,18 +84,12 @@ const stopCountdown = () => {
     clearInterval(countdownInterval)
     countdownInterval = null
   }
-
   countdown.value = 0
 }
 
 const handleDeposit = async () => {
   if (!authStore.user?.id) {
-    showToast(
-      'Utilisateur non connecté',
-      'fi-rr-cross-circle',
-      'error',
-      '#ff4757'
-    )
+    showToast('Utilisateur non connecté', 'fi-rr-cross-circle', 'error', '#ff4757')
     return
   }
 
@@ -109,9 +97,7 @@ const handleDeposit = async () => {
   isLoading.value = true
 
   try {
-    /**
-     * 1) Validation + insert pending
-     */
+    // 1. Enregistrement local
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
       depositPhoneNumber: form.value.phoneNumber,
@@ -124,9 +110,7 @@ const handleDeposit = async () => {
       throw new Error(depositResult.message)
     }
 
-    /**
-     * 2) lancement PayGate
-     */
+    // 2. Création Paygate
     const paygateRes = await paygateService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
@@ -135,41 +119,31 @@ const handleDeposit = async () => {
       identifier
     })
 
-    showToast(
-      'Validez le paiement sur votre téléphone',
-      'fi-rr-mobile-button',
-      'success',
-      '#2ecc71'
-    )
-
-    /**
-     * 3) compteur 20 sec
-     */
+    showToast('Validez le paiement sur votre téléphone', 'fi-rr-mobile-button', 'success', '#2ecc71')
+    
     startCountdown(20)
     await new Promise(resolve => setTimeout(resolve, 20000))
 
-    /**
-     * 4) vérification du paiement
-     */
+    // 3. Vérification du statut
     const statusRes = await paygateService.checkPaymentStatus(
-      String(paygateRes.tx_reference)
+      String(paygateRes.tx_reference),
+      identifier 
     )
 
-    if (statusRes.status !== 0) {
-      throw new Error(statusRes.message || 'Paiement échoué')
+    // ✅ Déclenchement de l'erreur si rejeté ou status != 0
+    if (statusRes.status !== 0 || statusRes.transaction_status === 'rejected') {
+      throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
     }
 
-    showToast(
-      'Recharge réussie !',
-      'fi-rr-check',
-      'success',
-      '#2ecc71'
-    )
+    // 4. Succès
+    showToast('Recharge réussie !', 'fi-rr-check', 'success', '#2ecc71')
 
     setTimeout(() => {
       router.push('/home')
     }, 1000)
+
   } catch (error: any) {
+    // Affiche le toast rouge pour toutes les erreurs (y compris paiement rejeté)
     showToast(
       error.message || 'Erreur lors de la transaction',
       'fi-rr-shield-exclamation',
