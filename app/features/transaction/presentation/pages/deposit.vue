@@ -130,7 +130,7 @@ const handleDeposit = async () => {
       identifier 
     )
 
-    // ✅ Déclenchement de l'erreur si rejeté ou status != 0
+    // Déclenchement de l'erreur si rejeté ou status != 0
     if (statusRes.status !== 0 || statusRes.transaction_status === 'rejected') {
       throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
     }
@@ -143,7 +143,13 @@ const handleDeposit = async () => {
     }, 1000)
 
   } catch (error: any) {
-    // Affiche le toast rouge pour toutes les erreurs (y compris paiement rejeté)
+    // ✅ CLEAR DES CHAMPS EN CAS D'ERREUR
+    form.value = {
+      phoneNumber: '',
+      amount: '',
+      method: 'tmoney'
+    }
+
     showToast(
       error.message || 'Erreur lors de la transaction',
       'fi-rr-shield-exclamation',
