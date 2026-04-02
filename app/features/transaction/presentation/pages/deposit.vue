@@ -5,10 +5,20 @@ import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
 import { useToast } from '@/core/utils/useToast'
 import { PaygateService } from '@/services/paygate/paygate_service'
+import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
+import { DepositUseCase } from '../../application/usecases/deposit_usecase'
+import { DepositRepositoryImpl } from '../../data/repositories/deposit_repository_impl'
+import { Failure } from '@/core/errors/failure'
 
 const { showToast } = useToast()
 const router = useRouter()
+const authStore = useAuthStore()
+
 const paygateService = new PaygateService()
+
+// ✅ Init usecase
+const depositRepository = new DepositRepositoryImpl()
+const depositUseCase = new DepositUseCase(depositRepository)
 
 const form = ref({
   phoneNumber: '',
@@ -37,9 +47,7 @@ const defaultMethod: PaymentMethod = {
 }
 
 const selectedMethod = computed<PaymentMethod>(() => {
-  return (
-    paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
-  )
+  return paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
 })
 
 const selectMethod = (id: string) => {
@@ -58,11 +66,22 @@ const handleDeposit = async () => {
     return
   }
 
+  if (!authStore.user?.id) {
+    showToast(
+      "Utilisateur non connecté",
+      "fi-rr-cross-circle",
+      "error",
+      "#ff4757"
+    )
+    return
+  }
+
   isLoading.value = true
 
   try {
     const identifier = `TX-${Date.now()}`
 
+    // ✅ 1) Création paiement PayGate
     const paygateRes = await paygateService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
@@ -77,6 +96,7 @@ const handleDeposit = async () => {
       "success",
       "#2ecc71"
     )
+
     await new Promise(resolve => setTimeout(resolve, 20000))
 
     const statusRes = await paygateService.checkPaymentStatus(
@@ -85,6 +105,17 @@ const handleDeposit = async () => {
 
     if (statusRes.status !== 0) {
       throw new Error(statusRes.message || 'Paiement échoué')
+    }
+    const depositResult = await depositUseCase.execute({
+      userId: String(authStore.user.id),
+      depositPhoneNumber: form.value.phoneNumber,
+      amount: Number(form.value.amount),
+      method: form.value.method,
+      referenceId: String(paygateRes.tx_reference)
+    })
+
+    if (depositResult instanceof Failure) {
+      throw new Error(depositResult.message)
     }
 
     showToast(
@@ -125,7 +156,6 @@ onUnmounted(() => {
   window.removeEventListener('click', closeDropdown)
 })
 </script>
-
 <template>
   <div class="deposit-page">
     <nav class="app-bar">
