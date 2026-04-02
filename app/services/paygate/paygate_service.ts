@@ -19,6 +19,7 @@ export type PaygateCheckResponse = {
 }
 
 export class PaygateService {
+  
   async createPayment(payload: CreatePaymentPayload): Promise<PaygateCreateResponse> {
     return await $fetch<PaygateCreateResponse>('/api/paygate/create', {
       method: 'POST',
@@ -31,6 +32,7 @@ export class PaygateService {
       method: 'POST',
       body: {
         tx_reference: txReference
+       
       }
     })
   }

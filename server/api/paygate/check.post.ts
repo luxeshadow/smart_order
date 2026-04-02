@@ -1,42 +1,55 @@
-
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
-  try {
-    const config = useRuntimeConfig()
-    const body = await readBody(event)
+  const config = useRuntimeConfig()
+  const body = await readBody(event)
 
-    const { txReference, identifier } = body
+  const txReference = body.tx_reference
+  const identifier = body.identifier
 
-    if (!txReference) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'txReference requis'
-      })
-    }
-
-    const statusRes: any = await $fetch('https://paygateglobal.com/api/v1/status', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.paygateApiKey}`
-      },
-      body: {
-        tx_reference: txReference
-      }
+  // ✅ Vérification stricte
+  if (!txReference || txReference === -1) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'tx_reference invalide'
     })
+  }
 
-    if (identifier && config.public.supabaseUrl && config.public.supabaseKey) {
+  try {
+    // ✅ Appel API PayGate
+    const statusRes: any = await $fetch(
+      'https://paygateglobal.com/api/v1/status',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          auth_token: config.paygateApiKey,
+          tx_reference: txReference
+        }
+      }
+    )
+
+
+    if (
+      identifier &&
+      config.supabaseServiceRoleKey &&
+      config.public.supabaseUrl
+    ) {
       const supabase = createClient(
         config.public.supabaseUrl,
-        config.public.supabaseKey
+        config.supabaseServiceRoleKey
       )
 
-      const status = statusRes.status === 0 ? 'success' : 'failed'
+      const depositStatus =
+        statusRes.status === 0 ? 'success' : 'failed'
 
       await supabase
         .from('deposits')
-        .update({ status })
+        .update({
+          status: depositStatus
+        })
         .eq('reference_id', identifier)
     }
 
@@ -44,12 +57,19 @@ export default defineEventHandler(async (event) => {
       success: true,
       status: statusRes.status,
       message: statusRes.message,
+      transaction_status:
+        statusRes.status === 0 ? 'success' : 'failed',
       data: statusRes
     }
   } catch (error: any) {
+    console.error('PAYGATE CHECK ERROR:', error)
+
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || 'Erreur lors de la vérification PayGate'
+      statusMessage:
+        error?.data?.message ||
+        error.message ||
+        'Erreur lors de la vérification PayGate'
     })
   }
 })

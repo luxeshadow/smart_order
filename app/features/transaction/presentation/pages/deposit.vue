@@ -16,7 +16,6 @@ const authStore = useAuthStore()
 
 const paygateService = new PaygateService()
 
-// ✅ Init usecase
 const depositRepository = new DepositRepositoryImpl()
 const depositUseCase = new DepositUseCase(depositRepository)
 
@@ -28,6 +27,9 @@ const form = ref({
 
 const isLoading = ref(false)
 const isDropdownOpen = ref(false)
+const countdown = ref(0)
+
+let countdownInterval: ReturnType<typeof setInterval> | null = null
 
 type PaymentMethod = {
   id: string
@@ -50,38 +52,81 @@ const selectedMethod = computed<PaymentMethod>(() => {
   return paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
 })
 
+const buttonLabel = computed(() => {
+  if (isLoading.value && countdown.value > 0) {
+    return `Confirmation (${countdown.value}s)`
+  }
+
+  if (isLoading.value) {
+    return 'Traitement...'
+  }
+
+  return 'Lancer la recharge'
+})
+
 const selectMethod = (id: string) => {
   form.value.method = id
   isDropdownOpen.value = false
 }
 
-const handleDeposit = async () => {
-  if (!form.value.phoneNumber || !form.value.amount) {
-    showToast(
-      "Veuillez remplir tous les champs",
-      "fi-rr-info",
-      "error",
-      "#ff4757"
-    )
-    return
+const startCountdown = (seconds: number) => {
+  countdown.value = seconds
+
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
   }
 
+  countdownInterval = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--
+    } else {
+      stopCountdown()
+    }
+  }, 1000)
+}
+
+const stopCountdown = () => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+
+  countdown.value = 0
+}
+
+const handleDeposit = async () => {
   if (!authStore.user?.id) {
     showToast(
-      "Utilisateur non connecté",
-      "fi-rr-cross-circle",
-      "error",
-      "#ff4757"
+      'Utilisateur non connecté',
+      'fi-rr-cross-circle',
+      'error',
+      '#ff4757'
     )
     return
   }
 
+  const identifier = `TX-${Date.now()}`
   isLoading.value = true
 
   try {
-    const identifier = `TX-${Date.now()}`
+    /**
+     * 1) Validation + insert pending
+     */
+    const depositResult = await depositUseCase.execute({
+      userId: String(authStore.user.id),
+      depositPhoneNumber: form.value.phoneNumber,
+      amount: Number(form.value.amount),
+      method: form.value.method,
+      referenceId: identifier
+    })
 
-    // ✅ 1) Création paiement PayGate
+    if (depositResult instanceof Failure) {
+      throw new Error(depositResult.message)
+    }
+
+    /**
+     * 2) lancement PayGate
+     */
     const paygateRes = await paygateService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
@@ -91,14 +136,21 @@ const handleDeposit = async () => {
     })
 
     showToast(
-      "Validez le paiement sur votre téléphone (20 sec)",
-      "fi-rr-mobile-button",
-      "success",
-      "#2ecc71"
+      'Validez le paiement sur votre téléphone',
+      'fi-rr-mobile-button',
+      'success',
+      '#2ecc71'
     )
 
+    /**
+     * 3) compteur 20 sec
+     */
+    startCountdown(20)
     await new Promise(resolve => setTimeout(resolve, 20000))
 
+    /**
+     * 4) vérification du paiement
+     */
     const statusRes = await paygateService.checkPaymentStatus(
       String(paygateRes.tx_reference)
     )
@@ -106,37 +158,26 @@ const handleDeposit = async () => {
     if (statusRes.status !== 0) {
       throw new Error(statusRes.message || 'Paiement échoué')
     }
-    const depositResult = await depositUseCase.execute({
-      userId: String(authStore.user.id),
-      depositPhoneNumber: form.value.phoneNumber,
-      amount: Number(form.value.amount),
-      method: form.value.method,
-      referenceId: String(paygateRes.tx_reference)
-    })
-
-    if (depositResult instanceof Failure) {
-      throw new Error(depositResult.message)
-    }
 
     showToast(
-      "Recharge réussie !",
-      "fi-rr-check",
-      "success",
-      "#2ecc71"
+      'Recharge réussie !',
+      'fi-rr-check',
+      'success',
+      '#2ecc71'
     )
 
     setTimeout(() => {
       router.push('/home')
     }, 1000)
-
   } catch (error: any) {
     showToast(
-      error.message || "Erreur lors de la transaction",
-      "fi-rr-shield-exclamation",
-      "error",
-      "#ff4757"
+      error.message || 'Erreur lors de la transaction',
+      'fi-rr-shield-exclamation',
+      'error',
+      '#ff4757'
     )
   } finally {
+    stopCountdown()
     isLoading.value = false
   }
 }
@@ -154,6 +195,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('click', closeDropdown)
+  stopCountdown()
 })
 </script>
 <template>
@@ -225,11 +267,17 @@ onUnmounted(() => {
         />
       </div>
 
-      <Button
-        label="Lancer la recharge"
-        :loading="isLoading"
-        @click="handleDeposit"
-      />
+     <Button
+  :label="buttonLabel"
+  :loading="isLoading"
+  :disabled="isLoading || countdown > 0"
+  :class="{ 'pulse-btn': countdown > 0 }"
+  @click="handleDeposit"
+/>
+
+<p v-if="countdown > 0" class="timer-hint">
+  Ne quittez pas cette page, confirmation en cours...
+</p>
     </div>
   </div>
 </template>
@@ -391,7 +439,41 @@ onUnmounted(() => {
     padding: 20px 0;
   }
 }
+.timer-hint {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #95a5a6;
+  animation: fadePulse 1s infinite;
+}
 
+.pulse-btn {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fadePulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
 .logo-container { text-align: center; margin-bottom: 15px; }
 .app-logo { height: 70px; }
 .header-content { text-align: center; margin-bottom: 25px; }
