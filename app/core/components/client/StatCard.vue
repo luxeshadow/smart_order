@@ -54,11 +54,13 @@ const levels = [
   padding: 0 15px;
 }
 
+/* Nouveau style pour les niveaux */
 .levels-row {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  overflow-x: auto; /* Scroll si trop de niveaux sur petit écran */
   padding-bottom: 5px;
 }
 
@@ -67,45 +69,27 @@ const levels = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Fond coloré léger basé sur ta couleur primaire */
-  background: v-bind('AppColor.primary.light + "15"'); 
-  /* Bordure plus visible */
-  border: 1.5px solid v-bind('AppColor.primary.light');
-  padding: 10px 4px;
-  border-radius: 16px;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  padding: 8px 4px;
+  border-radius: 12px;
   min-width: 65px;
-  transition: all 0.3s ease;
-}
-
-/* Effet au clic ou survol pour le côté "premium" */
-.level-badge:hover {
-  background: v-bind('AppColor.primary.base');
-  border-color: v-bind('AppColor.primary.base');
-}
-
-.level-badge:hover .lvl-text, 
-.level-badge:hover .lvl-price {
-  color: white;
 }
 
 .lvl-text {
-  font-size: 8px;
-  font-weight: 900;
-  /* Texte un peu plus foncé pour le contraste */
-  color: v-bind('AppColor.primary.base');
+  font-size: 9px;
+  font-weight: 800;
+  color: #999;
   text-transform: uppercase;
-  margin-bottom: 2px;
-  opacity: 0.8;
 }
 
 .lvl-price {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
-  /* Utilisation de ta couleur tertiaire ou primaire pour le prix */
   color: v-bind('AppColor.tertiary.base');
 }
 
-/* Le reste des stats reste inchangé car il est déjà propre */
+/* Tes styles existants */
 .stat-container {
   display: flex;
   gap: 12px;
@@ -114,37 +98,45 @@ const levels = [
 
 .stat-card {
   flex: 1;
-  background: white;
-  border-radius: 22px;
-  padding: 16px 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  border: 1px solid #f0f0f0;
+  background: v-bind('AppColor.surface.pure');
+  border-radius: 20px;
+  padding: 16px 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
 }
 
 .stat-title {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-weight: 700;
-  color: #a0a0a0;
-  margin-bottom: 8px;
+  color: #888;
+  margin: 0 0 8px 0;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .stat-value {
-  font-size: 19px;
-  font-weight: 900;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
   color: v-bind('AppColor.tertiary.base');
 }
 
 .stat-unit {
   font-size: 10px;
   font-weight: 800;
-  padding: 3px 8px;
-  background: v-bind('AppColor.primary.light + "30"');
+  padding: 2px 6px;
+  background: rgba(255, 152, 0, 0.1);
   color: v-bind('AppColor.primary.base');
-  border-radius: 8px;
-  margin-top: 6px;
-  width: fit-content;
+  border-radius: 6px;
+  margin-top: 4px;
+  display: inline-block;
 }
 </style>
