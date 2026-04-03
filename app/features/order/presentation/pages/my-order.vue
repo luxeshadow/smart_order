@@ -112,13 +112,14 @@ const categories = [
     </div>
 
     <SmartChart />
+    <Footer />
   </div>
-   <Footer />
+   
 </template>
 
 <style scoped>
 .order-page {
-  padding: 20px;
+  padding: 10px;
   padding-top: 85px;
   background: white;
   min-height: 100vh;
