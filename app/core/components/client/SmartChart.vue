@@ -96,7 +96,7 @@ const linePath = computed(() => {
 <style scoped>
 .smart-chart-card {
  
-  margin-top: 40px;
+  margin-top: 25px;
 }
 
 .chart-header {

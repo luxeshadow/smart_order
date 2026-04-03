@@ -338,7 +338,7 @@ const categories = [
 .order-info-box {
   width: 100%;
   max-width: 480px;
-  margin-top: 14px;
+  margin-top: 12px;
   padding: 20px;
   border-radius: 16px;
 }
