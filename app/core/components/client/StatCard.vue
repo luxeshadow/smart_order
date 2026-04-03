@@ -11,11 +11,25 @@ defineProps({
     default: "3,945"
   }
 })
+
+// Liste des niveaux pour la boucle
+const levels = [
+  { id: 1, price: '10K' },
+  { id: 2, price: '20K' },
+  { id: 3, price: '30K' },
+  { id: 4, price: '40K' },
+]
 </script>
 
 <template>
   <div class="dashboard-section">
-    <h1 class="section-title"></h1>
+    <div class="levels-row">
+      <div v-for="lvl in levels" :key="lvl.id" class="level-badge">
+        <span class="lvl-text">NIV {{ lvl.id }}</span>
+        <span class="lvl-price">{{ lvl.price }}</span>
+      </div>
+    </div>
+
     <div class="stat-container">
       <div class="stat-card">
         <p class="stat-title">Stock Value</p>
@@ -41,23 +55,52 @@ defineProps({
   padding: 0 15px;
 }
 
-.section-title {
-  font-size: 20px;
-  font-weight: 800;
+/* Nouveau style pour les niveaux */
+.levels-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 15px;
+  overflow-x: auto; /* Scroll si trop de niveaux sur petit écran */
+  padding-bottom: 5px;
+}
+
+.level-badge {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  padding: 8px 4px;
+  border-radius: 12px;
+  min-width: 65px;
+}
+
+.lvl-text {
+  font-size: 9px;
+  font-weight: 800;
+  color: #999;
+  text-transform: uppercase;
+}
+
+.lvl-price {
+  font-size: 11px;
+  font-weight: 900;
   color: v-bind('AppColor.tertiary.base');
 }
 
+/* Tes styles existants */
 .stat-container {
   display: flex;
-  gap: 12px; /* Espace entre les deux cartes */
+  gap: 12px;
   width: 100%;
 }
 
 .stat-card {
-  flex: 1; /* Force les deux cartes à prendre 50% chacune */
+  flex: 1;
   background: v-bind('AppColor.surface.pure');
-  border-radius: 20px; /* Plus arrondi pour le look moderne */
+  border-radius: 20px;
   padding: 16px 12px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.04);
   border: 1px solid rgba(0,0,0,0.02);
@@ -76,28 +119,25 @@ defineProps({
 
 .stat-content {
   display: flex;
-  flex-direction: column; /* Valeur au dessus de l'unité pour gagner de la place en largeur */
+  flex-direction: column;
   align-items: flex-start;
 }
 
 .stat-value {
-  font-size: 18px; /* Un peu plus petit pour tenir sur une ligne sur mobile */
+  font-size: 18px;
   font-weight: 800;
   margin: 0;
   color: v-bind('AppColor.tertiary.base');
-  word-break: break-all;
 }
 
 .stat-unit {
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
-  background: rgba(255, 152, 0, 0.1); /* Fond léger orange */
+  background: rgba(255, 152, 0, 0.1);
   color: v-bind('AppColor.primary.base');
   border-radius: 6px;
   margin-top: 4px;
   display: inline-block;
 }
-
-/* On vire le responsive qui mettait en colonne */
 </style>
