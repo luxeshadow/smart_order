@@ -1,34 +1,81 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted, watch } from 'vue'
+import { storeToRefs } from "pinia";
+import { useRoute, useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppIcon } from '@/core/constants/app_icons'
+import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
+import AuthAlert from "./AuthAlert.vue"; // Assure-toi que le chemin est correct
+
+const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+const { isAuthenticated } = storeToRefs(authStore)
 
 const isOpen = ref(false)
+const showAlert = ref(false)
+let timer: any = null
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
 }
 
-// RÉDUIT À 3 ACTIONS
+// Actions du menu
 const actions = [
-  { id: 'Transact',    name: 'Transact',    icon: AppIcon.order, route: '/transaction/add' },
-  { id: 'Vente', name: 'Vente',  icon: AppIcon.box,   route: '/sell/add' },
-  { id: 'Parametre', name: 'Parametre',  icon: AppIcon.user, route: '/user/add' },
+  { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/add' },
+  { id: 'Vente',    name: 'Vente',    icon: AppIcon.box,   route: '/order/my-order' },
+  { id: 'Parametre', name: 'Parametre', icon: AppIcon.user,  route: '/user/add' },
 ]
+
+// FONCTION DE PROTECTION
+const handleActionClick = (path: string) => {
+  // 1. Fermer le menu d'abord
+  isOpen.value = false
+
+  // 2. Vérifier l'auth
+  if (!isAuthenticated.value) {
+    triggerAlert()
+    return
+  }
+
+  // 3. Rediriger si connecté
+  router.push(path)
+}
+
+const triggerAlert = () => {
+  if (timer) clearTimeout(timer)
+  showAlert.value = true
+  timer = setTimeout(() => {
+    showAlert.value = false
+  }, 5000)
+}
+
+// Nettoyage si on change de page ou démonte le composant
+watch(() => route.path, () => {
+  showAlert.value = false
+  isOpen.value = false
+  if (timer) clearTimeout(timer)
+})
+
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
 </script>
 
 <template>
   <div class="fab-container">
+    <AuthAlert :show="showAlert" @close="showAlert = false" />
+
     <Transition name="fade">
       <div v-if="isOpen" class="fab-backdrop" @click="toggleMenu"></div>
     </Transition>
 
     <div class="fab-orbit-menu" :class="{ 'is-open': isOpen }">
       <div v-for="action in actions" :key="action.id" class="orbit-item">
-        <NuxtLink :to="action.route" class="action-btn">
+        <div @click="handleActionClick(action.route)" class="action-btn">
           <i :class="action.icon" class="action-icon"></i>
           <span class="action-label">{{ action.name }}</span>
-        </NuxtLink>
+        </div>
       </div>
     </div>
 
@@ -43,10 +90,32 @@ const actions = [
 </template>
 
 <style scoped>
+/* Garde ton CSS identique, assure-toi juste que .action-btn a un cursor: pointer */
+.action-btn {
+  cursor: pointer; /* Ajouté pour le feedback visuel */
+  width: 60px; 
+  height: 60px;
+  background-color: v-bind('AppColor.surface.pure');
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+}
+
+.action-btn:active {
+  transform: scale(0.9);
+}
+
+/* Le reste de ton CSS est parfait */
 .fab-container {
   position: fixed;
   bottom: 30px;
-  right: 15px; /* Un peu plus d'espace du bord */
+  right: 15px;
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -55,10 +124,10 @@ const actions = [
 
 .fab-backdrop {
   position: fixed;
-  top: 65px;
+  top: 0; /* Changé à 0 pour couvrir toute l'alerte si besoin */
   left: 0;
   width: 100vw;
-  height: calc(100vh - 65px);
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 10;
   backdrop-filter: blur(2px);
@@ -68,7 +137,7 @@ const actions = [
   width: 70px;
   height: 70px;
   background-color: v-bind('AppColor.primary.base');
-  color: v-bind('AppColor.surface.pure');
+  color: white;
   border: none;
   border-radius: 22px;
   cursor: pointer;
@@ -85,19 +154,6 @@ const actions = [
   border-radius: 18px;
 }
 
-.trigger-icon {
-  font-size: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.4s;
-}
-
-.fab-trigger.is-active .trigger-icon {
-  transform: rotate(-45deg); 
-}
-
-/* --- ORBITE RÉDUITE À 3 --- */
 .fab-orbit-menu {
   position: absolute;
   width: 70px;
@@ -121,37 +177,12 @@ const actions = [
   transition: all 0.4s ease-out;
 }
 
-
 .fab-orbit-menu.is-open .orbit-item:nth-child(1) { transform: translate(0px, -95px); }
 .fab-orbit-menu.is-open .orbit-item:nth-child(2) { transform: translate(-70px, -70px); }
 .fab-orbit-menu.is-open .orbit-item:nth-child(3) { transform: translate(-95px, 0px); }
 
-.action-btn {
-  width: 60px; 
-  height: 60px;
-  background-color: v-bind('AppColor.surface.pure');
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  text-decoration: none;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.action-icon {
-  font-size: 18px;
-  color: v-bind('AppColor.primary.base');
-  margin-bottom: 2px;
-}
-
-.action-label {
-  font-size: 9px;
-  font-weight: 800;
-  color: #333;
-}
-
+.action-icon { font-size: 18px; color: v-bind('AppColor.primary.base'); margin-bottom: 2px; }
+.action-label { font-size: 9px; font-weight: 800; color: #333; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

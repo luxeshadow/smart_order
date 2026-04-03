@@ -1,10 +1,22 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
+import { useToast } from '@/core/utils/useToast'
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+import { WalletRepositoryImpl } from '../../data/repositories/wallet_repository_impl'
+import { CreateWalletUseCase } from '../../application/usecases/create_wallet_usecase'
+import { Failure } from '@/core/errors/failure'
 
 const router = useRouter()
+const { showToast } = useToast()
+const authStore = useAuthStore()
+
+// Initialisation Architecture
+const walletRepository = new WalletRepositoryImpl()
+const walletUseCase = new CreateWalletUseCase(walletRepository)
 
 const form = ref({
   phoneNumber: '',
@@ -20,11 +32,46 @@ const availableMethods = [
 ]
 
 const handleUpdateWallet = async () => {
-  if(!form.value.phoneNumber || !form.value.withdrawPassword) return
+  if (!authStore.user?.id) {
+    showToast('Session expirée', 'fi-rr-lock', 'error', '#ff4757')
+    return
+  }
+
   isLoading.value = true
-  setTimeout(() => {
+
+  try {
+    const result = await walletUseCase.execute({
+      userId: String(authStore.user.id),
+      paymentAddress: form.value.phoneNumber,
+      withdrawalPassword: form.value.withdrawPassword
+    })
+
+    if (result instanceof Failure) {
+      throw new Error(result.message)
+    }
+
+    showToast(
+      'Portefeuille configuré avec succès !',
+      'fi-rr-check',
+      'success',
+      '#2ecc71'
+    )
+
+    // Petit délai pour laisser le temps de lire le toast
+    setTimeout(() => {
+      router.back()
+    }, 1500)
+
+  } catch (error: any) {
+    showToast(
+      error.message || 'Impossible de mettre à jour le portefeuille',
+      'fi-rr-shield-exclamation',
+      'error',
+      '#ff4757'
+    )
+  } finally {
     isLoading.value = false
-  }, 1500)
+  }
 }
 </script>
 
@@ -42,11 +89,7 @@ const handleUpdateWallet = async () => {
       <div class="video-wrapper">
         <div class="video-container">
           <div class="video-overlay"></div>
-          <img 
-            :src="AppImage.Money" 
-            class="gif-player" 
-            alt="Wallet Animation"
-          />
+          <img :src="AppImage.Money" class="gif-player" alt="Wallet Animation" />
         </div>
       </div>
 
@@ -63,6 +106,7 @@ const handleUpdateWallet = async () => {
           icon="fi-rr-phone-call"
           placeholder="Ex: 90 00 00 00"
           type="tel"
+          :disabled="isLoading"
         />
 
         <Input
@@ -72,6 +116,7 @@ const handleUpdateWallet = async () => {
           icon="fi-rr-lock"
           placeholder="••••••••"
           type="password"
+          :disabled="isLoading"
         />
 
         <div class="methods-section">
@@ -93,6 +138,15 @@ const handleUpdateWallet = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Tes styles restent identiques, ils sont déjà très propres */
+.form-group {
+  opacity: v-bind("isLoading ? 0.7 : 1");
+  pointer-events: v-bind("isLoading ? 'none' : 'auto'");
+  transition: all 0.3s ease;
+}
+</style>
 
 <style scoped>
 /* AppBar & Base */
@@ -117,12 +171,12 @@ const handleUpdateWallet = async () => {
 .wallet-page {
   display: flex; justify-content: center; align-items: center;
   min-height: 100vh; background-color: #f8f9fa;
-  padding: 70px 12px 40px 12px;
+  padding: 70px 15px 40px 15px;
 }
 
 .wallet-card {
   width: 100%; max-width: 420px; background: white;
-  padding: 5px 15px 30px 15px; border-radius: 30px;
+  padding: 5px 15px 27px 15px; border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
@@ -174,7 +228,7 @@ const handleUpdateWallet = async () => {
 .static-method span { font-size: 11px; font-weight: 700; color: #7f8c8d; }
 
 @media (max-width: 600px) {
-  .wallet-page { background-color: white; align-items: flex-start; padding-top: 85px; }
+  .wallet-page { background-color: white; align-items: flex-start; padding-top: 75px; }
   .wallet-card { box-shadow: none; border-radius: 0; padding: 10px 0; }
   .video-container { aspect-ratio: 21 / 9; }
 }

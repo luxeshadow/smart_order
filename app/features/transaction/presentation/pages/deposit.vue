@@ -97,7 +97,6 @@ const handleDeposit = async () => {
   isLoading.value = true
 
   try {
-    // 1. Enregistrement local
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
       depositPhoneNumber: form.value.phoneNumber,
@@ -110,7 +109,6 @@ const handleDeposit = async () => {
       throw new Error(depositResult.message)
     }
 
-    // 2. Création Paygate
     const paygateRes = await paygateService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
@@ -121,21 +119,18 @@ const handleDeposit = async () => {
 
     showToast('Validez le paiement sur votre téléphone', 'fi-rr-mobile-button', 'success', '#2ecc71')
     
-    startCountdown(20)
-    await new Promise(resolve => setTimeout(resolve, 20000))
+    startCountdown(11)
+    await new Promise(resolve => setTimeout(resolve, 11000))
 
-    // 3. Vérification du statut
     const statusRes = await paygateService.checkPaymentStatus(
       String(paygateRes.tx_reference),
       identifier 
     )
 
-    // Déclenchement de l'erreur si rejeté ou status != 0
     if (statusRes.status !== 0 || statusRes.transaction_status === 'rejected') {
       throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
     }
 
-    // 4. Succès
     showToast('Recharge réussie !', 'fi-rr-check', 'success', '#2ecc71')
 
     setTimeout(() => {
@@ -143,7 +138,7 @@ const handleDeposit = async () => {
     }, 1000)
 
   } catch (error: any) {
-    // ✅ CLEAR DES CHAMPS EN CAS D'ERREUR
+
     form.value = {
       phoneNumber: '',
       amount: '',
@@ -252,8 +247,7 @@ onUnmounted(() => {
   :loading="isLoading"
   :disabled="isLoading || countdown > 0"
   :class="{ 'pulse-btn': countdown > 0 }"
-  @click="handleDeposit"
-/>
+  @click="handleDeposit"/>
 
 <p v-if="countdown > 0" class="timer-hint">
   Ne quittez pas cette page, confirmation en cours...
