@@ -112,8 +112,8 @@ const categories = [
     </div>
 
     <SmartChart />
-    <Footer />
   </div>
+   <Footer />
 </template>
 
 <style scoped>
