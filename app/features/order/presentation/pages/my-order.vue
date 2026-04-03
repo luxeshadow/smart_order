@@ -107,7 +107,11 @@ const categories = [
                         <span>Valider</span>
                         <i class="fi fi-rr-plus"></i>
                     </button>
-                    <div class="order-info-box">
+                   
+                </div>
+            </Transition>
+        </div>
+         <div class="order-info-box">
                         <div class="info-row">
                             <i class="fi fi-rr-info info-icon"></i>
                             <div class="info-text">
@@ -116,9 +120,6 @@ const categories = [
                             </div>
                         </div>
                     </div>
-                </div>
-            </Transition>
-        </div>
 
         <SmartChart />
         <Footer />
@@ -336,35 +337,44 @@ const categories = [
 
 .order-info-box {
   width: 100%;
-  margin-top: 55px;
-  padding-top: 10px;
-  border-top: 1px dashed #ececec;
+  max-width: 480px;
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: 16px;
 }
 
 .info-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
 }
 
 .info-icon {
-  font-size: 18px;
-  color: v-bind('AppColor.primary.base');
-  margin-top: 2px;
+  min-width: 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: v-bind('AppColor.primary.base');
+  color: white;
+  font-size: 16px;
 }
 
 .info-text {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .info-text p {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #555;
-  line-height: 1.4;
+  color: #444;
+  line-height: 1.5;
 }
 
 .info-text strong {
