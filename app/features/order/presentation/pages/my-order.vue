@@ -215,7 +215,7 @@ const categories = [
 .pill-category span {
     font-weight: 700;
     font-size: 13px;
-    color: #333;
+    color: #3f3e3e;
 }
 
 /* Product Card */
