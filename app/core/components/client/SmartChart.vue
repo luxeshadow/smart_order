@@ -9,7 +9,7 @@ type ChartItem = {
 
 const data: ChartItem[] = [
   { name: 'Alibaba', value: 970 },
-  { name: 'Temu', value: 400 },
+  { name: 'Temu', value: 40 },
   { name: 'Costco', value: 150 },
   { name: 'Amazon', value: 3409 },
   { name: 'Walmart', value: 1098 }
