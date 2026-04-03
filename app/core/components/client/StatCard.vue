@@ -12,7 +12,6 @@ defineProps({
   }
 })
 
-// Liste des niveaux pour la boucle
 const levels = [
   { id: 1, price: '10K' },
   { id: 2, price: '20K' },
