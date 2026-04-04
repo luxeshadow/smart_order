@@ -3,7 +3,7 @@ import { AuthException, DatabaseException, UserAlreadyExistsException } from '@/
 import { AuthFailure, DatabaseFailure } from '@/core/errors/failure'
 import type { RegisterRepository } from '../../domain/repository/register_repository'
 import type { User } from '../../domain/entities/user'
-import type { RegisterParam } from '../../application/params/register_params'
+import type { RegisterPayload  } from '../../application/params/register_params'
 
 import { useApi } from '@/core/constants/supabase_client'
 
@@ -16,7 +16,7 @@ export class RegisterRepositoryImpl implements RegisterRepository {
     this.datasource = new RegisterRemoteDatasource(supabase)
   }
 
-  async register(param: RegisterParam): Promise<User | AuthFailure | DatabaseFailure> {
+  async register(param: RegisterPayload): Promise<User | AuthFailure | DatabaseFailure> {
     try {
       const user = await this.datasource.register(param)
       return user

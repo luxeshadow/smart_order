@@ -16,10 +16,10 @@ const registerUseCase = new RegisterUseCase(repository)
 
 const form = ref({
   userName: '',
+  email:'',
   phoneNumber: '',
   password: '',
   confirmPassword: '',
-  role: 'client'
 })
 
 const isLoading = ref(false)
@@ -40,8 +40,7 @@ const handleRegister = async () => {
       userName: form.value.userName,
       email: form.value.email,
       phoneNumber: form.value.phoneNumber,
-      password: form.value.password,
-      role: form.value.role
+      password: form.value.password
     })
 
     if (result instanceof Failure) {

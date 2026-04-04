@@ -73,13 +73,13 @@ const handleLogout = () => {
     </div>
 
     <div class="menu-section">
-      <div class="menu-item" @click="router.push('/profile/edit')">
+      <div class="menu-item" @click="router.push('/auth/update-profile')">
         <div class="menu-icon"><i class="fi fi-rr-user"></i></div>
         <span>Modifier mes informations</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
       
-      <div class="menu-item" @click="router.push('/transaction/history')">
+      <div class="menu-item" @click="router.push('/transaction/history-transaction')">
         <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
         <span>Historique des flux</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>
@@ -90,7 +90,6 @@ const handleLogout = () => {
         <span>Se déconnecter</span>
       </div>
     </div>
-
     <Footer />
   </div>
 </template>
@@ -166,7 +165,6 @@ const handleLogout = () => {
   justify-content: space-between;
 }
 
-/* FIX ALIGNEMENT : display flex + align center */
 .user-profile-row { 
   display: flex; 
   align-items: center; 
@@ -176,7 +174,7 @@ const handleLogout = () => {
 .user-info {
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centre le texte verticalement face à l'avatar */
+  justify-content: center;
 }
 
 .avatar-img { 

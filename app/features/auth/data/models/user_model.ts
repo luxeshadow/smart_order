@@ -1,11 +1,11 @@
-import type { User, UserRole } from '../../domain/entities/user'
+import type { User} from '../../domain/entities/user'
 
 export class UserModel implements User {
   id: string
   username: string
   email: string
   phoneNumber: string
-  role: UserRole
+  role: string
   token?: string
 
   constructor(data: User) {
@@ -23,7 +23,7 @@ export class UserModel implements User {
       username: data.username,
       email: data.email,
       phoneNumber: data.phone_number,
-      role: data.role as UserRole,
+      role: data.role,
       token: token 
     })
   }
