@@ -39,7 +39,7 @@ const handleLogout = () => {
       <div class="hero-content">
         <div class="user-profile-row">
           <div class="avatar-container">
-            <img src="https://ui-avatars.com/api/?name=User&background=fff&color=FF9800" alt="Avatar" class="avatar-img" />
+             <img :src="AppImage.Profile" alt="Avatar" class="avatar-img"/>
           </div>
           <div class="user-info">
             <span class="welcome-text">Bienvenue,</span>
