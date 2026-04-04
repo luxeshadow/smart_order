@@ -71,9 +71,8 @@ const handleUpdateProfile = async () => {
     } else {
       // Simple mise à jour réussie
       showToast("Profil mis à jour avec succès !", "fi-rr-check", "success")
-      
-      // Optionnel : Mettre à jour le store localement ici si nécessaire
-      // authStore.setUser({ ...user.value, username: form.value.userName, phoneNumber: form.value.phoneNumber })
+
+      //authStore.setUser({ ...user.value, username: form.value.userName, phoneNumber: form.value.phoneNumber })
 
       setTimeout(() => {
         router.back()

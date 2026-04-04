@@ -26,7 +26,7 @@ export class UpdateProfileRemoteDatasource {
 
       // 2. Mise à jour de ta table 'profiles' (si tu stockes le username dedans)
       const { error: dbError } = await this.supabase
-        .from('profiles')
+        .from('users')
         .update({ 
           username: param.userName,
           phone_number: param.phoneNumber 
