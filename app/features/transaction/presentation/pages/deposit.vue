@@ -119,8 +119,8 @@ const handleDeposit = async () => {
 
     showToast('Validez le paiement sur votre téléphone', 'fi-rr-mobile-button', 'success', '#2ecc71')
     
-    startCountdown(11)
-    await new Promise(resolve => setTimeout(resolve, 11000))
+    startCountdown(15)
+    await new Promise(resolve => setTimeout(resolve, 15000))
 
     const statusRes = await paygateService.checkPaymentStatus(
       String(paygateRes.tx_reference),
