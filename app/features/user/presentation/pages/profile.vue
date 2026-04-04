@@ -16,9 +16,9 @@ const balances = {
   principal: "45,000"
 }
 
-const handleLogout = async () => {
-  // authStore.logout()
-  router.push('/auth/login')
+// GESTION DU LOGOUT VIA LE STORE
+const handleLogout = () => {
+  authStore.logout()
 }
 </script>
 
@@ -40,7 +40,6 @@ const handleLogout = async () => {
         <div class="user-profile-row">
           <div class="avatar-container">
             <img src="https://ui-avatars.com/api/?name=User&background=fff&color=FF9800" alt="Avatar" class="avatar-img" />
-            <div class="status-badge">VIP</div>
           </div>
           <div class="user-info">
             <span class="welcome-text">Bienvenue,</span>
@@ -106,7 +105,6 @@ const handleLogout = async () => {
   min-height: 100vh;
 }
 
-/* --- LE RETOUR DU CSS APP BAR --- */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -120,28 +118,21 @@ const handleLogout = async () => {
 }
 
 .back-btn {
-  width: 45px;
-  height: 45px;
+  width: 45px; height: 45px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .app-bar-title {
-  flex: 1;
-  text-align: center;
-  font-weight: 800;
-  font-size: 17px;
+  flex: 1; text-align: center;
+  font-weight: 800; font-size: 17px;
   color: #111;
 }
 
-.spacer { width: 45px; } /* Pour équilibrer le titre centré */
+.spacer { width: 45px; }
 
-/* --- HERO WALLET --- */
 .hero-wallet {
   position: relative;
   width: auto;
@@ -175,10 +166,29 @@ const handleLogout = async () => {
   justify-content: space-between;
 }
 
-.user-profile-row { display: flex; align-items: center; gap: 12px; }
-.avatar-img { width: 48px; height: 48px; border-radius: 15px; border: 2px solid rgba(255,255,255,0.4); }
-.welcome-text { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; }
-.user-name { font-size: 18px; color: #fff; font-weight: 900; margin: 0; }
+/* FIX ALIGNEMENT : display flex + align center */
+.user-profile-row { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centre le texte verticalement face à l'avatar */
+}
+
+.avatar-img { 
+  width: 50px; 
+  height: 50px; 
+  border-radius: 15px; 
+  border: 2px solid rgba(255,255,255,0.4);
+  display: block;
+}
+
+.welcome-text { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; line-height: 1; margin-bottom: 4px;}
+.user-name { font-size: 18px; color: #fff; font-weight: 900; margin: 0; line-height: 1; }
 
 .settings-btn {
   margin-left: auto; width: 40px; height: 40px;
@@ -186,7 +196,6 @@ const handleLogout = async () => {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 12px; color: #fff;
-  cursor: pointer;
 }
 
 .balance-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; }
@@ -210,12 +219,10 @@ const handleLogout = async () => {
 .glass-amount small { font-size: 9px; opacity: 0.7; }
 .glass-divider { width: 1px; height: 25px; background: rgba(255,255,255,0.1); margin: 0 15px; }
 
-/* --- MENU SECTION --- */
 .menu-section { display: flex; flex-direction: column; gap: 10px; }
 .menu-item {
   display: flex; align-items: center; padding: 16px;
   background: #fbfbfb; border-radius: 20px; border: 1px solid #f5f5f5;
-  cursor: pointer;
 }
 .menu-icon {
   width: 40px; height: 40px; background: white;
@@ -224,7 +231,6 @@ const handleLogout = async () => {
   color: v-bind('AppColor.primary.base'); border: 1px solid #f0f0f0;
 }
 .menu-item span { flex: 1; font-weight: 700; font-size: 14px; color: #444; }
-.arrow { color: #ddd; }
 
 .menu-item.logout { margin-top: 5px; background: #fff5f5; border-color: #ffe0e0; }
 .menu-item.logout .menu-icon { background: #ff4757; color: white; border: none; }

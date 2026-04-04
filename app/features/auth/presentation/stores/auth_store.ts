@@ -28,7 +28,6 @@ export const useAuthStore = defineStore('auth', () => {
   function setUser(userData: User | null) {
     if (userData) {
       user.value = new UserModel(userData)
-      // On sauvegarde en JSON simple
       localStorage.setItem('smart_order_user', JSON.stringify(userData))
     } else {
       user.value = null
