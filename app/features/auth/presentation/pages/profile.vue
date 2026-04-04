@@ -1,22 +1,54 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
-import { AppColor } from "@/core/constants/app_colors"
 import { AppImage } from "@/core/constants/app_images" 
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import Footer from '@/core/components/client/Footer.vue'
+
+// --- Imports Clean Architecture ---
+import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
+import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
+import { Failure } from '@/core/errors/failure'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
-const balances = {
-  daily: "1,500",
-  refund: "12,400",
-  principal: "45,000"
+// Initialisation des couches
+const repository = new GetMyPrincipalBalanceRepositoryImpl()
+const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
+
+const mainBalanceRaw = ref<number | null>(null)
+
+// --- Logique de Formatage ---
+const formatBalance = (value: number | null): string => {
+  if (value === null) return "-,---,---";
+  // Pad à 8 chiffres (ex: 10 -> 00000010)
+  const padded = value.toString().padStart(8, '0');
+  // Formatage avec virgules (00,000,000)
+  return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
-// GESTION DU LOGOUT VIA LE STORE
+// Récupération du solde
+const fetchBalance = async () => {
+  if (!user.value?.id) return
+  const result = await getBalanceUseCase.execute({ userId: user.value.id })
+  if (!(result instanceof Failure)) {
+    mainBalanceRaw.value = result
+  }
+}
+
+onMounted(() => {
+  fetchBalance()
+})
+
+// Les autres soldes (à brancher plus tard sur leurs UseCases respectifs)
+const balances = {
+  daily: "00,001,500",
+  refund: "00,012,400",
+}
+
 const handleLogout = () => {
   authStore.logout()
 }
@@ -53,7 +85,7 @@ const handleLogout = () => {
         <div class="main-balance-display">
           <span class="balance-label">Solde Principal</span>
           <div class="amount-row">
-            <h2 class="amount">{{ balances.principal }}</h2>
+            <h2 class="amount">{{ formatBalance(mainBalanceRaw) }}</h2>
             <span class="currency">XOF</span>
           </div>
         </div>
@@ -93,7 +125,6 @@ const handleLogout = () => {
     <Footer />
   </div>
 </template>
-
 <style scoped>
 * { box-sizing: border-box; }
 
