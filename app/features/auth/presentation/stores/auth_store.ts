@@ -10,8 +10,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value)
   const userRole = computed(() => user.value?.role)
-
-  // 1. Charger les données au démarrage (Client Side uniquement)
   onMounted(() => {
     const savedUser = localStorage.getItem('smart_order_user')
     if (savedUser) {
@@ -24,7 +22,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  // 2. Synchroniser les changements avec le localStorage
   function setUser(userData: User | null) {
     if (userData) {
       user.value = new UserModel(userData)

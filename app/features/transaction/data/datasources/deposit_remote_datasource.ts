@@ -16,7 +16,7 @@ export class DepositRemoteDatasource {
         deposit_phone_number: param.depositPhoneNumber,
         amount: param.amount,
         method: param.method,
-        status: 'pending', // Statut initial par défaut
+        status: 'pending',
         reference_id: param.referenceId || null
       }
 

@@ -1,13 +1,47 @@
 <script setup lang="ts">
-import { AppColor } from '@/core/constants/app_colors'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
+import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
+import { Failure } from '@/core/errors/failure'
+
+const authStore = useAuthStore()
+const repository = new GetMyPrincipalBalanceRepositoryImpl()
+const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
+
+const mainBalanceRaw = ref<number | null>(null)
+const isLoading = ref(true)
+
+const formatBalance = (value: number | null): string => {
+  if (value === null) return "-,---,---";
+  
+  const padded = value.toString().padStart(8, '0');
+  
+  return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
+}
+
+const fetchBalance = async () => {
+  if (!authStore.user?.id) return
+  
+  isLoading.value = true
+  const result = await getBalanceUseCase.execute({ userId: authStore.user.id })
+
+  if (!(result instanceof Failure)) {
+    mainBalanceRaw.value = result
+  }
+  isLoading.value = false
+}
+
+onMounted(() => {
+  fetchBalance()
+})
 
 defineProps({
   today: { type: String, default: "29 Mars 2026" },
   pendingOrders: { type: Number, default: 12 },
   dailyProducts: { type: Number, default: 45 },
-  mainBalance: { type: String, default: "2,450,000" },
   profitBalance: { type: String, default: "+125,000" },
-  refundBalance: { type: String, default: "30,000" }, // Nouvelle prop
+  refundBalance: { type: String, default: "30,000" },
   activeLevels: { type: Array, default: () => [1, 2] } 
 })
 
@@ -42,7 +76,9 @@ const levels = [
       <div class="balance-section">
         <div class="balance-item">
           <p class="label">Solde Principal</p>
-          <h2 class="value main">{{ mainBalance }} <small>XOF</small></h2>
+          <h2 class="value main">
+            {{ formatBalance(mainBalanceRaw) }} <small>XOF</small>
+          </h2>
         </div>
         
         <div class="balance-grid">
