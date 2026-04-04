@@ -22,7 +22,7 @@ const toggleMenu = () => {
 
 // Actions du menu
 const actions = [
-  { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/add' },
+  { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/history-transaction' },
   { id: 'Vente',    name: 'Vente',    icon: AppIcon.box,   route: '/order/my-order' },
   { id: 'Parametre', name: 'Parametre', icon: AppIcon.user,  route: '/user/profile' },
 ]
