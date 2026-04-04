@@ -24,7 +24,7 @@ const toggleMenu = () => {
 const actions = [
   { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/history-transaction' },
   { id: 'Vente',    name: 'Vente',    icon: AppIcon.box,   route: '/order/my-order' },
-  { id: 'Parametre', name: 'Parametre', icon: AppIcon.user,  route: '/user/profile' },
+  { id: 'Parametre', name: 'Parametre', icon: AppIcon.user,  route: '/auth/profile' },
 ]
 
 // FONCTION DE PROTECTION
