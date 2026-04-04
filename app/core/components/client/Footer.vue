@@ -54,7 +54,7 @@ onUnmounted(() => {
 <style scoped>
 .smart-footer {
   background-color: v-bind('AppColor.surface.pure');
-  padding: 40px 16px 110px 16px;
+  padding: 40px 16px 10px 16px;
   border-top: 1px solid #f2f2f2;
   margin-top: 40px;
 }

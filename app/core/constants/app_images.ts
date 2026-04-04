@@ -1,6 +1,7 @@
 export class AppImage {
 
   //logo
+  static readonly Logo_1 = '/assets/images/logo/logo_1.jpeg'
   static readonly Logo = '/assets/images/logo/logo.png'
   static readonly Flooz = '/assets/images/logo/flooz.jpg'
   static readonly Yas = '/assets/images/logo/yas.png'
