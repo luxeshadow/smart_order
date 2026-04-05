@@ -75,8 +75,8 @@ const handleLogout = () => {
             <span class="welcome-text">Bienvenue,</span>
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
-          <button class="settings-btn" @click="router.push('/order/my-order')">
-            <i class="fi fi-rr-shopping-cart-buyer"></i>
+          <button class="settings-btn" @click="router.push('/assistance/ai')">
+           <i class="fi fi-rr-ai-assistant"></i>
           </button>
         </div>
 

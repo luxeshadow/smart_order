@@ -9,6 +9,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     paygateApiKey: process.env.PAYGATE_API_KEY,
     public: {
+      geminiApiKey: process.env.VITE_GEMINI_KEY,
+      geminiProjectId: process.env.VITE_GEMINI_PROJECT_ID,
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
       

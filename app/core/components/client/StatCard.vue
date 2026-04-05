@@ -161,15 +161,6 @@ onMounted(() => {
   padding: 0 15px;
 }
 
-.levels-row {
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-  margin-bottom: 15px;
-  overflow-x: auto;
-  padding-bottom: 5px;
-  scrollbar-width: none;
-}
 
 .levels-row::-webkit-scrollbar { display: none; }
 
