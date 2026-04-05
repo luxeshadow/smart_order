@@ -3,13 +3,9 @@ import { ref, onMounted, computed } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { Failure } from '@/core/errors/failure'
 import { useToast } from '@/core/utils/useToast'
-
-// Stores
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
-
-// UseCases & Repositories
 import { ListLevelUseCase } from '@/features/level/application/usecases/list_level_usecase'
 import { ListLevelRepositoryImpl } from '@/features/level/data/repositories/list_level_repository_impl'
 import { AssignLevelUseCase } from '@/features/level/application/usecases/assign_level_usecase'
@@ -51,7 +47,7 @@ const handleLevelClick = async (levelId: string) => {
   // Empêche de cliquer si une activation est déjà en cours
   if (!authStore.user?.id || processingId.value) return
 
-  processingId.value = levelId // On marque ce level comme "En cours"
+  processingId.value = levelId 
   
   const result = await assignLevelUseCase.execute({
     userId: authStore.user.id,
@@ -177,17 +173,6 @@ onMounted(() => {
 
 .levels-row::-webkit-scrollbar { display: none; }
 
-.level-badge {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #f8f9fa;
-  border: 1px solid #eee;
-  padding: 10px 6px; /* Légèrement plus de padding pour les prix longs */
-  border-radius: 14px;
-  min-width: 70px; /* On élargit un peu pour "39 999" */
-}
 
 .lvl-text {
   font-size: 8px; /* Un poil plus petit pour laisser de la place au prix */
@@ -203,20 +188,6 @@ onMounted(() => {
   color: v-bind('AppColor.tertiary.base');
 }
 
-
-.dashboard-section {
-  padding: 0 15px;
-}
-
-/* Nouveau style pour les niveaux */
-.levels-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 15px;
-  overflow-x: auto; /* Scroll si trop de niveaux sur petit écran */
-  padding-bottom: 5px;
-}
 
 .level-badge {
   flex: 1;

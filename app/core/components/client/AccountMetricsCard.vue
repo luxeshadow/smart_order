@@ -1,73 +1,79 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
-import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store' // Import du store
+import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
+import { useLevelStore } from '@/features/level/presentation/stores/level_store'
+
+// UseCases & Repos
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
+import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
+import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/list_my_level_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
 const authStore = useAuthStore()
-const transactionStore = useTransactionStore() // Initialisation du store
+const transactionStore = useTransactionStore()
+const levelStore = useLevelStore()
 
-const repository = new GetMyPrincipalBalanceRepositoryImpl()
-const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
+const balanceUseCase = new GetMyPrincipalBalanceUseCase(new GetMyPrincipalBalanceRepositoryImpl())
+const myLevelsUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl())
 
-// On lie la valeur affichée directement au store
-const mainBalanceRaw = computed(() => transactionStore.mainBalance)
 const isLoading = ref(false)
 
-const formatBalance = (value: number | null): string => {
-  if (value === null) return "-,---,---";
-  const padded = value.toString().padStart(8, '0');
-  return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
+// --- COMPUTED ---
+const mainBalanceRaw = computed(() => transactionStore.mainBalance)
+const allLevels = computed(() => levelStore.levels) // Liste globale
+const myLevels = computed(() => levelStore.myLevels) // Liste activée
+
+// Fonction pour vérifier si un level est ON
+const isLevelActive = (levelId: string) => {
+  return myLevels.value.some(l => l.id === levelId)
 }
 
-const fetchBalance = async () => {
-  if (!authStore.user?.id) return
-  
-  // On ne met isLoading à true que si le store est vide (premier chargement)
-  if (transactionStore.mainBalance === null) isLoading.value = true
-  
-  const result = await getBalanceUseCase.execute({ userId: authStore.user.id })
+const formatBalance = (value: number | null): string => {
+  if (value === null) return "00,000,000";
+  return value.toString().padStart(8, '0').replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
+}
 
-  if (!(result instanceof Failure)) {
-    // COMPARAISON : On ne met à jour le store que si la valeur a changé
-    if (result !== transactionStore.mainBalance) {
-      transactionStore.updateBalance(result)
-    }
+const fetchData = async () => {
+  if (!authStore.user?.id) return
+  isLoading.value = true
+
+  // 1. Récupérer le solde
+  const balanceResult = await balanceUseCase.execute({ userId: authStore.user.id })
+  if (!(balanceResult instanceof Failure)) {
+    transactionStore.updateBalance(balanceResult)
   }
-  
+
+  // 2. Récupérer mes niveaux activés
+  const myLevelsResult = await myLevelsUseCase.execute(authStore.user.id)
+  if (!(myLevelsResult instanceof Failure)) {
+    levelStore.updateMyLevels(myLevelsResult)
+  }
+
   isLoading.value = false
 }
 
 onMounted(() => {
-  fetchBalance()
+  fetchData()
 })
 
 defineProps({
-  today: { type: String, default: "29 Mars 2026" },
-  pendingOrders: { type: Number, default: 12 },
-  dailyProducts: { type: Number, default: 45 },
-  profitBalance: { type: String, default: "+125,000" },
-  refundBalance: { type: String, default: "30,000" },
-  activeLevels: { type: Array, default: () => [1, 2] } 
+  today: { type: String, default: "05 Avril 2026" },
+  pendingOrders: { type: Number, default: 0 },
+  dailyProducts: { type: Number, default: 0 },
+  profitBalance: { type: String, default: "0" },
+  refundBalance: { type: String, default: "0" }
 })
-
-const levels = [
-  { id: 1, label: 'Niv 1' },
-  { id: 2, label: 'Niv 2' },
-  { id: 3, label: 'Niv 3' },
-  { id: 4, label: 'Niv 4' },
-]
 </script>
 
 <template>
   <div class="metrics-card">
     <div class="levels-sidebar">
-      <div v-for="level in levels" :key="level.id" class="level-item">
-        <span class="level-name">{{ level.label }}</span>
-        <span :class="['status-badge', activeLevels.includes(level.id) ? 'is-active' : 'is-locked']">
-          {{ activeLevels.includes(level.id) ? 'ON' : 'OFF' }}
+      <div v-for="level in allLevels" :key="level.id" class="level-item">
+        <span class="level-name">{{ level.name }}</span>
+        <span :class="['status-badge', isLevelActive(level.id) ? 'is-active' : 'is-locked']">
+          {{ isLevelActive(level.id) ? 'ON' : 'OFF' }}
         </span>
       </div>
     </div>
