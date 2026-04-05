@@ -4,11 +4,7 @@ import type { VerifyOtpParam } from '../../application/params/verify_otp_params'
 export type OtpVerificationType = 'signup' | 'email_change' | 'recovery' | 'invite' | 'magiclink';
 
 export class VerifyOtpRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+   constructor(private supabase: any) {}
 
   async verifyOtp(param: VerifyOtpParam, type: OtpVerificationType = 'signup'): Promise<void> {
     try {

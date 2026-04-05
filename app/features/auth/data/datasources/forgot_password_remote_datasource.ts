@@ -2,11 +2,7 @@ import { AuthException, DatabaseException } from '@/core/errors/exception'
 import type { ForgotPasswordParam } from '../../application/params/forgot_password_params'
 
 export class ForgotPasswordRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+   constructor(private supabase: any) {}
 
   async forgotPassword(param: ForgotPasswordParam): Promise<void> {
     try {

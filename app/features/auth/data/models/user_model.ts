@@ -17,16 +17,20 @@ export class UserModel implements User {
     this.token = data.token
   }
 
-  static fromSupabase(data: any, token?: string): UserModel {
-    return new UserModel({
-      id: data.id,
-      username: data.username,
-      email: data.email,
-      phoneNumber: data.phone_number,
-      role: data.role,
-      token: token 
-    })
-  }
+ static fromSupabase(
+  data: any,
+  token?: string,
+  authEmail?: string
+): UserModel {
+  return new UserModel({
+    id: data.id,
+    username: data.username,
+    email: authEmail || '',
+    phoneNumber: data.phone_number,
+    role: data.role,
+    token
+  })
+}
 
   toSupabase(): any {
     return {

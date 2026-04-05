@@ -2,11 +2,7 @@ import { DatabaseException } from '@/core/errors/exception'
 import type { GetMyPrincipalBalanceParam } from '../../application/params/get_my_principal_balance_params'
 
 export class GetMyPrincipalBalanceRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+  constructor(private supabase: any) {}
 
   async getMyPrincipalBalance(param: GetMyPrincipalBalanceParam): Promise<number> {
     try {

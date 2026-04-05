@@ -3,11 +3,7 @@ import { AuthException, DatabaseException } from '@/core/errors/exception'
 import type { ResetPasswordParam } from '../../application/params/reset_password_params'
 
 export class ResetPasswordRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+  constructor(private supabase: any) {}
 
   async resetPassword(param: ResetPasswordParam): Promise<void> {
     try {

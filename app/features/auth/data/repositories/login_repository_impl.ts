@@ -10,10 +10,8 @@ export class LoginRepositoryImpl implements LoginRepository {
   private datasource: LoginRemoteDatasource
 
   constructor() {
-    // Récupération du client Supabase via ton helper centralisé
+
     const supabase = useApi()
-    
-    // Initialisation de la source de données
     this.datasource = new LoginRemoteDatasource(supabase)
   }
 

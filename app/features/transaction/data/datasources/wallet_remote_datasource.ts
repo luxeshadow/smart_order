@@ -3,7 +3,8 @@ import { WalletModel } from '../models/wallet_model'
 import { DatabaseException } from '@/core/errors/exception'
 
 export class WalletRemoteDatasource {
-  constructor(private supabase: SupabaseClient) {}
+ 
+   constructor(private supabase: any) {}
 
   async upsertWallet(wallet: WalletModel): Promise<WalletModel> {
     const { data, error } = await this.supabase

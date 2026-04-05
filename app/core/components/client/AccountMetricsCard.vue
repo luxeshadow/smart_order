@@ -1,34 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store' // Import du store
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
 const authStore = useAuthStore()
+const transactionStore = useTransactionStore() // Initialisation du store
+
 const repository = new GetMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
 
-const mainBalanceRaw = ref<number | null>(null)
-const isLoading = ref(true)
+// On lie la valeur affichée directement au store
+const mainBalanceRaw = computed(() => transactionStore.mainBalance)
+const isLoading = ref(false)
 
 const formatBalance = (value: number | null): string => {
   if (value === null) return "-,---,---";
-  
   const padded = value.toString().padStart(8, '0');
-  
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
 const fetchBalance = async () => {
   if (!authStore.user?.id) return
   
-  isLoading.value = true
+  // On ne met isLoading à true que si le store est vide (premier chargement)
+  if (transactionStore.mainBalance === null) isLoading.value = true
+  
   const result = await getBalanceUseCase.execute({ userId: authStore.user.id })
 
   if (!(result instanceof Failure)) {
-    mainBalanceRaw.value = result
+    // COMPARAISON : On ne met à jour le store que si la valeur a changé
+    if (result !== transactionStore.mainBalance) {
+      transactionStore.updateBalance(result)
+    }
   }
+  
   isLoading.value = false
 }
 
@@ -112,7 +120,6 @@ const levels = [
   border: 1px solid v-bind('AppColor.surface.bone');
 }
 
-/* --- SIDEBAR NIVEAUX --- */
 .levels-sidebar {
   width: 90px;
   background: #fcfcfc;

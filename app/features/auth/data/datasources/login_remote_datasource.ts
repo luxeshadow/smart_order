@@ -3,11 +3,7 @@ import { UserModel } from '../models/user_model'
 import type { LoginParam } from '../../application/params/login_params'
 
 export class LoginRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+   constructor(private supabase: any) {}
 
   async login(param: LoginParam): Promise<UserModel> {
     try {
@@ -16,12 +12,10 @@ export class LoginRemoteDatasource {
         password: param.password,
       });
 
-      // On vérifie la présence du user ET de la session pour le token
       if (authError || !authData.user || !authData.session) {
         throw new AuthException(this.translateError(authError?.message));
       }
 
-      // On récupère le token JWT
       const token = authData.session.access_token;
 
       const { data: userData, error: userError } = await this.supabase
@@ -34,7 +28,11 @@ export class LoginRemoteDatasource {
         throw new DatabaseException("Impossible de récupérer le profil utilisateur.");
       }
 
-      return UserModel.fromSupabase(userData, token);
+      return UserModel.fromSupabase(
+        userData,
+        token,
+        authData.user.email
+      )
 
     } catch (error: any) {
       if (error instanceof AuthException || error instanceof DatabaseException) throw error;

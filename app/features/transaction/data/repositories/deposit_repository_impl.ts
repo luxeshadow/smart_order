@@ -17,10 +17,6 @@ export class DepositRepositoryImpl implements DepositRepository {
     this.datasource = new DepositRemoteDatasource(supabase)
   }
 
-  /**
-   * Enregistre une nouvelle demande de dépôt.
-   * Transforme les Exceptions techniques en Failures compréhensibles.
-   */
   async deposit(param: DepositParam): Promise<Deposit | DatabaseFailure> {
     try {
       // 1. Appel à la datasource pour l'insertion brute

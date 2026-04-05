@@ -3,11 +3,7 @@ import {AuthException,DatabaseException,UserAlreadyExistsException} from '@/core
 import type { RegisterPayload } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+  constructor(private supabase: any) {}
 
   async register(param: RegisterPayload): Promise<UserModel> {
     const { data: existingUser, error: checkError } = await this.supabase

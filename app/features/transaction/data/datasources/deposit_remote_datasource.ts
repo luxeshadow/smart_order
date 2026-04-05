@@ -3,11 +3,7 @@ import { DepositModel } from '../models/deposit_model'
 import type { DepositParam } from '../../application/params/deposit_params'
 
 export class DepositRemoteDatasource {
-  private supabase: any
-
-  constructor(supabaseClient: any) {
-    this.supabase = supabaseClient
-  }
+   constructor(private supabase: any) {}
 
   async deposit(param: DepositParam): Promise<DepositModel> {
     try {
