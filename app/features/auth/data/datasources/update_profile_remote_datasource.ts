@@ -10,11 +10,9 @@ export class UpdateProfileRemoteDatasource {
 
   async updateProfile(param: UpdateProfileParam): Promise<void> {
     try {
-      // 1. Mise à jour des infos d'authentification (Email, Password, Phone)
-      // Si l'email change, Supabase gère l'envoi de l'OTP automatiquement
       const { error: authError } = await this.supabase.auth.updateUser({
         email: param.email !== param.currentEmail ? param.email : undefined,
-        phone: param.phoneNumber, // Supabase Auth utilise souvent 'phone'
+        phone: param.phoneNumber,
         data: { 
           username: param.userName 
         }
@@ -24,7 +22,6 @@ export class UpdateProfileRemoteDatasource {
         throw new AuthException(this.translateError(authError.message))
       }
 
-      // 2. Mise à jour de ta table 'profiles' (si tu stockes le username dedans)
       const { error: dbError } = await this.supabase
         .from('users')
         .update({ 

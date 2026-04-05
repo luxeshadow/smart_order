@@ -24,9 +24,7 @@ const mainBalanceRaw = ref<number | null>(null)
 // --- Logique de Formatage ---
 const formatBalance = (value: number | null): string => {
   if (value === null) return "-,---,---";
-  // Pad à 8 chiffres (ex: 10 -> 00000010)
   const padded = value.toString().padStart(8, '0');
-  // Formatage avec virgules (00,000,000)
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 

@@ -54,7 +54,6 @@ const handleUpdateProfile = async () => {
       return
     }
 
-    // Si l'email a changé, redirection vers l'OTP
     if (form.value.email !== originalEmail) {
       showToast("Veuillez valider votre nouvel email", "fi-rr-envelope-dot")
       
@@ -63,7 +62,7 @@ const handleUpdateProfile = async () => {
           path: '/auth/verify-otp',
           query: { 
             email: form.value.email,
-            type: 'email_change' // Informe la datasource OTP du type de validation
+            type: 'email_change'
           }
         })
         isLoading.value = false

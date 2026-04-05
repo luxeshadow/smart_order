@@ -16,15 +16,12 @@ export class UpdateProfileUseCase implements UseCase<void, UpdateProfileParam> {
   }
 
   async execute(param: UpdateProfileParam): Promise<void | Failure> {
-    // 1. Validation des données via le Validator spécifique
+
     const validationError = UpdateProfileValidator.validate(param)
 
     if (validationError) {
       return new AuthFailure(validationError)
     }
-
-    // 2. Appel au repository dédié à la mise à jour de profil
-    // On passe le paramètre validé au RepositoryImpl
     return await this.repository.updateProfile(param)
   }
 }

@@ -1,94 +1,109 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
-import { AppColor } from "@/core/constants/app_colors";
-import { AppImage } from "@/core/constants/app_images";
-import { useToast } from "@/core/utils/useToast";
-import { Failure } from '@/core/errors/failure';
-import { VerifyOtpUseCase } from '../../application/usecases/verify_otp_usecase';
-import { VerifyOtpRepositoryImpl } from '../../data/repositories/verify_otp_repository_impl';
+import { AppColor } from "@/core/constants/app_colors"
+import { AppImage } from "@/core/constants/app_images"
+import { useToast } from "@/core/utils/useToast"
+import { Failure } from '@/core/errors/failure'
+import { VerifyOtpUseCase } from '../../application/usecases/verify_otp_usecase'
+import { VerifyOtpRepositoryImpl } from '../../data/repositories/verify_otp_repository_impl'
 
-const { showToast } = useToast();
-const router = useRouter();
-const route = useRoute();
+const { showToast } = useToast()
+const router = useRouter()
+const route = useRoute()
 
-const repository = new VerifyOtpRepositoryImpl();
-const verifyOtpUseCase = new VerifyOtpUseCase(repository);
+const repository = new VerifyOtpRepositoryImpl()
+const verifyOtpUseCase = new VerifyOtpUseCase(repository)
 
-const email = computed(() => (route.query.email as string) || "");
-const otpCode = ref("");
-const isLoading = ref(false);
+// Récupération des paramètres de l'URL
+const email = computed(() => (route.query.email as string) || "")
+const type = computed(() => (route.query.type as string) || "registration") // 'registration' ou 'email_change'
 
-const initialTimer = 600; 
-const timer = ref(initialTimer);
-const canResend = ref(false);
-let interval: any = null;
+const otpCode = ref("")
+const isLoading = ref(false)
+
+// Gestion du Timer
+const initialTimer = 600 
+const timer = ref(initialTimer)
+const canResend = ref(false)
+let interval: any = null
 
 const startTimer = () => {
-  canResend.value = false;
-  timer.value = initialTimer;
-  if (interval) clearInterval(interval);
+  canResend.value = false
+  timer.value = initialTimer
+  if (interval) clearInterval(interval)
   interval = setInterval(() => {
-    if (timer.value > 0) timer.value--;
+    if (timer.value > 0) timer.value--
     else {
-      canResend.value = true;
-      clearInterval(interval);
+      canResend.value = true
+      clearInterval(interval)
     }
-  }, 1000);
-};
+  }, 1000)
+}
 
 const formatTimer = computed(() => {
-  const minutes = Math.floor(timer.value / 60);
-  const seconds = timer.value % 60;
-  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-});
+  const minutes = Math.floor(timer.value / 60)
+  const seconds = timer.value % 60
+  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+})
 
 const handleVerify = async () => {
   if (otpCode.value.length < 6) {
-    showToast("Veuillez entrer le code complet", "fi-rr-info", "error",);
-    return;
+    showToast("Veuillez entrer le code à 6 chiffres", "fi-rr-info", "error")
+    return
   }
 
-  isLoading.value = true;
+  isLoading.value = true
   try {
     const result = await verifyOtpUseCase.execute({
       email: email.value,
-      otp: otpCode.value
-    });
+      otp: otpCode.value,
+      type: type.value 
+    })
 
     if (result instanceof Failure) {
-      showToast(result.message, "fi-rr-cross-circle", "error",);
-      isLoading.value = false;
+      showToast(result.message, "fi-rr-cross-circle", "error")
+      isLoading.value = false
     } else {
-      showToast("Vérification réussie !", "fi-rr-check", "success",);
+      showToast("Vérification réussie !", "fi-rr-check", "success")
+      
       setTimeout(() => {
-        router.push("/auth/login");
-        isLoading.value = false;
-      }, 1500);
+        // REDIRECTION CONDITIONNELLE
+        if (type.value === 'email_change') {
+          // Si c'était un changement d'email, on retourne au profil
+          router.push("/auth/profile")
+        } else {
+          // Si c'était une inscription, on va au login
+          router.push("/auth/login")
+        }
+        isLoading.value = false
+      }, 1500)
     }
   } catch (error) {
-    isLoading.value = false;
-    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error",);
+    isLoading.value = false
+    showToast("Erreur de connexion", "fi-rr-shield-exclamation", "error")
   }
-};
+}
 
 const handleResend = () => {
-  if (!canResend.value) return;
-  showToast("Un nouveau code a été envoyé", "fi-rr-refresh", "success", AppColor.primary.base);
-  startTimer();
-};
+  if (!canResend.value) return
+  showToast("Un nouveau code a été envoyé", "fi-rr-refresh", "success")
+  startTimer()
+}
 
 onMounted(() => {
   if (!email.value) {
-    showToast("Email manquant, veuillez recommencer", "fi-rr-info", "error",);
-    router.push("/auth/register");
+    showToast("Session expirée", "fi-rr-info", "error")
+    router.push(type.value === 'email_change' ? "/auth/profile" : "/auth/register")
   }
-  startTimer();
-});
+  startTimer()
+})
 
 onUnmounted(() => {
-  if (interval) clearInterval(interval);
-});
+  if (interval) clearInterval(interval)
+})
 </script>
 
 <template>
@@ -109,7 +124,8 @@ onUnmounted(() => {
       <header class="header-content">
         <h2 class="title">Code de sécurité</h2>
         <p class="subtitle">
-          Saisissez le code envoyé à l'adresse : <br />
+          {{ type === 'email_change' ? 'Confirmez votre nouvel email :' : 'Saisissez le code envoyé à :' }}
+          <br />
           <strong :style="{ color: AppColor.primary.base }">{{ email }}</strong>
         </p>
       </header>
@@ -140,10 +156,10 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <Button label="Vérifier le code" :loading="isLoading" @click="handleVerify" />
+      <Button label="Confirmer" :loading="isLoading" @click="handleVerify" />
 
       <div class="footer-link">
-        <NuxtLink to="/auth/register" class="back-link">
+        <NuxtLink :to="type === 'email_change' ? '/auth/profile' : '/auth/register'" class="back-link">
           <i class="fi fi-rr-hand-back-point-left"></i>
           <span>Annuler et retourner</span>
         </NuxtLink>
