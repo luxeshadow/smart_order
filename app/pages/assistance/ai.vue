@@ -20,10 +20,12 @@ const messages = ref<Message[]>([
 
 const scrollToBottom = async () => {
   await nextTick();
-  window.scrollTo({
-    top: document.body.scrollHeight,
-    behavior: 'smooth'
-  });
+  if (chatContainer.value) {
+    chatContainer.value.scrollTo({
+      top: chatContainer.value.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
 };
 
 const sendMessage = async () => {
@@ -54,16 +56,16 @@ onMounted(() => {
 
 <template>
   <div class="ia-page">
-    <div class="app-bar">
+    <header class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
       <span class="app-bar-title">Assistant IA</span>
       <div class="spacer"></div>
-    </div>
+    </header>
 
-    <div class="chat-wrapper">
-      <div class="deposit-card chat-card">
+    <main class="chat-wrapper" ref="chatContainer">
+      <div class="chat-content">
         <div class="header-content">
            <div class="logo-container">
              <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
@@ -71,7 +73,7 @@ onMounted(() => {
            <p class="subtitle">Expert en gestion de niveaux et profits</p>
         </div>
 
-        <div class="chat-box">
+        <div class="messages-list">
           <TransitionGroup name="fade-slide">
             <div v-for="(msg, index) in messages" :key="index" :class="['message-bubble', msg.role]">
               <div class="bubble-content">
@@ -87,9 +89,9 @@ onMounted(() => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <div class="input-area">
+    <footer class="input-area">
       <div class="input-wrapper">
         <input 
           v-model="userInput" 
@@ -101,22 +103,30 @@ onMounted(() => {
           <i class="fi fi-rr-paper-plane"></i>
         </button>
       </div>
-    </div>
+    </footer>
   </div>
 </template>
 
 <style scoped>
+/* --- STRUCTURE GLOBALE (Anti-Décalage Clavier) --- */
+.ia-page {
+  background-color: #f8f9fa;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Empêche la page entière de bouger */
+}
+
 /* --- APP BAR --- */
 .app-bar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
   height: 65px;
   background: white;
   display: flex;
   align-items: center;
   padding: 0 15px;
-  z-index: 1000;
   border-bottom: 1px solid #f1f1f1;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .back-btn {
@@ -141,40 +151,37 @@ onMounted(() => {
 
 .spacer { width: 45px; }
 
-/* --- PAGE & LAYOUT --- */
-.ia-page {
-  background-color: #f8f9fa;
-  min-height: 100vh;
-}
-
+/* --- ZONE DE CHAT (SCROLLABLE) --- */
 .chat-wrapper {
-  padding: 85px 15px 110px 15px; /* Padding bas important pour l'input fixe */
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 15px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  -webkit-overflow-scrolling: touch;
 }
 
-.deposit-card {
+.chat-content {
   width: 100%;
   max-width: 450px;
   background: white;
   padding: 25px;
   border-radius: 30px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+  min-height: fit-content;
 }
 
-/* --- CHAT BOX & BUBBLES --- */
-.header-content { text-align: center; margin-bottom: 25px; }
-.ai-main-icon { 
-  font-size: 45px; 
-  color: v-bind('AppColor.primary.base'); 
-}
-.subtitle { color: #95a5a6; font-size: 13px; margin-top: 8px; }
-
-.chat-box {
+.messages-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
+
+/* --- BUBBLES --- */
+.header-content { text-align: center; margin-bottom: 25px; }
+.ai-main-icon { font-size: 45px; color: v-bind('AppColor.primary.base'); }
+.subtitle { color: #95a5a6; font-size: 13px; margin-top: 8px; }
 
 .message-bubble {
   max-width: 85%;
@@ -186,7 +193,6 @@ onMounted(() => {
   border-radius: 20px;
   font-size: 14px;
   line-height: 1.4;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
 .user { align-self: flex-end; }
@@ -203,17 +209,12 @@ onMounted(() => {
   border-bottom-left-radius: 4px;
 }
 
-/* --- INPUT AREA FIXÉ --- */
+/* --- INPUT AREA (FIXÉ EN BAS) --- */
 .input-area {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background: white;
-  padding: 15px 20px 25px 20px;
+  padding: 15px 20px 30px 20px;
   border-top: 1px solid #f1f1f1;
-  z-index: 1000;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.02);
+  flex-shrink: 0;
 }
 
 .input-wrapper {
@@ -231,7 +232,7 @@ input {
   padding: 0 18px;
   outline: none;
   background: #f9f9f9;
-  transition: all 0.2s;
+  font-size: 16px; /* Évite le zoom auto sur iOS */
 }
 
 input:focus {
@@ -250,13 +251,9 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
 }
 
-.send-btn:disabled {
-  background: #bdc3c7;
-  opacity: 0.6;
-}
+.send-btn:disabled { background: #bdc3c7; opacity: 0.6; }
 
 /* --- ANIMATIONS --- */
 .timer-hint {
@@ -270,21 +267,16 @@ input:focus {
   50% { opacity: 1; }
 }
 
-.fade-slide-enter-active {
-  transition: all 0.3s ease-out;
-}
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
+.fade-slide-enter-active { transition: all 0.3s ease-out; }
+.fade-slide-enter-from { opacity: 0; transform: translateY(10px); }
 
 @media (max-width: 600px) {
-  .chat-wrapper { padding: 75px 10px 100px 10px; }
-  .deposit-card {
-    border-radius: 25px;
-    padding: 20px;
+  .chat-content {
+    border-radius: 20px;
+    padding: 15px;
     box-shadow: none;
+    border: 1px solid #eee;
   }
-  .input-area { padding: 10px 15px 25px 15px; }
+  .input-area { padding-bottom: 20px; }
 }
 </style>
