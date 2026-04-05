@@ -15,52 +15,43 @@ import { ListLevelRepositoryImpl } from '@/features/level/data/repositories/list
 import { AssignLevelUseCase } from '@/features/level/application/usecases/assign_level_usecase'
 import { AssignLevelRepositoryImpl } from '@/features/level/data/repositories/assign_level_repository_impl'
 
-// Props pour les stats
+// Props
 defineProps({
   stockValue: { type: String, default: "1,250,000" },
   currentAssets: { type: String, default: "3,945" }
 })
 
-// --- INITIALISATION ---
 const authStore = useAuthStore()
 const levelStore = useLevelStore()
 const transactionStore = useTransactionStore()
 const { showToast } = useToast()
 
 const isLoading = ref(false)
-const isAssigning = ref(false)
+const processingId = ref<string | null>(null) // Stocke l'ID du level en cours d'activation
 
-// Instances des UseCases
 const listLevelUseCase = new ListLevelUseCase(new ListLevelRepositoryImpl())
 const assignLevelUseCase = new AssignLevelUseCase(new AssignLevelRepositoryImpl())
 
-// Données réactives depuis les stores
 const levels = computed(() => levelStore.levels)
-
-// --- MÉTHODES ---
 
 const formatRawPrice = (price: number): string => {
   return price.toLocaleString('fr-FR')
 }
 
-// Charger la liste des niveaux
 const fetchLevels = async () => {
   if (levelStore.levels.length === 0) isLoading.value = true
-  
   const result = await listLevelUseCase.execute()
-  
   if (!(result instanceof Failure)) {
     levelStore.updateLevels(result)
   }
   isLoading.value = false
 }
 
-// Activer un niveau au clic
 const handleLevelClick = async (levelId: string) => {
-  // Sécurité : ID utilisateur présent et pas de requête en cours
-  if (!authStore.user?.id || isAssigning.value) return
+  // Empêche de cliquer si une activation est déjà en cours
+  if (!authStore.user?.id || processingId.value) return
 
-  isAssigning.value = true
+  processingId.value = levelId // On marque ce level comme "En cours"
   
   const result = await assignLevelUseCase.execute({
     userId: authStore.user.id,
@@ -68,17 +59,13 @@ const handleLevelClick = async (levelId: string) => {
   })
 
   if (!(result instanceof Failure)) {
-    // 1. Mise à jour du solde dans le store global (reçu du RPC SQL)
     transactionStore.updateBalance(result as number)
-    
-    // 2. Feedback visuel
-    showToast("Niveau activé avec succès !", "success")
+    showToast("Niveau activé avec succès !", 'fi-rr-check', 'success', '#2ecc71')
   } else {
- 
-    showToast(result.message, "error")
+    showToast(result.message, 'fi-rr-cross-circle', 'error', '#ff4757')
   }
   
-  isAssigning.value = false
+  processingId.value = null
 }
 
 onMounted(() => {
@@ -88,17 +75,26 @@ onMounted(() => {
 
 <template>
   <div class="dashboard-section">
-    <div class="levels-row" :class="{ 'is-processing': isAssigning }">
+    <div class="levels-row" :class="{ 'is-processing': processingId }">
       <div v-if="isLoading" class="loader">Chargement...</div>
       
       <div 
         v-for="lvl in levels" 
         :key="lvl.id" 
         class="level-badge"
+        :class="{ 'active-loading': processingId === lvl.id }"
         @click="handleLevelClick(lvl.id)"
       >
         <span class="lvl-text">{{ lvl.name }}</span> 
-        <span class="lvl-price">{{ formatRawPrice(lvl.price) }} <small>XOF</small></span>
+        
+        <span class="lvl-price">
+          <template v-if="processingId === lvl.id">
+            En cours...
+          </template>
+          <template v-else>
+            {{ formatRawPrice(lvl.price) }} <small>XOF</small>
+          </template>
+        </span>
       </div>
     </div>
 
@@ -123,6 +119,48 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* Tes styles existants */
+.levels-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 15px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+
+.level-badge {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  padding: 10px 6px;
+  border-radius: 14px;
+  min-width: 75px;
+  transition: all 0.2s ease;
+}
+
+/* Style spécial quand ce badge précis charge */
+.active-loading {
+  border-color: v-bind('AppColor.tertiary.base');
+  background: #fff;
+}
+
+.lvl-price {
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+  color: v-bind('AppColor.tertiary.base');
+}
+
+/* Désactive les clics sur les autres badges pendant le chargement */
+.is-processing {
+  pointer-events: none;
+}
+
 .dashboard-section {
   padding: 0 15px;
 }

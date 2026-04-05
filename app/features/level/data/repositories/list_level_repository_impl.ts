@@ -16,8 +16,7 @@ export class ListLevelRepositoryImpl implements ListLevelRepository {
   async listLevels(): Promise<Level[] | DatabaseFailure> {
     try {
       const levels = await this.datasource.listLevels()
-
-      return levels
+      return levels.sort((a, b) => a.price - b.price);
 
     } catch (error: any) {
       if (error instanceof DatabaseException) {
