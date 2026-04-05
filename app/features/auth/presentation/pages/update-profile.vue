@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
 import Button from '@/core/components/client/Button.vue'
@@ -18,31 +18,43 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
-// Initialisation des couches
+// Initialisation des couches Clean Arch
 const repository = new UpdateProfileRepositoryImpl()
 const updateProfileUseCase = new UpdateProfileUseCase(repository)
 
 const isLoading = ref(false)
 
-// On garde l'email d'origine pour comparer si un changement d'OTP est nécessaire
-const originalEmail = user.value?.email || ''
+// 1. On crée une référence fixe pour l'email d'origine (non réactive au formulaire)
+const emailAtStart = ref('')
 
 const form = ref({
-  userName: user.value?.username || '',
-  email: originalEmail,
-  phoneNumber: user.value?.phoneNumber || '',
+  userName: '',
+  email: '',
+  phoneNumber: '',
+})
+
+// 2. Initialisation propre au montage
+onMounted(() => {
+  if (user.value) {
+    emailAtStart.value = user.value.email
+    form.value.userName = user.value.username
+    form.value.email = user.value.email
+    form.value.phoneNumber = user.value.phoneNumber
+  }
 })
 
 const handleUpdateProfile = async () => {
+  // Vérification stricte du changement d'email
+  const hasEmailChanged = form.value.email.trim().toLowerCase() !== emailAtStart.value.trim().toLowerCase()
+  
   isLoading.value = true
   
-  // Préparation des paramètres pour le UseCase
   const param = {
     userId: user.value?.id || '',
     userName: form.value.userName,
     phoneNumber: form.value.phoneNumber,
     email: form.value.email,
-    currentEmail: originalEmail
+    currentEmail: emailAtStart.value
   }
 
   try {
@@ -54,7 +66,17 @@ const handleUpdateProfile = async () => {
       return
     }
 
-    if (form.value.email !== originalEmail) {
+    // 3. MISE À JOUR DU STORE PINIA (Données locales)
+    // On met à jour le store pour que le nouveau pseudo/téléphone apparaisse partout
+    authStore.setUser({ 
+      ...user.value!, 
+      username: form.value.userName, 
+      phoneNumber: form.value.phoneNumber 
+      // Note: On ne change pas l'email dans le store ici si l'OTP est requis, 
+      // car il doit d'abord être validé côté serveur.
+    })
+
+    if (hasEmailChanged) {
       showToast("Veuillez valider votre nouvel email", "fi-rr-envelope-dot")
       
       setTimeout(() => {
@@ -68,10 +90,7 @@ const handleUpdateProfile = async () => {
         isLoading.value = false
       }, 1500)
     } else {
-      // Simple mise à jour réussie
       showToast("Profil mis à jour avec succès !", "fi-rr-check", "success")
-
-      //authStore.setUser({ ...user.value, username: form.value.userName, phoneNumber: form.value.phoneNumber })
 
       setTimeout(() => {
         router.back()
@@ -99,7 +118,7 @@ const handleUpdateProfile = async () => {
     <div class="content-container">
       <div class="avatar-Update-section">
         <div class="avatar-wrapper">
-          <img :src="AppImage.Profile || 'https://ui-avatars.com/api/?name=' + form.userName" alt="Profile" class="profile-img" />
+          <img :src="AppImage.Profile" alt="Profile" class="profile-img" />
           <div class="Update-badge" :style="{ backgroundColor: AppColor.primary.base }">
             <i class="fi fi-rr-camera"></i>
           </div>
@@ -135,14 +154,14 @@ const handleUpdateProfile = async () => {
         />
       </div>
 
-      <div class="info-box" v-if="form.email !== originalEmail">
+      <div class="info-box" v-if="form.email.trim().toLowerCase() !== emailAtStart.toLowerCase() && emailAtStart !== ''">
         <i class="fi fi-rr-info"></i>
         <p>Le changement d'email nécessitera une nouvelle vérification par code OTP.</p>
       </div>
 
       <div class="action-footer">
         <Button
-          :label="form.email !== originalEmail ? 'Vérifier l\'email' : 'Enregistrer'"
+          :label="form.email !== emailAtStart ? 'Vérifier l\'email' : 'Enregistrer les modifications'"
           :loading="isLoading"
           @click="handleUpdateProfile"
         />
