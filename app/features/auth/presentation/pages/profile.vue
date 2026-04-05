@@ -76,7 +76,7 @@ const handleLogout = () => {
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
           <button class="settings-btn" @click="router.push('/assistance/ai')">
-           <i class="fi fi-rr-ai-assistant"></i>
+          <i class="fi fi-rr-user-headset"></i>
           </button>
         </div>
 
