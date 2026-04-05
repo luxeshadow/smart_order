@@ -63,8 +63,8 @@ const sendMessage = async () => {
            <div class="logo-container">
              <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
            </div>
-           <!-- <h1 class="title">Gemini IA</h1>
-           <p class="subtitle">Expert en gestion de niveaux et profits</p> -->
+         <!-- <h1 class="title">Gemini IA</h1> -->
+           <p class="subtitle">Expert en gestion de niveaux et profits</p>
         </div>
 
         <div class="chat-box" ref="chatContainer">
