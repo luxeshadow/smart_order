@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { askGemini } from '@/services/gemini/gemini';
 import { AppColor } from '@/core/constants/app_colors';
@@ -20,9 +20,10 @@ const messages = ref<Message[]>([
 
 const scrollToBottom = async () => {
   await nextTick();
-  if (chatContainer.value) {
-    chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-  }
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: 'smooth'
+  });
 };
 
 const sendMessage = async () => {
@@ -45,6 +46,10 @@ const sendMessage = async () => {
     await scrollToBottom();
   }
 };
+
+onMounted(() => {
+  scrollToBottom();
+});
 </script>
 
 <template>
@@ -63,11 +68,10 @@ const sendMessage = async () => {
            <div class="logo-container">
              <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
            </div>
-         <!-- <h1 class="title">Gemini IA</h1> -->
            <p class="subtitle">Expert en gestion de niveaux et profits</p>
         </div>
 
-        <div class="chat-box" ref="chatContainer">
+        <div class="chat-box">
           <TransitionGroup name="fade-slide">
             <div v-for="(msg, index) in messages" :key="index" :class="['message-bubble', msg.role]">
               <div class="bubble-content">
@@ -78,24 +82,24 @@ const sendMessage = async () => {
           
           <div v-if="isLoading" class="message-bubble ai">
             <div class="bubble-content timer-hint">
-              L'IA analyse les données...
+              Benoit réfléchit...
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="input-area">
-          <div class="input-wrapper">
-            <input 
-              v-model="userInput" 
-              type="text" 
-              placeholder="Posez votre question..." 
-              @keyup.enter="sendMessage"
-            />
-            <button class="send-btn" :disabled="isLoading" @click="sendMessage">
-              <i class="fi fi-rr-paper-plane"></i>
-            </button>
-          </div>
-        </div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <input 
+          v-model="userInput" 
+          type="text" 
+          placeholder="Écrivez ici..." 
+          @keyup.enter="sendMessage"
+        />
+        <button class="send-btn" :disabled="isLoading || !userInput.trim()" @click="sendMessage">
+          <i class="fi fi-rr-paper-plane"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -125,7 +129,6 @@ const sendMessage = async () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .app-bar-title {
@@ -138,14 +141,14 @@ const sendMessage = async () => {
 
 .spacer { width: 45px; }
 
-/* --- PAGE & CARD --- */
+/* --- PAGE & LAYOUT --- */
 .ia-page {
   background-color: #f8f9fa;
   min-height: 100vh;
 }
 
 .chat-wrapper {
-  padding: 85px 20px 20px 20px;
+  padding: 85px 15px 110px 15px; /* Padding bas important pour l'input fixe */
   display: flex;
   justify-content: center;
 }
@@ -154,33 +157,24 @@ const sendMessage = async () => {
   width: 100%;
   max-width: 450px;
   background: white;
-  padding: 30px;
+  padding: 25px;
   border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
-  height: calc(100vh - 120px);
-  display: flex;
-  flex-direction: column;
 }
 
 /* --- CHAT BOX & BUBBLES --- */
-.header-content { text-align: center; margin-bottom: 20px; }
+.header-content { text-align: center; margin-bottom: 25px; }
 .ai-main-icon { 
   font-size: 45px; 
   color: v-bind('AppColor.primary.base'); 
 }
-.title { font-size: 20px; font-weight: 800; margin-top: 5px; }
-.subtitle { color: #95a5a6; font-size: 13px; }
+.subtitle { color: #95a5a6; font-size: 13px; margin-top: 8px; }
 
 .chat-box {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  scrollbar-width: none;
+  gap: 15px;
 }
-.chat-box::-webkit-scrollbar { display: none; }
 
 .message-bubble {
   max-width: 85%;
@@ -192,6 +186,7 @@ const sendMessage = async () => {
   border-radius: 20px;
   font-size: 14px;
   line-height: 1.4;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
 .user { align-self: flex-end; }
@@ -208,15 +203,24 @@ const sendMessage = async () => {
   border-bottom-left-radius: 4px;
 }
 
-/* --- INPUT AREA --- */
+/* --- INPUT AREA FIXÉ --- */
 .input-area {
-  padding-top: 15px;
-  border-top: 1px solid #f8f9fa;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 15px 20px 25px 20px;
+  border-top: 1px solid #f1f1f1;
+  z-index: 1000;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.02);
 }
 
 .input-wrapper {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  max-width: 450px;
+  margin: 0 auto;
 }
 
 input {
@@ -226,12 +230,13 @@ input {
   border-radius: 16px;
   padding: 0 18px;
   outline: none;
+  background: #f9f9f9;
   transition: all 0.2s;
 }
 
 input:focus {
   border-color: v-bind('AppColor.primary.base');
-  background: #fff;
+  background: white;
 }
 
 .send-btn {
@@ -248,8 +253,10 @@ input:focus {
   transition: all 0.2s;
 }
 
-.send-btn:active { transform: scale(0.9); }
-.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.send-btn:disabled {
+  background: #bdc3c7;
+  opacity: 0.6;
+}
 
 /* --- ANIMATIONS --- */
 .timer-hint {
@@ -271,14 +278,13 @@ input:focus {
   transform: translateY(10px);
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 600px) {
-  .chat-wrapper { padding: 75px 10px 10px 10px; }
+  .chat-wrapper { padding: 75px 10px 100px 10px; }
   .deposit-card {
-    height: calc(100vh - 90px);
     border-radius: 25px;
     padding: 20px;
     box-shadow: none;
   }
+  .input-area { padding: 10px 15px 25px 15px; }
 }
 </style>
