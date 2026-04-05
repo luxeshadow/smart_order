@@ -8,7 +8,7 @@ import type { AssignLevelParam } from '../../application/params/assign_level_par
 
   async assignLevel(param: AssignLevelParam): Promise<number> {
     try {
-      const { data, error } = await this.supabase.rpc('activate_level_and_withdraw', {
+      const { data, error } = await this.supabase.rpc('activate_level', {
         p_user_id: param.userId,
         p_level_id: param.levelId,
       });
