@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { storeToRefs } from "pinia"
+import { storeToRefs } from 'pinia'
 import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
-import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useToast } from '@/core/utils/useToast'
 
 import { UpdateProfileUseCase } from '../../application/usecases/update_profile_usecase'
@@ -18,71 +18,75 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
-// Initialisation des couches Clean Arch
 const repository = new UpdateProfileRepositoryImpl()
 const updateProfileUseCase = new UpdateProfileUseCase(repository)
 
 const isLoading = ref(false)
 
-// 1. On crée une référence fixe pour l'email d'origine (non réactive au formulaire)
-const emailAtStart = ref('')
+/**
+ * Email d'origine toujours synchronisé avec le store
+ */
+const originalEmail = computed(
+  () => user.value?.email?.trim().toLowerCase() || ''
+)
 
 const form = ref({
   userName: '',
   email: '',
-  phoneNumber: '',
+  phoneNumber: ''
 })
 
-// 2. Initialisation propre au montage
-onMounted(() => {
-  if (user.value) {
-    emailAtStart.value = user.value.email
-    form.value.userName = user.value.username
-    form.value.email = user.value.email
-    form.value.phoneNumber = user.value.phoneNumber
-  }
-})
+/**
+ * Sync automatique quand user arrive après hydration
+ */
+watch(
+  user,
+  (newUser) => {
+    if (!newUser) return
+
+    form.value = {
+      userName: newUser.username || '',
+      email: newUser.email || '',
+      phoneNumber: newUser.phoneNumber || ''
+    }
+  },
+  { immediate: true }
+)
 
 const handleUpdateProfile = async () => {
-  // Vérification stricte du changement d'email
-  const hasEmailChanged = form.value.email.trim().toLowerCase() !== emailAtStart.value.trim().toLowerCase()
-  
   isLoading.value = true
-  
+
+  const normalizedFormEmail = form.value.email.trim().toLowerCase()
+  const hasEmailChanged = normalizedFormEmail !== originalEmail.value
+
   const param = {
     userId: user.value?.id || '',
     userName: form.value.userName,
     phoneNumber: form.value.phoneNumber,
     email: form.value.email,
-    currentEmail: emailAtStart.value
+    currentEmail: originalEmail.value
   }
 
   try {
     const result = await updateProfileUseCase.execute(param)
 
     if (result instanceof Failure) {
-      showToast(result.message, "fi-rr-cross-circle", "error")
+      showToast(result.message, 'fi-rr-cross-circle', 'error')
       isLoading.value = false
       return
     }
 
-    // 3. MISE À JOUR DU STORE PINIA (Données locales)
-    // On met à jour le store pour que le nouveau pseudo/téléphone apparaisse partout
-    authStore.setUser({ 
-      ...user.value!, 
-      username: form.value.userName, 
-      phoneNumber: form.value.phoneNumber 
-      // Note: On ne change pas l'email dans le store ici si l'OTP est requis, 
-      // car il doit d'abord être validé côté serveur.
-    })
-
     if (hasEmailChanged) {
-      showToast("Veuillez valider votre nouvel email", "fi-rr-envelope-dot")
-      
+      showToast(
+        'Veuillez valider votre nouvel email',
+        'fi-rr-envelope-dot',
+        'success'
+      )
+
       setTimeout(() => {
         router.push({
           path: '/auth/verify-otp',
-          query: { 
+          query: {
             email: form.value.email,
             type: 'email_change'
           }
@@ -90,17 +94,20 @@ const handleUpdateProfile = async () => {
         isLoading.value = false
       }, 1500)
     } else {
-      showToast("Profil mis à jour avec succès !", "fi-rr-check", "success")
+      showToast('Profil mis à jour avec succès !', 'fi-rr-check', 'success')
 
       setTimeout(() => {
         router.back()
         isLoading.value = false
       }, 1500)
     }
-
   } catch (error) {
     isLoading.value = false
-    showToast("Une erreur inattendue est survenue", "fi-rr-shield-exclamation", "error")
+    showToast(
+      'Une erreur inattendue est survenue',
+      'fi-rr-shield-exclamation',
+      'error'
+    )
   }
 }
 </script>
@@ -118,8 +125,18 @@ const handleUpdateProfile = async () => {
     <div class="content-container">
       <div class="avatar-Update-section">
         <div class="avatar-wrapper">
-          <img :src="AppImage.Profile" alt="Profile" class="profile-img" />
-          <div class="Update-badge" :style="{ backgroundColor: AppColor.primary.base }">
+          <img
+            :src="
+              AppImage.Profile ||
+              'https://ui-avatars.com/api/?name=' + form.userName
+            "
+            alt="Profile"
+            class="profile-img"
+          />
+          <div
+            class="Update-badge"
+            :style="{ backgroundColor: AppColor.primary.base }"
+          >
             <i class="fi fi-rr-camera"></i>
           </div>
         </div>
@@ -134,7 +151,7 @@ const handleUpdateProfile = async () => {
           icon="fi-rr-user"
           placeholder="Votre pseudo"
         />
-        
+
         <Input
           id="email"
           label="Adresse Email*"
@@ -154,14 +171,24 @@ const handleUpdateProfile = async () => {
         />
       </div>
 
-      <div class="info-box" v-if="form.email.trim().toLowerCase() !== emailAtStart.toLowerCase() && emailAtStart !== ''">
+      <div
+        class="info-box"
+        v-if="form.email.trim().toLowerCase() !== originalEmail"
+      >
         <i class="fi fi-rr-info"></i>
-        <p>Le changement d'email nécessitera une nouvelle vérification par code OTP.</p>
+        <p>
+          Le changement d'email nécessitera une nouvelle vérification par code
+          OTP.
+        </p>
       </div>
 
       <div class="action-footer">
         <Button
-          :label="form.email !== emailAtStart ? 'Vérifier l\'email' : 'Enregistrer les modifications'"
+          :label="
+            form.email.trim().toLowerCase() !== originalEmail
+              ? 'Vérifier email'
+              : 'Enregistrer'
+          "
           :loading="isLoading"
           @click="handleUpdateProfile"
         />
