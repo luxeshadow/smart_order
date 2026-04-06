@@ -110,9 +110,9 @@ const handleLogout = () => {
       </div>
 
       <div class="menu-item" @click="router.push('/assistance/ai')">
-        <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
+        <div class="menu-icon"> <i class="fi fi-rr-user-headset"></i></div>
         <span>Assistance</span>
-        <i class="fi fi-rr-user-headset"></i>
+       <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
       
       <div class="menu-item" @click="router.push('/transaction/history-transaction')">
