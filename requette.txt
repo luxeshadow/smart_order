@@ -1,0 +1,54 @@
+CREATE OR REPLACE FUNCTION process_order_validation(
+    p_user_id UUID,
+    p_order_item_id UUID
+) RETURNS VOID AS $$
+DECLARE
+    v_price NUMERIC;
+    v_commission NUMERIC;
+BEGIN
+    -- 1. Récupérer les infos de la commande
+    SELECT price_at_purchase, commission 
+    INTO v_price, v_commission
+    FROM public.order_items 
+    WHERE id = p_order_item_id AND status = 'pending';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Commande introuvable ou déjà validée';
+    END IF;
+
+    -- 2. Vérifier et soustraire le solde (achat de commande)
+    UPDATE public.users 
+    SET main_balance = main_balance - v_price,
+        daily_balance = daily_balance + v_commission, -- Gain du jour
+        refund_balance = refund_balance + v_commission -- Gain total cumulé
+    WHERE id = p_user_id AND main_balance >= v_price;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Solde insuffisant pour valider cette commande';
+    END IF;
+
+    -- 3. Marquer l'item comme complété
+    UPDATE public.order_items 
+    SET status = 'completed'
+    WHERE id = p_order_item_id;
+
+    -- 4. Créer la ligne dans Withdrawals pour l'historique
+    INSERT INTO public.withdrawals (
+        user_id, 
+        amount, 
+        method, 
+        status, 
+        phone_number,
+        created_at
+    )
+    VALUES (
+        p_user_id, 
+        v_price, 
+        'achat de commande', 
+        'completed', 
+        'SYSTEM',
+        now()
+    );
+
+END;
+$$ LANGUAGE plpgsql;

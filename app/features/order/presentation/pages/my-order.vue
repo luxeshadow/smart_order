@@ -1,69 +1,63 @@
 <script setup lang="ts">
-import SmartChart from '@/core/components/client/SmartChart.vue'
-import Footer from '@/core/components/client/Footer.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
+import { Failure } from '@/core/errors/failure'
+
+import { useOrderStore } from '../stores/my_order_item_store'
+import { ListMyOrderItemUseCase } from '../../application/usecases/list_my_order_item_usecase'
+import { ListMyOrderItemRepositoryImpl } from '../../data/repositories/list_my_order_item_repository_impl'
+
+import SmartChart from '@/core/components/client/SmartChart.vue'
+import Footer from '@/core/components/client/Footer.vue'
 
 const router = useRouter()
+const orderStore = useOrderStore()
+const currentIndex = ref(0)
 
-type Product = {
-    id: number
-    name: string
-    price: string
-    profit: string
-    image: string
-    status: 'new' | 'old'
+const repo = new ListMyOrderItemRepositoryImpl()
+const listOrdersUseCase = new ListMyOrderItemUseCase(repo)
+
+
+const isToday = (dateString: string): boolean => {
+    if (!dateString) return false
+    const dateToCompare = new Date(dateString)
+    const today = new Date()
+    
+    return (
+        dateToCompare.getDate() === today.getDate() &&
+        dateToCompare.getMonth() === today.getMonth() &&
+        dateToCompare.getFullYear() === today.getFullYear()
+    )
 }
 
-const currentIndex = ref(0)
-const products = ref<Product[]>([
-    {
-        id: 1,
-        name: 'Yaourt fruité',
-        price: '2000 FCFA',
-        profit: '+150 FCFA',
-        status: 'new',
-        image: 'https://i.postimg.cc/8cbpwgWx/Whats-App-Image-2026-04-03-at-11-38-06.jpg'
-    },
-    {
-        id: 2,
-        name: 'Salade César',
-        price: '3500 FCFA',
-        profit: '+300 FCFA',
-        status: 'old',
-        image: 'https://i.postimg.cc/ZK7ZqcLH/Whats-App-Image-2026-04-03-at-11-38-07-(3).jpg'
-    },
-    {
-        id: 3,
-        name: 'AirPods Pro 2',
-        price: '35000 FCFA',
-        profit: '+800 FCFA',
-        status: 'new',
-        image: 'https://i.postimg.cc/pTJMMYTP/Whats-App-Image-2026-04-03-at-11-38-08.jpg'
-    },
-    {
-        id: 4,
-        name: 'Samsung S24 Ultra',
-        price: '76655 FCFA',
-        profit: '+3080 FCFA',
-        status: 'new',
-        image: 'https://i.postimg.cc/c1TGDm2z/Whats-App-Image-2026-04-03-at-11-38-05-(2).jpg'
-    },
-])
+const fetchOrders = async () => {
+    orderStore.loading = true
+  
+    const result = await listOrdersUseCase.execute({ userId: 'current-user-uuid' })
 
-const currentProduct = computed(() => products.value[currentIndex.value] ?? null)
+    if (!(result instanceof Failure)) {
+        orderStore.setItems(result)
+    }
+    orderStore.loading = false
+}
+
+onMounted(() => {
+    fetchOrders()
+})
+
+const currentProduct = computed(() => orderStore.items[currentIndex.value] ?? null)
 
 const nextProduct = () => {
-    if (!products.value.length) return
-    currentIndex.value = currentIndex.value < products.value.length - 1 ? currentIndex.value + 1 : 0
+    if (!orderStore.items.length) return
+    currentIndex.value = currentIndex.value < orderStore.items.length - 1 ? currentIndex.value + 1 : 0
 }
 
-const categories = [
-    { name: 'Pending', count: 12, icon: 'fi-rr-layers' },
+const categories = computed(() => [
+    { name: 'Pending', count: orderStore.items.length, icon: 'fi-rr-layers' },
     { name: 'Pickup', icon: 'fi-rr-shopping-basket' },
     { name: 'Rated', icon: 'fi-rr-star' }
-]
+])
 </script>
 
 <template>
@@ -76,55 +70,64 @@ const categories = [
     </nav>
 
     <div class="order-page">
-        <div class="category-container">
-            <div v-for="cat in categories" :key="cat.name" class="pill-category">
-                <i :class="cat.icon" class="pill-icon"></i>
-                <span>{{ cat.name }}</span>
-                <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
-            </div>
+        <div v-if="orderStore.loading && orderStore.items.length === 0" class="loader-container">
+            <div class="spinner"></div>
         </div>
 
-        <div class="product-view">
-            <Transition name="fade-slide" mode="out-in">
-                <div v-if="currentProduct" :key="currentProduct.id" class="product-card">
-
-                    <div class="image-section">
-                        <span :class="['status-badge', currentProduct.status]">
-                            {{ currentProduct.status }}
-                        </span>
-                        <img :src="currentProduct.image" alt="Product" class="bordered-img" />
-                    </div>
-
-                    <div class="content-section">
-                        <h2 class="product-title">{{ currentProduct.name }}</h2>
-                        <p class="product-price">{{ currentProduct.price }}</p>
-                        <div class="profit-badge">
-                            {{ currentProduct.profit }} bénéfice
-                        </div>
-                    </div>
-
-                    <button class="validate-btn" @click="nextProduct">
-                        <span>Valider</span>
-                        <i class="fi fi-rr-plus"></i>
-                    </button>
-                   
+        <template v-else>
+            <div class="category-container">
+                <div v-for="cat in categories" :key="cat.name" class="pill-category">
+                    <i :class="cat.icon" class="pill-icon"></i>
+                    <span>{{ cat.name }}</span>
+                    <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
                 </div>
-            </Transition>
-        </div>
-         <div class="order-info-box">
-                        <div class="info-row">
-                            <i class="fi fi-rr-info info-icon"></i>
-                            <div class="info-text">
-                                <p><strong>Commande classique :</strong> valider = 10% du prix du produit versé</p>
-                                <p><strong>Commande chanceuse :</strong> valider = 20% du prix du produit versé</p>
+            </div>
+
+            <div class="product-view">
+                <Transition name="fade-slide" mode="out-in">
+                    <div v-if="currentProduct" :key="currentProduct.id" class="product-card">
+
+                        <div class="image-section">
+                            <span :class="['status-badge', isToday(currentProduct.createdAt) ? 'new' : 'old']">
+                                {{ isToday(currentProduct.createdAt) ? 'new' : 'old' }}
+                            </span>
+                            <img :src="currentProduct.productPhoto" alt="Product" class="bordered-img" />
+                        </div>
+
+                        <div class="content-section">
+                            <h2 class="product-title">{{ currentProduct.productName }}</h2>
+                            <p class="product-price">{{ currentProduct.priceAtPurchase }} FCFA</p>
+                            <div class="profit-badge">
+                                +{{ currentProduct.commission }} FCFA bénéfice
                             </div>
                         </div>
+
+                        <button class="validate-btn" @click="nextProduct">
+                            <span>Valider</span>
+                            <i class="fi fi-rr-plus"></i>
+                        </button>
                     </div>
+
+                    <div v-else class="empty-state">
+                        <p>Aucune commande disponible.</p>
+                    </div>
+                </Transition>
+            </div>
+
+            <div class="order-info-box">
+                <div class="info-row">
+                    <i class="fi fi-rr-info info-icon"></i>
+                    <div class="info-text">
+                        <p><strong>Commande classique :</strong> valider = 10% du prix du produit versé</p>
+                        <p><strong>Commande chanceuse :</strong> valider = 20% du prix du produit versé</p>
+                    </div>
+                </div>
+            </div>
+        </template>
 
         <SmartChart />
         <Footer />
     </div>
-
 </template>
 
 <style scoped>
@@ -137,6 +140,21 @@ const categories = [
     flex-direction: column;
     align-items: center;
 }
+
+.loader-container {
+    padding: 50px;
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid v-bind('AppColor.primary.light');
+    border-top-color: v-bind('AppColor.primary.base');
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* AppBar */
 .app-bar {
@@ -173,9 +191,7 @@ const categories = [
     color: #2d3436;
 }
 
-.spacer {
-    width: 45px;
-}
+.spacer { width: 45px; }
 
 /* Categories */
 .category-container {
@@ -207,23 +223,11 @@ const categories = [
     min-width: 18px;
 }
 
-.pill-icon {
-    color: v-bind('AppColor.primary.base');
-    font-size: 14px;
-}
-
-.pill-category span {
-    font-weight: 700;
-    font-size: 13px;
-    color: #3f3e3e;
-}
+.pill-icon { color: v-bind('AppColor.primary.base'); font-size: 14px; }
+.pill-category span { font-weight: 700; font-size: 13px; color: #3f3e3e; }
 
 /* Product Card */
-.product-view {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
+.product-view { width: 100%; display: flex; justify-content: center; }
 
 .product-card {
     position: relative;
@@ -238,9 +242,7 @@ const categories = [
     border: 1.2px solid #f2f2f2;
 }
 
-.image-section {
-    position: relative;
-}
+.image-section { position: relative; }
 
 .status-badge {
     position: absolute;
@@ -255,13 +257,8 @@ const categories = [
     color: white;
 }
 
-.status-badge.new {
-    background: v-bind('AppColor.primary.base');
-}
-
-.status-badge.old {
-    background: #636e72;
-}
+.status-badge.new { background: v-bind('AppColor.primary.base'); }
+.status-badge.old { background: #636e72; }
 
 .bordered-img {
     width: 90px;
@@ -271,27 +268,9 @@ const categories = [
     border: 1.5px solid #f8f8f8;
 }
 
-.content-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    justify-content: center;
-}
-
-.product-title {
-    font-size: 16px;
-    font-weight: 800;
-    color: #111;
-    margin: 0;
-}
-
-.product-price {
-    color: #777;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 0;
-}
+.content-section { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.product-title { font-size: 16px; font-weight: 800; color: #111; margin: 0; }
+.product-price { color: #777; font-size: 13px; font-weight: 600; margin: 0; }
 
 .profit-badge {
     color: v-bind('AppColor.status.success');
@@ -319,65 +298,21 @@ const categories = [
     font-size: 12px;
 }
 
+.empty-state { padding: 40px; text-align: center; color: #999; font-weight: 600; }
+
 /* Animations */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-    transition: all 0.3s ease;
-}
+.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
+.fade-slide-enter-from { opacity: 0; transform: translateX(15px); }
+.fade-slide-leave-to { opacity: 0; transform: translateX(-15px); }
 
-.fade-slide-enter-from {
-    opacity: 0;
-    transform: translateX(15px);
-}
-
-.fade-slide-leave-to {
-    opacity: 0;
-    transform: translateX(-15px);
-}
-
-.order-info-box {
-  width: 100%;
-  max-width: 480px;
-  margin-top: 12px;
-  padding: 20px;
-  border-radius: 16px;
-}
-
-.info-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
+.order-info-box { width: 100%; max-width: 480px; margin-top: 12px; padding: 20px; border-radius: 16px; }
+.info-row { display: flex; gap: 12px; align-items: flex-start; }
 .info-icon {
-  min-width: 38px;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: v-bind('AppColor.primary.base');
-  color: white;
-  font-size: 16px;
+    min-width: 38px; width: 38px; height: 38px;
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: v-bind('AppColor.primary.base'); color: white; font-size: 16px;
 }
-
-.info-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-text p {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #444;
-  line-height: 1.5;
-}
-
-.info-text strong {
-  color: #111;
-}
+.info-text { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.info-text p { margin: 0; font-size: 12px; font-weight: 600; color: #444; line-height: 1.5; }
+.info-text strong { color: #111; }
 </style>

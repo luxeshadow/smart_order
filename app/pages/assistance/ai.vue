@@ -60,7 +60,7 @@ onMounted(() => {
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-      <span class="app-bar-title">Assistant IA</span>
+      <span class="app-bar-title">Assistant</span>
       <div class="spacer"></div>
     </header>
 
@@ -155,7 +155,7 @@ onMounted(() => {
 .chat-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 15px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
