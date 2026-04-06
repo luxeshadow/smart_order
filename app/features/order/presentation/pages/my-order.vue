@@ -375,7 +375,6 @@ const categories = computed(() => [
     align-items: center;
     gap: 12px;
     width: 100%;
-    height: 140px;
     max-width: 480px;
     padding: 12px;
     background: white;
