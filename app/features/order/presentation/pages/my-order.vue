@@ -131,23 +131,23 @@ const categories = computed(() => [
     </nav>
 
     <div class="order-page">
-        <div v-if="orderStore.loading && orderStore.items.length === 0" class="loader-container">
-            <div class="spinner"></div>
+        <div class="category-container">
+            <div v-for="cat in categories" :key="cat.name" class="pill-category">
+                <i :class="cat.icon" class="pill-icon"></i>
+                <span>{{ cat.name }}</span>
+                <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
+            </div>
         </div>
 
-        <template v-else>
-            <div class="category-container">
-                <div v-for="cat in categories" :key="cat.name" class="pill-category">
-                    <i :class="cat.icon" class="pill-icon"></i>
-                    <span>{{ cat.name }}</span>
-                    <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
-                </div>
+        <div class="product-view">
+            <div v-if="orderStore.loading && orderStore.items.length === 0" class="loader-container">
+                <div class="spinner"></div>
+                <p class="loader-text">Chargement des commandes...</p>
             </div>
 
-            <div class="product-view">
+            <template v-else>
                 <Transition name="fade-slide" mode="out-in">
                     <div v-if="currentProduct" :key="currentProduct.id" class="product-card">
-
                         <div class="image-section">
                             <span :class="['status-badge', isToday(currentProduct.createdAt) ? 'new' : 'old']">
                                 {{ isToday(currentProduct.createdAt) ? 'new' : 'old' }}
@@ -176,22 +176,27 @@ const categories = computed(() => [
                     </div>
 
                     <div v-else class="empty-state">
-                        <i class="fi fi-rr-box-open empty-icon"></i>
-                        <p>Aucune commande en attente.</p>
+                        <div class="empty-icon-wrapper">
+                            <i class="fi fi-rr-box-open empty-icon"></i>
+                        </div>
+                        <h3>Aucune commande</h3>
+                        <p>Revenez plus tard pour de nouvelles opportunités.</p>
                     </div>
                 </Transition>
-            </div>
+            </template>
+        </div>
 
-            <div class="order-info-box">
-                <div class="info-row">
-                    <i class="fi fi-rr-info info-icon"></i>
-                    <div class="info-text">
-                        <p><strong>Commande classique :</strong> 10% de commission versés</p>
-                        <p><strong>Commande chanceuse :</strong> 20% de commission versés</p>
-                    </div>
+        <div class="order-info-box">
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fi fi-rr-info"></i>
+                </div>
+                <div class="info-text">
+                    <p><strong>Commande classique :</strong> 10% de commission versés sur votre compte après validation.</p>
+                    <p><strong>Commande chanceuse :</strong> 20% de commission versés pour les articles sélectionnés.</p>
                 </div>
             </div>
-        </template>
+        </div>
 
         <SmartChart />
         <Footer />
@@ -199,113 +204,22 @@ const categories = computed(() => [
 </template>
 
 <style scoped>
-
-
-.back-btn {
-    width: 45px;
-    height: 45px;
-    background-color: #f8f9fa;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.app-bar-title {
-    flex: 1;
-    text-align: center;
-    font-weight: 700;
-    font-size: 17px;
-    color: #2d3436;
-}
-
-/* Product Card */
-.product-card {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 450px;
-    padding: 15px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
-}
-
-.validate-btn {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    background: v-bind('AppColor.primary.base');
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
-
-.validate-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.btn-loading {
-    padding-right: 25px;
-}
-
-/* ... Reste de tes styles existants ... */
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 50px;
-    color: #95a5a6;
-}
-
-.empty-icon {
-    font-size: 40px;
-    opacity: 0.5;
-}
-
+/* --- Structure de la Page --- */
 .order-page {
-    padding: 10px;
-    padding-top: 85px;
-    background: white;
+    padding: 15px;
+    padding-top: 85px; /* Espace pour l'AppBar */
+    background: #fcfcfc;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 15px;
 }
 
-.loader-container {
-    padding: 50px;
-}
-
-.spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid v-bind('AppColor.primary.light');
-    border-top-color: v-bind('AppColor.primary.base');
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* AppBar */
+/* --- AppBar --- */
 .app-bar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 65px;
     background: white;
     display: flex;
@@ -316,46 +230,55 @@ const categories = computed(() => [
 }
 
 .back-btn {
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     background-color: #f8f9fa;
     border: 1px solid #eee;
-    border-radius: 14px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: all 0.2s;
 }
+
+.back-btn:active { transform: scale(0.92); }
 
 .app-bar-title {
     flex: 1;
     text-align: center;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 17px;
-    color: #2d3436;
+    color: #1a1a1a;
 }
 
-.spacer { width: 45px; }
+.spacer { width: 42px; }
 
-/* Categories */
+/* --- Catégories (Pills) --- */
 .category-container {
     display: flex;
     gap: 10px;
-    padding-bottom: 25px;
+    margin-bottom: 15px;
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    padding: 5px;
 }
 
 .pill-category {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: v-bind('AppColor.primary.light + "40"');
-    padding: 8px 14px;
+    background: white;
+    padding: 10px 16px;
     border-radius: 14px;
-    border: 1px solid v-bind('AppColor.primary.light');
+    border: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    white-space: nowrap;
 }
+
+.pill-icon { color: v-bind('AppColor.primary.base'); font-size: 15px; }
+.pill-category span { font-weight: 700; font-size: 14px; color: #444; }
 
 .badge-count {
     background: v-bind('AppColor.primary.base');
@@ -364,99 +287,186 @@ const categories = computed(() => [
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 8px;
-    min-width: 18px;
 }
 
-.pill-icon { color: v-bind('AppColor.primary.base'); font-size: 14px; }
-.pill-category span { font-weight: 700; font-size: 13px; color: #3f3e3e; }
-
-/* Product Card */
-.product-view { width: 100%; display: flex; justify-content: center; }
+/* --- Zone Produit & Card --- */
+.product-view {
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 .product-card {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     width: 100%;
     max-width: 480px;
-    padding: 12px;
+    padding: 15px;
     background: white;
-    border-radius: 15px;
-    border: 1.2px solid #f2f2f2;
+    border-radius: 20px;
+    border: 1.5px solid #f2f2f2;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+.bordered-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid #f0f0f0;
 }
 
 .image-section { position: relative; }
 
 .status-badge {
     position: absolute;
-    top: -5px;
-    left: -5px;
+    top: -8px;
+    left: -8px;
     font-size: 9px;
     font-weight: 900;
     text-transform: uppercase;
-    padding: 3px 7px;
-    border-radius: 6px;
-    z-index: 1;
+    padding: 4px 8px;
+    border-radius: 7px;
+    z-index: 2;
     color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
 .status-badge.new { background: v-bind('AppColor.primary.base'); }
 .status-badge.old { background: #636e72; }
 
-.bordered-img {
-    width: 95px;
-    height: 95px;
-    border-radius: 10px;
-    object-fit: cover;
-    border: 1.5px solid #f8f8f8;
-}
-
-.content-section { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-.product-title { font-size: 16px; font-weight: 800; color: #111; margin: 0; }
-.product-price { color: #777; font-size: 13px; font-weight: 600; margin: 0; }
+.content-section { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.product-title { font-size: 17px; font-weight: 800; color: #111; margin: 0; }
+.product-price { color: #888; font-size: 14px; font-weight: 600; margin: 0; }
 
 .profit-badge {
     color: v-bind('AppColor.status.success');
     background: v-bind('AppColor.status.success + "15"');
     font-weight: 800;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 8px;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 10px;
     width: fit-content;
+    margin-top: 5px;
 }
 
+/* --- Bouton Validation --- */
 .validate-btn {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
+    bottom: 15px;
+    right: 15px;
     background: v-bind('AppColor.primary.base');
     color: white;
     border: none;
-    padding: 8px 14px;
-    border-radius: 12px;
+    padding: 10px 18px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.empty-state { padding: 40px; text-align: center; color: #999; font-weight: 600; }
+.validate-btn:active { transform: scale(0.95); }
+.validate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Animations */
-.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
-.fade-slide-enter-from { opacity: 0; transform: translateX(15px); }
-.fade-slide-leave-to { opacity: 0; transform: translateX(-15px); }
+/* --- Loader & Empty State --- */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
 
-.order-info-box { width: 100%; max-width: 480px; margin-top: 12px; padding: 20px; border-radius: 16px; }
-.info-row { display: flex; gap: 12px; align-items: flex-start; }
+.spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid v-bind('AppColor.primary.light + "30"');
+    border-top-color: v-bind('AppColor.primary.base');
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+}
+
+.empty-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    background: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+
+.empty-icon { font-size: 32px; color: #ccc; }
+.empty-state h3 { font-size: 18px; font-weight: 800; color: #333; margin: 0; }
+.empty-state p { font-size: 14px; color: #999; margin-top: 5px; }
+
+/* --- Info Box (Large) --- */
+.order-info-box {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    padding: 24px;
+    border-radius: 22px;
+    border: 1px solid #f0f0f0;
+    margin-top: 10px;
+}
+
+.info-row { display: flex; gap: 15px; align-items: flex-start; }
+
 .info-icon {
-    min-width: 38px; width: 38px; height: 38px;
-    border-radius: 12px; display: flex; align-items: center; justify-content: center;
-    background: v-bind('AppColor.primary.base'); color: white; font-size: 16px;
+    min-width: 46px;
+    height: 46px;
+    background: v-bind('AppColor.primary.base');
+    color: white;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
 }
-.info-text { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.info-text p { margin: 0; font-size: 12px; font-weight: 600; color: #444; line-height: 1.5; }
-.info-text strong { color: #111; }
+
+.info-text p {
+    margin: 0;
+    font-size: 14px; /* Plus grand */
+    font-weight: 600;
+    color: #555;
+    line-height: 1.6;
+}
+
+.info-text p:first-child { margin-bottom: 10px; }
+.info-text strong { color: #000; font-weight: 800; }
+
+/* --- Transitions --- */
+.fade-slide-enter-active, .fade-slide-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.fade-slide-enter-from { opacity: 0; transform: translateY(10px); }
+.fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
+
+/* --- Responsive Mobile --- */
+@media (max-width: 500px) {
+    .product-card {
+        flex-direction: row;
+        align-items: center;
+    }
+    .bordered-img {
+        width: 85px;
+        height: 85px;
+    }
+    .product-title { font-size: 15px; }
+}
 </style>
