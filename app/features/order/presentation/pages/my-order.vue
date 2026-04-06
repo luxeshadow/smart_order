@@ -211,33 +211,32 @@ const categories = computed(() => [
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px 20px;
+    padding: 20px 20px;
     width: 100%;
     animation: fadeIn 0.5s ease-out;
 }
 
 .empty-icon-wrapper {
-    width: 85px;
-    height: 85px;
+    width: 55px;
+    height: 55px;
     background-color: #f8f9fa; /* Fond gris très léger */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border: 1px solid #f1f1f1;
-    /* Petit effet d'ombre douce */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02);
+
 }
 
 .empty-icon {
-    font-size: 38px;
+    font-size: 25px;
     color: #bdc3c7; /* Couleur grise icône */
     display: flex;
 }
 
 .empty-state h3 {
-    font-size: 19px;
+    font-size: 14px;
     font-weight: 800;
     color: #2d3436;
     margin: 0 0 8px 0;
@@ -245,7 +244,7 @@ const categories = computed(() => [
 }
 
 .empty-state p {
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 500;
     color: #95a5a6;
     margin: 0;
