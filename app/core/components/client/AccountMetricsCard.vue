@@ -3,61 +3,80 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
+import { useOrderStore } from '@/features/order/presentation/stores/my_order_item_store'
+
+// UseCases
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
 import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
 import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/list_my_level_repository_impl'
-import { Failure } from '@/core/errors/failure'
+import { ListMyOrderItemUseCase } from '@/features/order/application/usecases/list_my_order_item_usecase'
+import { ListMyOrderItemRepositoryImpl } from '@/features/order/data/repositories/list_my_order_item_repository_impl'
 
+import { Failure } from '@/core/errors/failure'
 
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
 const levelStore = useLevelStore()
+const orderStore = useOrderStore()
 
 const balanceUseCase = new GetMyPrincipalBalanceUseCase(new GetMyPrincipalBalanceRepositoryImpl())
 const myLevelsUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl())
+const listOrdersUseCase = new ListMyOrderItemUseCase(new ListMyOrderItemRepositoryImpl())
 
 const isLoading = ref(false)
 
+// --- LOGIQUE DE DATE ---
+const getTodayDate = (): string => {
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(new Date())
+}
+
 // --- COMPUTED ---
-// On récupère tout depuis le store pour que l'UI soit réactive
 const mainBalanceRaw = computed(() => transactionStore.mainBalance)
 const dailyEarningsRaw = computed(() => transactionStore.dailyEarnings)
 const refundBalanceRaw = computed(() => transactionStore.refundBalance)
-
 const allLevels = computed(() => levelStore.levels)
 const myLevels = computed(() => levelStore.myLevels)
 
-// Vérifie si un level est ON
+// Récupération dynamique du nombre de produits en attente
+const itemsCount = computed(() => orderStore.items.length)
+
 const isLevelActive = (levelId: string) => {
   return myLevels.value.some(l => l.id === levelId)
 }
 
-// Formate les grands nombres (ex: 01,250,000)
 const formatCurrency = (value: number | null): string => {
   if (value === null || value === undefined) return "00,000,000";
-  return value.toLocaleString('fr-FR').replace(/\s/g, ',');
+  // Formatage forcé avec 8 chiffres minimum si nécessaire ou standard
+  const formatted = value.toLocaleString('fr-FR').replace(/\s/g, ',');
+  return value < 10000000 ? formatted.padStart(10, '0') : formatted;
 }
 
 const fetchData = async () => {
   if (!authStore.user?.id) return
   isLoading.value = true
+  const userId = authStore.user.id
 
-  // 1. Récupérer l'objet contenant les 3 soldes
-  const result = await balanceUseCase.execute({ userId: authStore.user.id })
-  
-  if (!(result instanceof Failure)) {
-    // On met à jour les 3 variables dans le store
-    // (J'assume que tu as créé ces méthodes ou que tu accèdes directement aux refs du store)
-    transactionStore.updateBalance(result.main)
-    transactionStore.updateEarnings(result.earnings)
-    transactionStore.updateRefund(result.refund)
+  // 1. Récupérer les soldes (Main, Earnings, Refund)
+  const balanceResult = await balanceUseCase.execute({ userId })
+  if (!(balanceResult instanceof Failure)) {
+    transactionStore.updateAllBalances(balanceResult)
   }
 
   // 2. Récupérer les niveaux activés
-  const myLevelsResult = await myLevelsUseCase.execute(authStore.user.id)
+  const myLevelsResult = await myLevelsUseCase.execute(userId)
   if (!(myLevelsResult instanceof Failure)) {
     levelStore.updateMyLevels(myLevelsResult)
+  }
+
+  // 3. Récupérer les items de commande pour le compteur
+  const ordersResult = await listOrdersUseCase.execute({ userId })
+  if (!(ordersResult instanceof Failure)) {
+    orderStore.setItems(ordersResult)
   }
 
   isLoading.value = false
@@ -67,10 +86,11 @@ onMounted(() => {
   fetchData()
 })
 
+// On garde les props au cas où le parent veut surcharger, 
+// mais on utilise des valeurs dynamiques par défaut
 defineProps({
-  today: { type: String, default: "06 Avril 2026" },
-  pendingOrders: { type: Number, default: 0 },
-  dailyProducts: { type: Number, default: 0 }
+  today: { type: String, default: () => new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date()) },
+  pendingOrders: { type: Number, default: 0 }
 })
 </script>
 
@@ -91,7 +111,7 @@ defineProps({
         <span class="date-label">{{ today }}</span>
         <div class="pending-tag">
           <i class="fi fi-rr-time-past"></i>
-          {{ pendingOrders }} en attente
+          {{ itemsCount }} en attente
         </div>
       </div>
 
@@ -122,7 +142,7 @@ defineProps({
 
       <div class="footer-info">
         <i class="fi fi-rr-box"></i>
-        <span><strong>{{ dailyProducts }}</strong> produits / commande</span>
+        <span><strong>{{ itemsCount }}</strong> produits / commande</span>
       </div>
     </div>
   </div>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
 import { AppImage } from "@/core/constants/app_images" 
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
+import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store" // Import du store
 import Footer from '@/core/components/client/Footer.vue'
 
 // --- Imports Clean Architecture ---
@@ -13,27 +14,31 @@ import { Failure } from '@/core/errors/failure'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const transactionStore = useTransactionStore() // Initialisation
+
 const { user } = storeToRefs(authStore)
+// On récupère les 3 soldes réactifs depuis le store global
+const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionStore)
 
 // Initialisation des couches
 const repository = new GetMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
 
-const mainBalanceRaw = ref<number | null>(null)
-
 // --- Logique de Formatage ---
 const formatBalance = (value: number | null): string => {
-  if (value === null) return "-,---,---";
+  if (value === null || value === undefined) return "00,000,000";
   const padded = value.toString().padStart(8, '0');
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
-// Récupération du solde
+// Récupération globale des soldes
 const fetchBalance = async () => {
   if (!user.value?.id) return
   const result = await getBalanceUseCase.execute({ userId: user.value.id })
+  
   if (!(result instanceof Failure)) {
-    mainBalanceRaw.value = result
+    // On met à jour les 3 soldes dans le store d'un seul coup
+    transactionStore.updateAllBalances(result)
   }
 }
 
@@ -41,14 +46,9 @@ onMounted(() => {
   fetchBalance()
 })
 
-// Les autres soldes (à brancher plus tard sur leurs UseCases respectifs)
-const balances = {
-  daily: "00,001,500",
-  refund: "00,012,400",
-}
-
 const handleLogout = () => {
   authStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -76,14 +76,14 @@ const handleLogout = () => {
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
           <button class="settings-btn" @click="router.push('/assistance/ai')">
-          <i class="fi fi-rr-user-headset"></i>
+            <i class="fi fi-rr-user-headset"></i>
           </button>
         </div>
 
         <div class="main-balance-display">
           <span class="balance-label">Solde Principal</span>
           <div class="amount-row">
-            <h2 class="amount">{{ formatBalance(mainBalanceRaw) }}</h2>
+            <h2 class="amount">{{ formatBalance(mainBalance) }}</h2>
             <span class="currency">XOF</span>
           </div>
         </div>
@@ -91,12 +91,12 @@ const handleLogout = () => {
         <div class="glass-balances">
           <div class="glass-item">
             <span class="glass-label">Journalier</span>
-            <span class="glass-amount">{{ balances.daily }} <small>XOF</small></span>
+            <span class="glass-amount">{{ formatBalance(dailyEarnings) }} <small>XOF</small></span>
           </div>
           <div class="glass-divider"></div>
           <div class="glass-item">
             <span class="glass-label">Remboursement</span>
-            <span class="glass-amount">{{ balances.refund }} <small>XOF</small></span>
+            <span class="glass-amount">{{ formatBalance(refundBalance) }} <small>XOF</small></span>
           </div>
         </div>
       </div>
