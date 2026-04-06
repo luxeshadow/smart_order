@@ -9,8 +9,8 @@ import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_m
 import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/list_my_level_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
-
 const authStore = useAuthStore()
+
 const transactionStore = useTransactionStore()
 const levelStore = useLevelStore()
 
@@ -19,40 +19,32 @@ const myLevelsUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl())
 
 const isLoading = ref(false)
 
+// --- COMPUTED ---
 const mainBalanceRaw = computed(() => transactionStore.mainBalance)
-const dailyEarningsRaw = computed(() => transactionStore.dailyEarnings)
-const refundBalanceRaw = computed(() => transactionStore.refundBalance)
+const allLevels = computed(() => levelStore.levels) // Liste globale
+const myLevels = computed(() => levelStore.myLevels) // Liste activée
 
-const allLevels = computed(() => levelStore.levels)
-const myLevels = computed(() => levelStore.myLevels)
-
-// Vérifie si un level est ON
+// Fonction pour vérifier si un level est ON
 const isLevelActive = (levelId: string) => {
   return myLevels.value.some(l => l.id === levelId)
 }
 
-// Formate les grands nombres (ex: 01,250,000)
-const formatCurrency = (value: number | null): string => {
-  if (value === null || value === undefined) return "00,000,000";
-  return value.toLocaleString('fr-FR').replace(/\s/g, ',');
+const formatBalance = (value: number | null): string => {
+  if (value === null) return "00,000,000";
+  return value.toString().padStart(8, '0').replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
 const fetchData = async () => {
   if (!authStore.user?.id) return
   isLoading.value = true
 
-  // 1. Récupérer l'objet contenant les 3 soldes
-  const result = await balanceUseCase.execute({ userId: authStore.user.id })
-  
-  if (!(result instanceof Failure)) {
-    // On met à jour les 3 variables dans le store
-    // (J'assume que tu as créé ces méthodes ou que tu accèdes directement aux refs du store)
-    transactionStore.updateBalance(result.main)
-    transactionStore.updateEarnings(result.earnings)
-    transactionStore.updateRefund(result.refund)
+  // 1. Récupérer le solde
+  const balanceResult = await balanceUseCase.execute({ userId: authStore.user.id })
+  if (!(balanceResult instanceof Failure)) {
+   
   }
 
-  // 2. Récupérer les niveaux activés
+  // 2. Récupérer mes niveaux activés
   const myLevelsResult = await myLevelsUseCase.execute(authStore.user.id)
   if (!(myLevelsResult instanceof Failure)) {
     levelStore.updateMyLevels(myLevelsResult)
@@ -66,16 +58,17 @@ onMounted(() => {
 })
 
 defineProps({
-  today: { type: String, default: "06 Avril 2026" },
+  today: { type: String, default: "05 Avril 2026" },
   pendingOrders: { type: Number, default: 0 },
-  dailyProducts: { type: Number, default: 0 }
+  dailyProducts: { type: Number, default: 0 },
+  profitBalance: { type: String, default: "0" },
+  refundBalance: { type: String, default: "0" }
 })
 </script>
 
 <template>
   <div class="metrics-card">
     <div class="levels-sidebar">
-      <div v-if="isLoading" class="loader-mini">...</div>
       <div v-for="level in allLevels" :key="level.id" class="level-item">
         <span class="level-name">{{ level.name }}</span>
         <span :class="['status-badge', isLevelActive(level.id) ? 'is-active' : 'is-locked']">
@@ -97,30 +90,26 @@ defineProps({
         <div class="balance-item">
           <p class="label">Solde Principal</p>
           <h2 class="value main">
-            {{ formatCurrency(mainBalanceRaw) }} <small>XOF</small>
+            {{ formatBalance(mainBalanceRaw) }} <small>XOF</small>
           </h2>
         </div>
         
         <div class="balance-grid">
           <div class="balance-item">
             <p class="label">Gain Journalier</p>
-            <h2 class="value profit">
-              {{ formatCurrency(dailyEarningsRaw) }} <small>XOF</small>
-            </h2>
+            <h2 class="value profit">{{ profitBalance }} <small>XOF</small></h2>
           </div>
 
           <div class="balance-item">
             <p class="label">Remboursement</p>
-            <h2 class="value refund">
-              {{ formatCurrency(refundBalanceRaw) }} <small>XOF</small>
-            </h2>
+            <h2 class="value refund">{{ refundBalance }} <small>XOF</small></h2>
           </div>
         </div>
       </div>
 
       <div class="footer-info">
         <i class="fi fi-rr-box"></i>
-        <span><strong>5</strong> produits / Box</span>
+        <span><strong>{{ dailyProducts }}</strong> produits / commande</span>
       </div>
     </div>
   </div>
