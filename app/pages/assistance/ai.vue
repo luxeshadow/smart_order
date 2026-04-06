@@ -154,8 +154,8 @@ onMounted(() => {
 /* --- ZONE DE CHAT (SCROLLABLE) --- */
 .chat-wrapper {
   flex: 1;
-  overflow-y: auto;
-  padding: 13px;
+
+  padding: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
