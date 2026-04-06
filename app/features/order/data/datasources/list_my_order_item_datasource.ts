@@ -18,17 +18,20 @@ export class ListMyOrderItemRemoteDatasource {
           commission,
           status,
           created_at,
+          orders!inner (
+            user_id
+          ),
           products (
             name,
             photo_url
           )
         `)
-        .eq('user_id', param.userId)
+        // Filtrage sur la colonne user_id de la table orders jointe
+        .eq('orders.user_id', param.userId)
         .eq('status', 'pending');
 
       if (error) throw new DatabaseException(error.message);
 
-      // On utilise la méthode statique du modèle pour transformer la liste brute
       return OrderItemModel.fromSupabaseList(data || []);
       
     } catch (error: any) {
