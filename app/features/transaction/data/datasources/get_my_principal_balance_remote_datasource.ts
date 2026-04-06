@@ -4,11 +4,11 @@ import type { GetMyPrincipalBalanceParam } from '../../application/params/get_my
 export class GetMyPrincipalBalanceRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getMyPrincipalBalance(param: GetMyPrincipalBalanceParam): Promise<number> {
+  async getMyPrincipalBalance(param: GetMyPrincipalBalanceParam): Promise<{ main: number; earnings: number; refund: number }> {
     try {
       const { data, error } = await this.supabase
         .from('users')
-        .select('main_balance')
+        .select('main_balance, daily_earnings, refund_balance') 
         .eq('id', param.userId)
         .single()
 
@@ -16,18 +16,22 @@ export class GetMyPrincipalBalanceRemoteDatasource {
         throw new DatabaseException(this.translateError(error.message))
       }
 
-      return data?.main_balance ?? 0
+      return {
+        main: data?.main_balance ?? 0,
+        earnings: data?.daily_earnings ?? 0,
+        refund: data?.refund_balance ?? 0
+      }
 
-    }  catch (error: any) {
+    } catch (error: any) {
       if (error instanceof DatabaseException) throw error
       throw new DatabaseException(
-        error.message || "Impossible de récupérer votre solde principal."
+        error.message || "Impossible de récupérer vos soldes."
       )
     }
   }
 
   private translateError(message?: string): string {
-    if (!message) return "Erreur lors de la récupération du solde."
+    if (!message) return "Erreur lors de la récupération des soldes."
 
     if (message.includes("JSON object requested, but no rows were returned")) {
       return "Compte utilisateur introuvable."
