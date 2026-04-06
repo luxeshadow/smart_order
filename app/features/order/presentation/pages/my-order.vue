@@ -193,7 +193,7 @@ const categories = computed(() => [
                 </div>
                 <div class="info-text">
                     <p><strong>Commande classique :</strong> 10% de commission versés sur votre compte après validation.</p>
-                    <p><strong>Commande chanceuse :</strong> 20% de commission versés pour les articles sélectionnés.</p>
+                    <p><strong>Commande chanceuse :</strong> 15% de commission versés pour les articles sélectionnés.</p>
                 </div>
             </div>
         </div>

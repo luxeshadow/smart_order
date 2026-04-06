@@ -6,10 +6,18 @@ import { useToast } from '@/core/utils/useToast'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
+
+// Cas d'utilisation pour la liste globale
 import { ListLevelUseCase } from '@/features/level/application/usecases/list_level_usecase'
 import { ListLevelRepositoryImpl } from '@/features/level/data/repositories/list_level_repository_impl'
+
+// Cas d'utilisation pour l'assignation (achat)
 import { AssignLevelUseCase } from '@/features/level/application/usecases/assign_level_usecase'
 import { AssignLevelRepositoryImpl } from '@/features/level/data/repositories/assign_level_repository_impl'
+
+// AJOUT : Cas d'utilisation pour mettre à jour "Mes Niveaux" après achat
+import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
+import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/list_my_level_repository_impl'
 
 // Props
 defineProps({
@@ -23,10 +31,12 @@ const transactionStore = useTransactionStore()
 const { showToast } = useToast()
 
 const isLoading = ref(false)
-const processingId = ref<string | null>(null) // Stocke l'ID du level en cours d'activation
+const processingId = ref<string | null>(null)
 
+// Initialisation des UseCases
 const listLevelUseCase = new ListLevelUseCase(new ListLevelRepositoryImpl())
 const assignLevelUseCase = new AssignLevelUseCase(new AssignLevelRepositoryImpl())
+const listMyLevelUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl()) // <--- Initialisé ici
 
 const levels = computed(() => levelStore.levels)
 
@@ -44,7 +54,6 @@ const fetchLevels = async () => {
 }
 
 const handleLevelClick = async (levelId: string) => {
-  // Empêche de cliquer si une activation est déjà en cours
   if (!authStore.user?.id || processingId.value) return
 
   processingId.value = levelId 
@@ -55,7 +64,16 @@ const handleLevelClick = async (levelId: string) => {
   })
 
   if (!(result instanceof Failure)) {
+    // 1. Mettre à jour le solde
     transactionStore.updateBalance(result as number)
+    
+    // 2. ACTION CRUCIALE : Rafraîchir "Mes Niveaux" dans le store
+    // Cela déclenchera le passage à "ON" dans les autres composants
+    const myLevelsResult = await listMyLevelUseCase.execute(authStore.user.id)
+    if (!(myLevelsResult instanceof Failure)) {
+      levelStore.updateMyLevels(myLevelsResult)
+    }
+
     showToast("Niveau activé avec succès !", 'fi-rr-check', 'success', '#2ecc71')
   } else {
     showToast(result.message, 'fi-rr-cross-circle', 'error', '#ff4757')

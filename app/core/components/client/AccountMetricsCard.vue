@@ -3,8 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
-
-// UseCases & Repos
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
 import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
