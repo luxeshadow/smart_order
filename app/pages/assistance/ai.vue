@@ -155,7 +155,7 @@ onMounted(() => {
 .chat-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -166,7 +166,7 @@ onMounted(() => {
   width: 100%;
   max-width: 450px;
   background: white;
-  padding: 25px;
+  padding: 20px;
   border-radius: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
   min-height: fit-content;
@@ -175,7 +175,7 @@ onMounted(() => {
 .messages-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 13px;
 }
 
 /* --- BUBBLES --- */
