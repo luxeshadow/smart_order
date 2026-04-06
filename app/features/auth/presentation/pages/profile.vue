@@ -76,7 +76,7 @@ const handleLogout = () => {
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
           <button class="settings-btn" @click="router.push('/assistance/ai')">
-            <i class="fi fi-rr-user-headset"></i>
+            <i class="fi fi-rr-money-transfer-coin-arrow"></i>
           </button>
         </div>
 
@@ -107,6 +107,12 @@ const handleLogout = () => {
         <div class="menu-icon"><i class="fi fi-rr-user"></i></div>
         <span>Modifier mes informations</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>
+      </div>
+
+      <div class="menu-item" @click="router.push('/assistance/ai')">
+        <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
+        <span>Assistance</span>
+        <i class="fi fi-rr-user-headset"></i>
       </div>
       
       <div class="menu-item" @click="router.push('/transaction/history-transaction')">
