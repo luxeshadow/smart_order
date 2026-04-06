@@ -122,91 +122,88 @@ const categories = computed(() => [
 </script>
 
 <template>
-    <div class="page-container">
-        <nav class="app-bar">
-            <button class="back-btn" @click="router.back()">
-                <i class="fi fi-rr-arrow-small-left"></i>
-            </button>
-            <span class="app-bar-title">My Orders</span>
-            <div class="spacer"></div>
-        </nav>
+    <nav class="app-bar">
+        <button class="back-btn" @click="router.back()">
+            <i class="fi fi-rr-arrow-small-left"></i>
+        </button>
+        <span class="app-bar-title">My Orders</span>
+        <div class="spacer"></div>
+    </nav>
 
-        <div class="order-page">
-            <div class="category-container">
-                <div v-for="cat in categories" :key="cat.name" class="pill-category">
-                    <i :class="cat.icon" class="pill-icon"></i>
-                    <span>{{ cat.name }}</span>
-                    <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
-                </div>
+    <div class="order-page">
+        <div class="category-container">
+            <div v-for="cat in categories" :key="cat.name" class="pill-category">
+                <i :class="cat.icon" class="pill-icon"></i>
+                <span>{{ cat.name }}</span>
+                <span v-if="cat.count" class="badge-count">{{ cat.count }}</span>
             </div>
-
-            <div class="product-view">
-                <div v-if="orderStore.loading && orderStore.items.length === 0" class="loader-container">
-                    <div class="spinner"></div>
-                    <p class="loader-text">Chargement...</p>
-                </div>
-
-                <template v-else>
-                    <Transition name="fade-slide" mode="out-in">
-                        <div v-if="currentProduct" :key="currentProduct.id" class="product-card">
-                            <div class="image-section">
-                                <span :class="['status-badge', isToday(currentProduct.createdAt) ? 'new' : 'old']">
-                                    {{ isToday(currentProduct.createdAt) ? 'new' : 'old' }}
-                                </span>
-                                <img :src="currentProduct.productPhoto" alt="Product" class="bordered-img" />
-                            </div>
-
-                            <div class="content-section">
-                                <h2 class="product-title">{{ currentProduct.productName }}</h2>
-                                <p class="product-price">{{ currentProduct.priceAtPurchase }} FCFA</p>
-                                <div class="profit-badge">
-                                    +{{ currentProduct.commission }} FCFA bénéfice
-                                </div>
-                            </div>
-
-                            <button 
-                                class="validate-btn" 
-                                :disabled="isValidating"
-                                @click="handleValidation"
-                                :class="{ 'btn-loading': isValidating }"
-                            >
-                                <span v-if="!isValidating">Valider</span>
-                                <span v-else>...</span>
-                                <i v-if="!isValidating" class="fi fi-rr-plus"></i>
-                            </button>
-                        </div>
-
-                        <div v-else class="empty-state">
-                            <div class="empty-icon-wrapper">
-                                <i class="fi fi-rr-box-open empty-icon"></i>
-                            </div>
-                            <h3>Aucune commande</h3>
-                            <p>Revenez plus tard pour de nouvelles opportunités.</p>
-                        </div>
-                    </Transition>
-                </template>
-            </div>
-
-            <div class="order-info-box">
-                <div class="info-row">
-                    <div class="info-icon">
-                        <i class="fi fi-rr-info"></i>
-                    </div>
-                    <div class="info-text">
-                        <p><strong>Commande classique :</strong> 10% de commission.</p>
-                        <p><strong>Commande chanceuse :</strong> 15% de commission.</p>
-                    </div>
-                </div>
-            </div>
-
-            <SmartChart />
-            <Footer />
         </div>
+
+        <div class="product-view">
+            <div v-if="orderStore.loading && orderStore.items.length === 0" class="loader-container">
+                <div class="spinner"></div>
+                <p class="loader-text">Chargement des commandes...</p>
+            </div>
+
+            <template v-else>
+                <Transition name="fade-slide" mode="out-in">
+                    <div v-if="currentProduct" :key="currentProduct.id" class="product-card">
+                        <div class="image-section">
+                            <span :class="['status-badge', isToday(currentProduct.createdAt) ? 'new' : 'old']">
+                                {{ isToday(currentProduct.createdAt) ? 'new' : 'old' }}
+                            </span>
+                            <img :src="currentProduct.productPhoto" alt="Product" class="bordered-img" />
+                        </div>
+
+                        <div class="content-section">
+                            <h2 class="product-title">{{ currentProduct.productName }}</h2>
+                            <p class="product-price">{{ currentProduct.priceAtPurchase }} FCFA</p>
+                            <div class="profit-badge">
+                                +{{ currentProduct.commission }} FCFA bénéfice
+                            </div>
+                        </div>
+
+                        <button 
+                            class="validate-btn" 
+                            :disabled="isValidating"
+                            @click="handleValidation"
+                            :class="{ 'btn-loading': isValidating }"
+                        >
+                            <span v-if="!isValidating">Valider</span>
+                            <span v-else>Traitement...</span>
+                            <i v-if="!isValidating" class="fi fi-rr-plus"></i>
+                        </button>
+                    </div>
+
+                    <div v-else class="empty-state">
+                        <div class="empty-icon-wrapper">
+                            <i class="fi fi-rr-box-open empty-icon"></i>
+                        </div>
+                        <h3>Aucune commande</h3>
+                        <p>Revenez plus tard pour de nouvelles opportunités.</p>
+                    </div>
+                </Transition>
+            </template>
+        </div>
+
+        <div class="order-info-box">
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fi fi-rr-info"></i>
+                </div>
+                <div class="info-text">
+                    <p><strong>Commande classique :</strong> 10% de commission versés sur votre compte après validation.</p>
+                    <p><strong>Commande chanceuse :</strong> 15% de commission versés pour les articles sélectionnés.</p>
+                </div>
+            </div>
+        </div>
+
+        <SmartChart />
+        <Footer />
     </div>
 </template>
 
 <style scoped>
-
 /* --- État Vide (Empty State) --- */
 .empty-state {
     display: flex;
@@ -217,7 +214,7 @@ const categories = computed(() => [
     padding: 20px 20px;
     width: 100%;
     animation: fadeIn 0.5s ease-out;
-    height: 140px; 
+    height: 140px;
 }
 
 .empty-icon-wrapper {
@@ -290,10 +287,8 @@ const categories = computed(() => [
     padding: 0 15px;
     z-index: 1000;
     border-bottom: 1px solid #f1f1f1;
-    /* Force le rendu GPU pour éviter le tremblement au scroll */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
 }
+
 .back-btn {
     width: 45px;
     height: 45px;
@@ -372,6 +367,7 @@ const categories = computed(() => [
     align-items: center;
     gap: 12px;
     width: 100%;
+    height: 140px;
     max-width: 480px;
     padding: 12px;
     background: white;
