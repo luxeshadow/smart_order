@@ -12,6 +12,7 @@ import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/li
 import { Failure } from '@/core/errors/failure'
 
 const authStore = useAuthStore()
+
 const transactionStore = useTransactionStore()
 const levelStore = useLevelStore()
 

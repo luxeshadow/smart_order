@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
 import { Failure } from '@/core/errors/failure'
 
+// Stores
 import { useOrderStore } from '../stores/my_order_item_store'
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+
+// Clean Arch
 import { ListMyOrderItemUseCase } from '../../application/usecases/list_my_order_item_usecase'
 import { ListMyOrderItemRepositoryImpl } from '../../data/repositories/list_my_order_item_repository_impl'
 
+// Components
 import SmartChart from '@/core/components/client/SmartChart.vue'
 import Footer from '@/core/components/client/Footer.vue'
 
 const router = useRouter()
 const orderStore = useOrderStore()
-const currentIndex = ref(0)
+const authStore = useAuthStore()
 
 const repo = new ListMyOrderItemRepositoryImpl()
 const listOrdersUseCase = new ListMyOrderItemUseCase(repo)
-
 
 const isToday = (dateString: string): boolean => {
     if (!dateString) return false
     const dateToCompare = new Date(dateString)
     const today = new Date()
-    
     return (
         dateToCompare.getDate() === today.getDate() &&
         dateToCompare.getMonth() === today.getMonth() &&
@@ -32,12 +35,24 @@ const isToday = (dateString: string): boolean => {
 }
 
 const fetchOrders = async () => {
-    orderStore.loading = true
+    // 1. Récupération du vrai ID utilisateur depuis l'AuthStore
+    const userId = authStore.user?.id
+    if (!userId) return
+
+    // 2. On ne montre le loader que si le store est vide pour éviter le flash
+    if (orderStore.items.length === 0) {
+        orderStore.loading = true
+    }
   
-    const result = await listOrdersUseCase.execute({ userId: 'current-user-uuid' })
+    const result = await listOrdersUseCase.execute({ userId: userId })
 
     if (!(result instanceof Failure)) {
         orderStore.setItems(result)
+        
+        // Sécurité : Reset de l'index si la liste a rétréci
+        if (orderStore.currentIndex >= result.length) {
+            orderStore.setCurrentIndex(0)
+        }
     }
     orderStore.loading = false
 }
@@ -46,11 +61,15 @@ onMounted(() => {
     fetchOrders()
 })
 
-const currentProduct = computed(() => orderStore.items[currentIndex.value] ?? null)
+// Utilisation de l'index mémorisé dans le store au lieu d'un ref local
+const currentProduct = computed(() => orderStore.items[orderStore.currentIndex] ?? null)
 
 const nextProduct = () => {
     if (!orderStore.items.length) return
-    currentIndex.value = currentIndex.value < orderStore.items.length - 1 ? currentIndex.value + 1 : 0
+    const nextIdx = orderStore.currentIndex < orderStore.items.length - 1 
+        ? orderStore.currentIndex + 1 
+        : 0
+    orderStore.setCurrentIndex(nextIdx)
 }
 
 const categories = computed(() => [
@@ -261,8 +280,8 @@ const categories = computed(() => [
 .status-badge.old { background: #636e72; }
 
 .bordered-img {
-    width: 90px;
-    height: 90px;
+    width: 95px;
+    height: 95px;
     border-radius: 10px;
     object-fit: cover;
     border: 1.5px solid #f8f8f8;
