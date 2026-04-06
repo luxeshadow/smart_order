@@ -11,6 +11,7 @@ import { DepositRepositoryImpl } from '../../data/repositories/deposit_repositor
 import { Failure } from '@/core/errors/failure'
 
 const { showToast } = useToast()
+
 const router = useRouter()
 const authStore = useAuthStore()
 

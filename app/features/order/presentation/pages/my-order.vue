@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
 import { Failure } from '@/core/errors/failure'
+import { useToast } from '@/core/utils/useToast'
 
 // Stores
 import { useOrderStore } from '../stores/my_order_item_store'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 
-// Clean Arch
+// Clean Arch - UseCases & Repositories
 import { ListMyOrderItemUseCase } from '../../application/usecases/list_my_order_item_usecase'
 import { ListMyOrderItemRepositoryImpl } from '../../data/repositories/list_my_order_item_repository_impl'
+import { ValidateMyOrderItemUseCase } from '../../application/usecases/validate_my_order_item_usecase'
+import { ValidateMyOrderItemRepositoryImpl } from '../../data/repositories/validate_my_order_item_repository_impl'
 
 // Components
 import SmartChart from '@/core/components/client/SmartChart.vue'
@@ -19,9 +22,15 @@ import Footer from '@/core/components/client/Footer.vue'
 const router = useRouter()
 const orderStore = useOrderStore()
 const authStore = useAuthStore()
+const { showToast } = useToast()
 
-const repo = new ListMyOrderItemRepositoryImpl()
-const listOrdersUseCase = new ListMyOrderItemUseCase(repo)
+const isValidating = ref(false)
+
+const listRepository = new ListMyOrderItemRepositoryImpl()
+const listOrdersUseCase = new ListMyOrderItemUseCase(listRepository)
+
+const validateRepository = new ValidateMyOrderItemRepositoryImpl()
+const validateUseCase = new ValidateMyOrderItemUseCase(validateRepository)
 
 const isToday = (dateString: string): boolean => {
     if (!dateString) return false
@@ -35,21 +44,17 @@ const isToday = (dateString: string): boolean => {
 }
 
 const fetchOrders = async () => {
-    // 1. Récupération du vrai ID utilisateur depuis l'AuthStore
     const userId = authStore.user?.id
     if (!userId) return
 
-    // 2. On ne montre le loader que si le store est vide pour éviter le flash
     if (orderStore.items.length === 0) {
         orderStore.loading = true
     }
   
-    const result = await listOrdersUseCase.execute({ userId: userId })
+    const result = await listOrdersUseCase.execute({ userId })
 
     if (!(result instanceof Failure)) {
         orderStore.setItems(result)
-        
-        // Sécurité : Reset de l'index si la liste a rétréci
         if (orderStore.currentIndex >= result.length) {
             orderStore.setCurrentIndex(0)
         }
@@ -57,20 +62,57 @@ const fetchOrders = async () => {
     orderStore.loading = false
 }
 
+const handleValidation = async () => {
+    const userId = authStore.user?.id
+    const orderItem = currentProduct.value
+
+    if (!userId || !orderItem) {
+        showToast('Session expirée ou commande invalide', 'fi-rr-cross-circle', 'error', '#ff4757')
+        return
+    }
+
+    isValidating.value = true
+    
+    try {
+        const result = await validateUseCase.execute({
+            userId: userId,
+            orderItemId: orderItem.id
+        })
+
+        if (result instanceof Failure) {
+            throw new Error(result.message)
+        }
+
+        showToast('Commande validée avec succès !', 'fi-rr-check', 'success', '#2ecc71')
+        
+        // Mise à jour locale pour fluidité
+        const newItems = orderStore.items.filter(item => item.id !== orderItem.id)
+        orderStore.setItems(newItems)
+
+        if (orderStore.currentIndex >= newItems.length) {
+            orderStore.setCurrentIndex(0)
+        }
+
+        // On rafraîchit en arrière-plan pour synchroniser les balances
+        fetchOrders()
+
+    } catch (error: any) {
+        showToast(
+            error.message || 'Erreur lors de la validation', 
+            'fi-rr-shield-exclamation', 
+            'error', 
+            '#ff4757'
+        )
+    } finally {
+        isValidating.value = false
+    }
+}
+
 onMounted(() => {
     fetchOrders()
 })
 
-// Utilisation de l'index mémorisé dans le store au lieu d'un ref local
 const currentProduct = computed(() => orderStore.items[orderStore.currentIndex] ?? null)
-
-const nextProduct = () => {
-    if (!orderStore.items.length) return
-    const nextIdx = orderStore.currentIndex < orderStore.items.length - 1 
-        ? orderStore.currentIndex + 1 
-        : 0
-    orderStore.setCurrentIndex(nextIdx)
-}
 
 const categories = computed(() => [
     { name: 'Pending', count: orderStore.items.length, icon: 'fi-rr-layers' },
@@ -121,14 +163,21 @@ const categories = computed(() => [
                             </div>
                         </div>
 
-                        <button class="validate-btn" @click="nextProduct">
-                            <span>Valider</span>
-                            <i class="fi fi-rr-plus"></i>
+                        <button 
+                            class="validate-btn" 
+                            :disabled="isValidating"
+                            @click="handleValidation"
+                            :class="{ 'btn-loading': isValidating }"
+                        >
+                            <span v-if="!isValidating">Valider</span>
+                            <span v-else>Traitement...</span>
+                            <i v-if="!isValidating" class="fi fi-rr-plus"></i>
                         </button>
                     </div>
 
                     <div v-else class="empty-state">
-                        <p>Aucune commande disponible.</p>
+                        <i class="fi fi-rr-box-open empty-icon"></i>
+                        <p>Aucune commande en attente.</p>
                     </div>
                 </Transition>
             </div>
@@ -137,8 +186,8 @@ const categories = computed(() => [
                 <div class="info-row">
                     <i class="fi fi-rr-info info-icon"></i>
                     <div class="info-text">
-                        <p><strong>Commande classique :</strong> valider = 10% du prix du produit versé</p>
-                        <p><strong>Commande chanceuse :</strong> valider = 20% du prix du produit versé</p>
+                        <p><strong>Commande classique :</strong> 10% de commission versés</p>
+                        <p><strong>Commande chanceuse :</strong> 20% de commission versés</p>
                     </div>
                 </div>
             </div>
@@ -150,6 +199,82 @@ const categories = computed(() => [
 </template>
 
 <style scoped>
+
+
+.back-btn {
+    width: 45px;
+    height: 45px;
+    background-color: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-bar-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+    font-size: 17px;
+    color: #2d3436;
+}
+
+/* Product Card */
+.product-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 450px;
+    padding: 15px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.03);
+}
+
+.validate-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: v-bind('AppColor.primary.base');
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.validate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-loading {
+    padding-right: 25px;
+}
+
+/* ... Reste de tes styles existants ... */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 50px;
+    color: #95a5a6;
+}
+
+.empty-icon {
+    font-size: 40px;
+    opacity: 0.5;
+}
+
 .order-page {
     padding: 10px;
     padding-top: 85px;
