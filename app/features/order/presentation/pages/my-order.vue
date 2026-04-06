@@ -204,6 +204,66 @@ const categories = computed(() => [
 </template>
 
 <style scoped>
+/* --- État Vide (Empty State) --- */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.empty-icon-wrapper {
+    width: 85px;
+    height: 85px;
+    background-color: #f8f9fa; /* Fond gris très léger */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border: 1px solid #f1f1f1;
+    /* Petit effet d'ombre douce */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.02);
+}
+
+.empty-icon {
+    font-size: 38px;
+    color: #bdc3c7; /* Couleur grise icône */
+    display: flex;
+}
+
+.empty-state h3 {
+    font-size: 19px;
+    font-weight: 800;
+    color: #2d3436;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    font-weight: 500;
+    color: #95a5a6;
+    margin: 0;
+    max-width: 250px;
+    line-height: 1.5;
+}
+
+/* Petite animation d'entrée */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .order-page {
     padding: 10px;
     padding-top: 85px;
