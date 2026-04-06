@@ -213,9 +213,8 @@ const categories = computed(() => [
     text-align: center;
     padding: 20px 20px;
     width: 100%;
-    /* Ajout d'une hauteur fixe égale à la product-card pour éviter le saut */
-    height: 140px; 
     animation: fadeIn 0.5s ease-out;
+   
 }
 
 .empty-icon-wrapper {
@@ -228,6 +227,7 @@ const categories = computed(() => [
     justify-content: center;
     margin-bottom: 10px;
     border: 1px solid #f1f1f1;
+
 }
 
 .empty-icon {
@@ -264,7 +264,6 @@ const categories = computed(() => [
         transform: translateY(0);
     }
 }
-
 .order-page {
     padding: 10px;
     padding-top: 85px;
@@ -273,8 +272,6 @@ const categories = computed(() => [
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Empêche les micro-mouvements horizontaux lors du scroll */
-    overflow-x: hidden;
 }
 
 /* AppBar */
@@ -290,9 +287,6 @@ const categories = computed(() => [
     padding: 0 15px;
     z-index: 1000;
     border-bottom: 1px solid #f1f1f1;
-    /* Correction du tremblement au scroll (GPU Acceleration) */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
 }
 
 .back-btn {
@@ -365,8 +359,6 @@ const categories = computed(() => [
     width: 100%;
     display: flex;
     justify-content: center;
-    /* Fixe une hauteur minimale pour éviter que le footer ne remonte brusquement */
-    min-height: 140px; 
 }
 
 .product-card {
