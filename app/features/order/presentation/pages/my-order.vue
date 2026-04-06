@@ -206,106 +206,8 @@ const categories = computed(() => [
 </template>
 
 <style scoped>
-/* Empêche les rebonds bizarres sur mobile */
-.page-container {
-    overflow-x: hidden;
-    width: 100%;
-}
 
-/* AppBar FIXE et STABLE */
-.app-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 65px;
-    background: white;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
-    z-index: 1000;
-    border-bottom: 1px solid #f1f1f1;
-    /* Force le rendu GPU pour éviter le tremblement au scroll */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-}
-
-.order-page {
-    padding: 10px;
-    padding-top: 85px; /* Espace pour l'AppBar */
-    background: white;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* PROTECTION CONTRE LE SAUT D'INTERFACE */
-.product-view {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    min-height: 160px; /* IMPORTANT: Doit être proche de la hauteur de ta .product-card */
-    align-items: center;
-}
-
-.product-card {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 480px;
-    height: 140px; /* Hauteur fixe pour la carte */
-    padding: 12px;
-    background: white;
-    border-radius: 15px;
-    border: 1.2px solid #f2f2f2;
-}
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-    height: 140px; /* Même hauteur que la carte pour éviter le mouvement */
-}
-
-/* --- LE RESTE DU CSS (Inchangé mais conservé pour le style) --- */
-
-
-.app-bar-title { flex: 1; text-align: center; font-weight: 700; font-size: 17px; }
-.spacer { width: 45px; }
-
-.category-container { display: flex; gap: 10px; padding-bottom: 20px; width: 100%; justify-content: center; }
-.pill-category { 
-    display: flex; align-items: center; gap: 8px; 
-    background: v-bind('AppColor.primary.light + "40"');
-    padding: 8px 14px; border-radius: 14px;
-    border: 1px solid v-bind('AppColor.primary.light');
-}
-
-.badge-count {
-    background: v-bind('AppColor.primary.base');
-    color: white; font-size: 10px; padding: 2px 7px; border-radius: 8px;
-}
-
-.bordered-img { width: 85px; height: 85px; border-radius: 10px; object-fit: cover; }
-.product-title { font-size: 15px; font-weight: 800; margin: 0; }
-.profit-badge { 
-    color: v-bind('AppColor.status.success'); 
-    background: v-bind('AppColor.status.success + "15"');
-    font-size: 11px; padding: 4px 10px; border-radius: 8px;
-}
-
-.validate-btn {
-    position: absolute; bottom: 12px; right: 12px;
-    background: v-bind('AppColor.primary.base');
-    color: white; border: none; padding: 8px 14px; border-radius: 10px;
-}
-
+/* --- État Vide (Empty State) --- */
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -315,6 +217,7 @@ const categories = computed(() => [
     padding: 20px 20px;
     width: 100%;
     animation: fadeIn 0.5s ease-out;
+    height: 140px; 
 }
 
 .empty-icon-wrapper {
@@ -374,8 +277,23 @@ const categories = computed(() => [
     align-items: center;
 }
 
-
-
+/* AppBar */
+.app-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: white;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    z-index: 1000;
+    border-bottom: 1px solid #f1f1f1;
+    /* Force le rendu GPU pour éviter le tremblement au scroll */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
 .back-btn {
     width: 45px;
     height: 45px;
