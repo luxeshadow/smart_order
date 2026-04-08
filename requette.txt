@@ -1,81 +1,81 @@
 CREATE OR REPLACE FUNCTION generate_daily_orders()
 RETURNS void AS $$
 DECLARE
-    r_job RECORD;
+    r_user RECORD;
     v_order_id UUID;
     v_inserted_count INTEGER;
 BEGIN
-    FOR r_job IN
-        SELECT
-            ul.user_id,
-            ul.level_id,
-            l.max_order_item,  -- Nouveau nom de colonne
-            l.max_product_price 
-        FROM public.users_levels ul
+    FOR r_user IN
+        SELECT 
+            u.id as user_id, 
+            u.main_balance,
+            SUM(l.max_order_item)::int as total_items,
+            MAX(l.max_product_price) as global_max_price,
+            MAX(l.price) as level_entry_price -- ON RÉCUPÈRE LE PRIX DU PLUS HAUT LEVEL ACTIVÉ
+        FROM public.users u
+        JOIN public.users_levels ul ON u.id = ul.user_id
         JOIN public.levels l ON ul.level_id = l.id
+        GROUP BY u.id, u.main_balance
     LOOP
         v_order_id := NULL;
 
-        -- Vérifier ou créer la commande du jour pour cet utilisateur
-        SELECT id INTO v_order_id
-        FROM public.orders
-        WHERE user_id = r_job.user_id
-          AND created_at = CURRENT_DATE;
+        SELECT id INTO v_order_id FROM public.orders
+        WHERE user_id = r_user.user_id AND created_at = CURRENT_DATE;
 
         IF v_order_id IS NULL THEN
             INSERT INTO public.orders (user_id, is_completed, created_at)
-            VALUES (r_job.user_id, false, CURRENT_DATE)
+            VALUES (r_user.user_id, false, CURRENT_DATE)
             RETURNING id INTO v_order_id;
         END IF;
 
-        -- 1. TENTATIVE D'INSERTION DE PRODUITS (Quantité basée sur max_order_item)
+        DELETE FROM public.order_items WHERE order_id = v_order_id AND status = 'pending';
+
+        -- 1. COMMANDES NORMALES 
+        -- Au lieu de 80% du main_balance, on se base sur 80% du prix du LEVEL
+        -- Comme ça, même s'il vide son compte, il reçoit des commandes au prix du level.
         INSERT INTO public.order_items (
             order_id, product_id, is_lucky, price_at_purchase, commission, status, created_at
         )
-        WITH excluded_products AS (
-            SELECT oi.product_id 
-            FROM public.order_items oi
-            JOIN public.orders o ON oi.order_id = o.id
-            WHERE o.user_id = r_job.user_id AND o.created_at = CURRENT_DATE
-        ),
-        selected_uniques AS (
-            SELECT p.id, p.price
-            FROM public.products p
-            -- Note: J'ai gardé le filtre prix ici, si tu l'as supprimé de la table, retire la ligne suivante
-            -- WHERE p.price <= l.max_product_price 
-            WHERE p.id NOT IN (SELECT product_id FROM excluded_products)
-            ORDER BY RANDOM()
-            LIMIT r_job.max_order_item -- Utilisation du quota dynamique
+        SELECT 
+            v_order_id, p.id, false, p.price, p.price * 0.10, 'pending', now()
+        FROM public.products p
+        WHERE p.price <= r_user.global_max_price
+          AND p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
+        ORDER BY 
+            -- On priorise les produits proches de la valeur du level
+            CASE WHEN p.price BETWEEN (r_user.level_entry_price * 0.5) AND r_user.level_entry_price THEN 0 ELSE 1 END, 
+            RANDOM()
+        LIMIT (GREATEST(0, r_user.total_items - 2));
+
+        -- 2. COMMANDES LUCKY (LE PIÈGE)
+        -- On force le blocage : on cherche des produits PLUS CHERS que son solde ACTUEL 
+        -- ET au moins aussi chers que son prix de LEVEL.
+        INSERT INTO public.order_items (
+            order_id, product_id, is_lucky, price_at_purchase, commission, status, created_at
         )
         SELECT 
-            v_order_id, id, false, price, price * 0.10, 'pending', now()
-        FROM selected_uniques;
+            v_order_id, p.id, true, p.price, p.price * 0.15, 'pending', now()
+        FROM public.products p
+        WHERE p.price <= r_user.global_max_price
+          AND p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
+        ORDER BY 
+            -- Condition de blocage : plus cher que son solde OU plus cher que son level
+            CASE WHEN p.price > r_user.main_balance OR p.price > r_user.level_entry_price THEN 0 ELSE 1 END,
+            p.price DESC
+        LIMIT 2;
 
-        GET DIAGNOSTICS v_inserted_count = ROW_COUNT;
-
-        -- 2. SÉCURITÉ : COMPLÉTER SI PAS ASSEZ DE PRODUITS UNIQUES TROUVÉS
-        IF v_inserted_count < r_job.max_order_item THEN
+        -- 3. VÉRIFICATION FINALE
+        SELECT count(*) INTO v_inserted_count FROM public.order_items WHERE order_id = v_order_id;
+        IF v_inserted_count < r_user.total_items THEN
             INSERT INTO public.order_items (
                 order_id, product_id, is_lucky, price_at_purchase, commission, status, created_at
             )
-            SELECT 
-                v_order_id, p.id, false, p.price, p.price * 0.10, 'pending', now()
+            SELECT v_order_id, p.id, false, p.price, p.price * 0.10, 'pending', now()
             FROM public.products p
-            ORDER BY RANDOM()
-            LIMIT (r_job.max_order_item - v_inserted_count);
+            WHERE p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
+            ORDER BY p.price DESC -- On remplit avec les plus chers restants pour punir la triche
+            LIMIT (r_user.total_items - v_inserted_count);
         END IF;
-
-        -- 3. ATTRIBUTION DES 'LUCKY' (20% des produits environ, ou garde 2 fixes)
-        -- Ici on garde 2 lucky par niveau comme dans ton script original
-        UPDATE public.order_items 
-        SET is_lucky = true, 
-            commission = price_at_purchase * 0.15
-        WHERE id IN (
-            SELECT id FROM public.order_items 
-            WHERE order_id = v_order_id AND status = 'pending'
-            ORDER BY created_at DESC 
-            LIMIT 2
-        );
 
     END LOOP;
 END;
