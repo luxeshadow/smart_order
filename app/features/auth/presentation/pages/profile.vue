@@ -48,7 +48,7 @@ onMounted(() => {
 
 const handleLogout = () => {
   authStore.logout()
-  router.push('/login')
+  router.push('/auth/login')
 }
 </script>
 

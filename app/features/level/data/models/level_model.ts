@@ -13,7 +13,7 @@ export class LevelModel implements Level {
       map.id,
       map.name,
       Number(map.price),
-      map.max_product_price ? Number(map.max_product_price) : null
+      map.max_order_item ? Number(map.max_order_item) : null
     );
   }
 
@@ -25,7 +25,7 @@ export class LevelModel implements Level {
     return {
       name: this.name,
       price: this.price,
-      max_product_price: this.maxProductPrice
+      max_order_item: this.maxProductPrice
     };
   }
 }

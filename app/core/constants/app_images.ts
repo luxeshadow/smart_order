@@ -5,6 +5,7 @@ export class AppImage {
   static readonly Logo = '/assets/images/logo/logo.png'
   static readonly Flooz = '/assets/images/logo/flooz.jpg'
   static readonly Yas = '/assets/images/logo/yas.png'
+  static readonly Fliyer_1 = '/assets/images/logo/fliyer_1.png'
   static readonly Ria = '/assets/images/logo/ria.png'
 
   //Gifs

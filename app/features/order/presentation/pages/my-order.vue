@@ -312,7 +312,6 @@ const categories = computed(() => [
     width: 45px;
 }
 
-/* Categories */
 .category-container {
     display: flex;
     gap: 10px;

@@ -129,7 +129,7 @@ defineProps({
 
       <div class="footer-info">
         <i class="fi fi-rr-box"></i>
-        <span><strong>5</strong> produits / commande</span>
+        <span><strong></strong> produits / commande</span>
       </div>
     </div>
   </div>
