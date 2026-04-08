@@ -1,54 +1,82 @@
-CREATE OR REPLACE FUNCTION process_order_validation(
-    p_user_id UUID,
-    p_order_item_id UUID
-) RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION generate_daily_orders()
+RETURNS void AS $$
 DECLARE
-    v_price NUMERIC;
-    v_commission NUMERIC;
+    r_job RECORD;
+    v_order_id UUID;
+    v_inserted_count INTEGER;
 BEGIN
-    -- 1. Récupérer les infos de la commande
-    SELECT price_at_purchase, commission 
-    INTO v_price, v_commission
-    FROM public.order_items 
-    WHERE id = p_order_item_id AND status = 'pending';
+    FOR r_job IN
+        SELECT
+            ul.user_id,
+            ul.level_id,
+            l.max_order_item,  -- Nouveau nom de colonne
+            l.max_product_price 
+        FROM public.users_levels ul
+        JOIN public.levels l ON ul.level_id = l.id
+    LOOP
+        v_order_id := NULL;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Commande introuvable ou déjà validée';
-    END IF;
+        -- Vérifier ou créer la commande du jour pour cet utilisateur
+        SELECT id INTO v_order_id
+        FROM public.orders
+        WHERE user_id = r_job.user_id
+          AND created_at = CURRENT_DATE;
 
-    -- 2. Vérifier et soustraire le solde (achat de commande)
-    UPDATE public.users 
-    SET main_balance = main_balance - v_price,
-        daily_balance = daily_balance + v_commission, -- Gain du jour
-        refund_balance = refund_balance + v_commission -- Gain total cumulé
-    WHERE id = p_user_id AND main_balance >= v_price;
+        IF v_order_id IS NULL THEN
+            INSERT INTO public.orders (user_id, is_completed, created_at)
+            VALUES (r_job.user_id, false, CURRENT_DATE)
+            RETURNING id INTO v_order_id;
+        END IF;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Solde insuffisant pour valider cette commande';
-    END IF;
+        -- 1. TENTATIVE D'INSERTION DE PRODUITS (Quantité basée sur max_order_item)
+        INSERT INTO public.order_items (
+            order_id, product_id, is_lucky, price_at_purchase, commission, status, created_at
+        )
+        WITH excluded_products AS (
+            SELECT oi.product_id 
+            FROM public.order_items oi
+            JOIN public.orders o ON oi.order_id = o.id
+            WHERE o.user_id = r_job.user_id AND o.created_at = CURRENT_DATE
+        ),
+        selected_uniques AS (
+            SELECT p.id, p.price
+            FROM public.products p
+            -- Note: J'ai gardé le filtre prix ici, si tu l'as supprimé de la table, retire la ligne suivante
+            -- WHERE p.price <= l.max_product_price 
+            WHERE p.id NOT IN (SELECT product_id FROM excluded_products)
+            ORDER BY RANDOM()
+            LIMIT r_job.max_order_item -- Utilisation du quota dynamique
+        )
+        SELECT 
+            v_order_id, id, false, price, price * 0.10, 'pending', now()
+        FROM selected_uniques;
 
-    -- 3. Marquer l'item comme complété
-    UPDATE public.order_items 
-    SET status = 'completed'
-    WHERE id = p_order_item_id;
+        GET DIAGNOSTICS v_inserted_count = ROW_COUNT;
 
-    -- 4. Créer la ligne dans Withdrawals pour l'historique
-    INSERT INTO public.withdrawals (
-        user_id, 
-        amount, 
-        method, 
-        status, 
-        phone_number,
-        created_at
-    )
-    VALUES (
-        p_user_id, 
-        v_price, 
-        'achat de commande', 
-        'completed', 
-        'SYSTEM',
-        now()
-    );
+        -- 2. SÉCURITÉ : COMPLÉTER SI PAS ASSEZ DE PRODUITS UNIQUES TROUVÉS
+        IF v_inserted_count < r_job.max_order_item THEN
+            INSERT INTO public.order_items (
+                order_id, product_id, is_lucky, price_at_purchase, commission, status, created_at
+            )
+            SELECT 
+                v_order_id, p.id, false, p.price, p.price * 0.10, 'pending', now()
+            FROM public.products p
+            ORDER BY RANDOM()
+            LIMIT (r_job.max_order_item - v_inserted_count);
+        END IF;
 
+        -- 3. ATTRIBUTION DES 'LUCKY' (20% des produits environ, ou garde 2 fixes)
+        -- Ici on garde 2 lucky par niveau comme dans ton script original
+        UPDATE public.order_items 
+        SET is_lucky = true, 
+            commission = price_at_purchase * 0.15
+        WHERE id IN (
+            SELECT id FROM public.order_items 
+            WHERE order_id = v_order_id AND status = 'pending'
+            ORDER BY created_at DESC 
+            LIMIT 2
+        );
+
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql;
