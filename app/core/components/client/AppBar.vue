@@ -101,7 +101,7 @@ const closeModal = () => {
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  padding: 6px;
+  padding: 12px;
   transition: all 0.2s ease;
   cursor: pointer; /* Ajouté pour indiquer que c'est cliquable */
 }
