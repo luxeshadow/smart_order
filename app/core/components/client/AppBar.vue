@@ -161,7 +161,7 @@ const closeModal = () => {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   overflow: visible; 
   padding: 10px;
-  margin: 20px;
+  margin: 25px;
 }
 
 /* Style du bouton X "Liquide Glacé" */
