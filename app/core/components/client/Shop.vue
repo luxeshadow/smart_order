@@ -7,7 +7,6 @@ const shops = [
   { id: 2, img: AppImage.Alibaba },
   { id: 3, img: AppImage.Coscot },
   { id: 4, img: AppImage.Temu },
-  { id: 5, img: AppImage.Walmart },
 ]
 </script>
 
