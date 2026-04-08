@@ -52,7 +52,7 @@ const closeModal = () => {
         </button>
 
         <div class="flyer-content">
-          <img :src="AppImage.Fliyer_1" alt="Notification Flyer" class="flyer-image" />
+          <img :src="AppImage.Fliyer_2" alt="Notification Flyer" class="flyer-image" />
         </div>
       </div>
     </div>
