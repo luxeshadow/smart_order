@@ -32,6 +32,15 @@ const listOrdersUseCase = new ListMyOrderItemUseCase(listRepository)
 const validateRepository = new ValidateMyOrderItemRepositoryImpl()
 const validateUseCase = new ValidateMyOrderItemUseCase(validateRepository)
 
+/**
+ * Détecte si le lien de la photo est en réalité une vidéo
+ */
+const isVideo = (path: string | undefined | null): boolean => {
+    if (!path) return false
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.ogg', '.avi']
+    return videoExtensions.some(ext => path.toLowerCase().endsWith(ext))
+}
+
 const isToday = (dateString: string): boolean => {
     if (!dateString) return false
     const dateToCompare = new Date(dateString)
@@ -50,7 +59,7 @@ const fetchOrders = async () => {
     if (orderStore.items.length === 0) {
         orderStore.loading = true
     }
-  
+
     const result = await listOrdersUseCase.execute({ userId })
 
     if (!(result instanceof Failure)) {
@@ -72,7 +81,7 @@ const handleValidation = async () => {
     }
 
     isValidating.value = true
-    
+
     try {
         const result = await validateUseCase.execute({
             userId: userId,
@@ -84,7 +93,7 @@ const handleValidation = async () => {
         }
 
         showToast('Commande validée avec succès !', 'fi-rr-check', 'success', '#2ecc71')
-        
+
         // Mise à jour locale pour fluidité
         const newItems = orderStore.items.filter(item => item.id !== orderItem.id)
         orderStore.setItems(newItems)
@@ -98,9 +107,9 @@ const handleValidation = async () => {
 
     } catch (error: any) {
         showToast(
-            error.message || 'Erreur lors de la validation', 
-            'fi-rr-shield-exclamation', 
-            'error', 
+            error.message || 'Erreur lors de la validation',
+            'fi-rr-shield-exclamation',
+            'error',
             '#ff4757'
         )
     } finally {
@@ -152,7 +161,12 @@ const categories = computed(() => [
                             <span :class="['status-badge', isToday(currentProduct.createdAt) ? 'new' : 'old']">
                                 {{ isToday(currentProduct.createdAt) ? 'new' : 'old' }}
                             </span>
-                            <img :src="currentProduct.productPhoto" alt="Product" class="bordered-img" />
+
+                            <video v-if="currentProduct.productPhoto && isVideo(currentProduct.productPhoto)"
+                                :src="currentProduct.productPhoto" class="bordered-img" autoplay muted loop
+                                playsinline></video>
+
+                            <img v-else :src="currentProduct.productPhoto" alt="Product" class="bordered-img" />
                         </div>
 
                         <div class="content-section">
@@ -163,12 +177,8 @@ const categories = computed(() => [
                             </div>
                         </div>
 
-                        <button 
-                            class="validate-btn" 
-                            :disabled="isValidating"
-                            @click="handleValidation"
-                            :class="{ 'btn-loading': isValidating }"
-                        >
+                        <button class="validate-btn" :disabled="isValidating" @click="handleValidation"
+                            :class="{ 'btn-loading': isValidating }">
                             <span v-if="!isValidating">Valider</span>
                             <span v-else>Traitement...</span>
                             <i v-if="!isValidating" class="fi fi-rr-plus"></i>
@@ -192,8 +202,10 @@ const categories = computed(() => [
                     <i class="fi fi-rr-info"></i>
                 </div>
                 <div class="info-text">
-                    <p><strong>Commande classique :</strong> 10% de commission versés sur votre compte après validation.</p>
-                    <p><strong>Commande chanceuse :</strong> 15% de commission versés pour les articles sélectionnés.</p>
+                    <p><strong>Commande classique :</strong> 10% de commission versés sur votre compte après validation.
+                    </p>
+                    <p><strong>Commande chanceuse :</strong> 15% de commission versés pour les articles sélectionnés.
+                    </p>
                 </div>
             </div>
         </div>
@@ -219,7 +231,8 @@ const categories = computed(() => [
 .empty-icon-wrapper {
     width: 55px;
     height: 55px;
-    background-color: #f8f9fa; /* Fond gris très léger */
+    background-color: #f8f9fa;
+    /* Fond gris très léger */
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -231,7 +244,8 @@ const categories = computed(() => [
 
 .empty-icon {
     font-size: 25px;
-    color: #bdc3c7; /* Couleur grise icône */
+    color: #bdc3c7;
+    /* Couleur grise icône */
     display: flex;
 }
 
@@ -258,11 +272,13 @@ const categories = computed(() => [
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
+
 .order-page {
     padding: 10px;
     padding-top: 85px;
@@ -470,48 +486,48 @@ const categories = computed(() => [
 }
 
 .order-info-box {
-  width: 100%;
-  max-width: 480px;
-  margin-top: 12px;
-  padding: 20px;
-  border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    margin-top: 12px;
+    padding: 20px;
+    border-radius: 16px;
 }
 
 .info-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
 }
 
 .info-icon {
-  min-width: 38px;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: v-bind('AppColor.primary.base');
-  color: white;
-  font-size: 16px;
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: v-bind('AppColor.primary.base');
+    color: white;
+    font-size: 16px;
 }
 
 .info-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .info-text p {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #444;
-  line-height: 1.5;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+    line-height: 1.5;
 }
 
 .info-text strong {
-  color: #111;
+    color: #111;
 }
 </style>
