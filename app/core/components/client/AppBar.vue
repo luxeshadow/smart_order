@@ -101,7 +101,7 @@ const closeModal = () => {
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  padding: 12px;
+  padding: 4px;
   transition: all 0.2s ease;
   cursor: pointer; /* Ajouté pour indiquer que c'est cliquable */
 }
@@ -160,7 +160,7 @@ const closeModal = () => {
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   overflow: visible; /* Permet au bouton de dépasser légèrement si besoin */
-  padding: 10px;
+  padding: 20px;
 }
 
 /* Style du bouton X "Liquide Glacé" */
