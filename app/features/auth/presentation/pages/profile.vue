@@ -136,10 +136,33 @@ const handleLogout = () => {
     </div>
     
     <div class="menu-section">
+      <div class="menu-item" @click="router.push('/auth/update-profile')">
+        <div class="menu-icon"><i class="fi fi-rr-user"></i></div>
+        <span>Modifier mes informations</span>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
+
+      <div class="menu-item" @click="router.push('/assistance/ai')">
+        <div class="menu-icon"> <i class="fi fi-rr-user-headset"></i></div>
+        <span>Assistance</span>
+       <i class="fi fi-rr-angle-small-right arrow"></i>
+      </div>
+      
+      <div class="menu-item" @click="router.push('/transaction/history-transaction')">
+        <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
+        <span>Historique des flux</span>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
+      </div>
+
+      <div class="menu-item logout" @click="handleLogout">
+        <div class="menu-icon"><i class="fi fi-rr-exit"></i></div>
+        <span>Se déconnecter</span>
+      </div>
+    </div>
     <Footer />
   </div>
 </template>
+
 
 <style scoped>
 /* Ajoute ces styles pour le bouton de transfert */
@@ -307,3 +330,5 @@ const handleLogout = () => {
 .menu-item.logout .menu-icon { background: #ff4757; color: white; border: none; }
 .menu-item.logout span { color: #ff4757; }
 </style>
+
+   

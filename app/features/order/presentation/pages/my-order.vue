@@ -300,7 +300,7 @@ const categories = computed(() => [
     display: flex;
     align-items: center;
     padding: 0 15px;
-    z-index: 2000;
+    z-index: 1000;
     border-bottom: 1px solid #f1f1f1;
 }
 
