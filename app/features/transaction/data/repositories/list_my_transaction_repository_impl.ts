@@ -18,23 +18,17 @@ export class ListMyTransactionRepositoryImpl implements ListMyTransactionReposit
 
   async listMyTransaction(param: ListMyTransactionParam): Promise<UserTransaction[] | Failure> {
     try {
-      // 1. Récupération des données brutes depuis la datasource
       const { withdrawals, deposits } = await this.datasource.getRawTransactions(param)
 
-      // 2. Utilisation du Model pour mapper les retraits
       const mappedWithdrawals = withdrawals.map((w) => 
         UserTransactionModel.fromSupabase(w, 'withdrawal')
       )
-
-      // 3. Utilisation du Model pour mapper les dépôts
       const mappedDeposits = deposits.map((d) => 
         UserTransactionModel.fromSupabase(d, 'deposit')
       )
 
-      // 4. Fusion des deux listes (déjà converties en UserTransaction[])
       const allTransactions = [...mappedWithdrawals, ...mappedDeposits]
 
-      // 5. Tri chronologique utilisant les propriétés de l'Entity (createdAt)
       allTransactions.sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime()
         const dateB = new Date(b.createdAt).getTime()

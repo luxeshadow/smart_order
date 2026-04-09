@@ -14,12 +14,10 @@ export class GetMyPrincipalBalanceRepositoryImpl implements GetMyPrincipalBalanc
     this.datasource = new GetMyPrincipalBalanceRemoteDatasource(supabase)
   }
 
-  // 2. Mise à jour de la Promise : number -> UserBalances
   async getMyPrincipalBalance(
     param: GetMyPrincipalBalanceParam
   ): Promise< UserBalanceParam | DatabaseFailure> { 
     try {
-      // balance contient maintenant l'objet { main, earnings, refund }
       const balances = await this.datasource.getMyPrincipalBalance(param)
 
       return balances

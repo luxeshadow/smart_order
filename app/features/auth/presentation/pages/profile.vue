@@ -1,33 +1,39 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue' 
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
 import { AppImage } from "@/core/constants/app_images" 
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
-import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store" // Import du store
+import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 import Footer from '@/core/components/client/Footer.vue'
-
-// --- Imports Clean Architecture ---
+import { useToast } from '@/core/utils/useToast'
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
+import { RefundToMainBalanceUseCase } from '@/features/transaction/application/usecases/refund_to_main_balance_usecase'
+import { RefundToMainBalanceRepositoryImpl } from '@/features/transaction/data/repositories/refund_to_main_balance_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const transactionStore = useTransactionStore() // Initialisation
+const transactionStore = useTransactionStore()
+const { showToast } = useToast()
 
 const { user } = storeToRefs(authStore)
-// On récupère les 3 soldes réactifs depuis le store global
 const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionStore)
 
+const isTransferring = ref(false)
+
 // Initialisation des couches
-const repository = new GetMyPrincipalBalanceRepositoryImpl()
-const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(repository)
+const balanceRepo = new GetMyPrincipalBalanceRepositoryImpl()
+const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(balanceRepo)
+
+const refundRepo = new RefundToMainBalanceRepositoryImpl()
+const refundUseCase = new RefundToMainBalanceUseCase(refundRepo)
 
 // --- Logique de Formatage ---
 const formatBalance = (value: number | null): string => {
   if (value === null || value === undefined) return "00,000,000";
-  const padded = value.toString().padStart(8, '0');
+  const padded = Math.floor(value).toString().padStart(8, '0');
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
@@ -35,11 +41,31 @@ const formatBalance = (value: number | null): string => {
 const fetchBalance = async () => {
   if (!user.value?.id) return
   const result = await getBalanceUseCase.execute({ userId: user.value.id })
-  
   if (!(result instanceof Failure)) {
-    // On met à jour les 3 soldes dans le store d'un seul coup
     transactionStore.updateAllBalances(result)
   }
+}
+
+const handleTransferRefund = async () => {
+  if (!user.value?.id || isTransferring.value) return
+  
+  if (refundBalance.value <= 0) {
+    showToast("Votre solde de remboursement est vide !", "fi-rr-info", "error")
+    return
+  }
+
+  isTransferring.value = true
+  
+  const result = await refundUseCase.execute({ userId: user.value.id })
+
+  if (result instanceof Failure) {
+    showToast(result.message, "fi-rr-info","error")
+  } else {
+    showToast("Transfert effectué avec succès !","fi-rr-check","success",)
+    await fetchBalance()
+  }
+
+  isTransferring.value = false
 }
 
 onMounted(() => {
@@ -75,8 +101,15 @@ const handleLogout = () => {
             <span class="welcome-text">Bienvenue,</span>
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
-          <button class="settings-btn" @click="router.push('/assistance/ai')">
-            <i class="fi fi-rr-money-transfer-coin-arrow"></i>
+          
+          <button 
+            class="settings-btn" 
+            @click="handleTransferRefund" 
+            :disabled="isTransferring"
+            :class="{ 'btn-loading': isTransferring }"
+          >
+            <i v-if="!isTransferring" class="fi fi-rr-money-transfer-coin-arrow"></i>
+            <div v-else class="mini-spinner"></div>
           </button>
         </div>
 
@@ -101,35 +134,40 @@ const handleLogout = () => {
         </div>
       </div>
     </div>
-
+    
     <div class="menu-section">
-      <div class="menu-item" @click="router.push('/auth/update-profile')">
-        <div class="menu-icon"><i class="fi fi-rr-user"></i></div>
-        <span>Modifier mes informations</span>
-        <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
-
-      <div class="menu-item" @click="router.push('/assistance/ai')">
-        <div class="menu-icon"> <i class="fi fi-rr-user-headset"></i></div>
-        <span>Assistance</span>
-       <i class="fi fi-rr-angle-small-right arrow"></i>
-      </div>
-      
-      <div class="menu-item" @click="router.push('/transaction/history-transaction')">
-        <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
-        <span>Historique des flux</span>
-        <i class="fi fi-rr-angle-small-right arrow"></i>
-      </div>
-
-      <div class="menu-item logout" @click="handleLogout">
-        <div class="menu-icon"><i class="fi fi-rr-exit"></i></div>
-        <span>Se déconnecter</span>
-      </div>
-    </div>
     <Footer />
   </div>
 </template>
+
 <style scoped>
+/* Ajoute ces styles pour le bouton de transfert */
+.settings-btn {
+  margin-left: auto; width: 44px; height: 44px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px; color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.settings-btn:active { transform: scale(0.9); }
+.settings-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.mini-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+
 * { box-sizing: border-box; }
 
 .profile-page {

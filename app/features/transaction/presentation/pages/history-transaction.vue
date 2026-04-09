@@ -33,7 +33,6 @@ const filteredTransactions = computed(() => {
   return list.filter(t => t.type === currentFilter.value)
 })
 
-// --- FORMATEURS ---
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
   return date.toLocaleDateString('fr-FR', { 
@@ -49,7 +48,6 @@ const getStatusDetails = (status: string) => {
   }
 }
 
-// --- SCROLL INFINI ---
 onMounted(() => {
   const observer = new IntersectionObserver((entries) => {
     const firstEntry = entries[0];
@@ -243,7 +241,7 @@ onMounted(() => {
 .method-badge {
     font-size: 8px;
     font-weight: 800;
-    padding: 2px;
+    padding: 3px;
     border-radius: 7px;
     text-transform: uppercase;
     background-color: rgba(255, 165, 0, 0.15); 
