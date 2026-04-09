@@ -96,7 +96,16 @@ onMounted(() => {
     </div>
 
     <div class="transaction-list">
-      <TransitionGroup name="unroll">
+      
+      <div v-if="!transactionStore.isLoading && filteredTransactions.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i class="fi fi-rr-box-open"></i>
+        </div>
+        <h3>Historique vide</h3>
+        <p>Aucun dépôt ni retrait trouvé.</p>
+      </div>
+
+      <TransitionGroup name="unroll" v-else>
         <div 
           v-for="(item, index) in filteredTransactions" 
           :key="item.id" 
@@ -118,7 +127,7 @@ onMounted(() => {
               {{ item.type === 'deposit' ? '+' : '-' }} {{ item.amount.toLocaleString() }}
             </span>
             <div class="meta-row">
-               <span :class="['method-badge', item.method.toLowerCase()]">{{ item.method }}</span>
+               <span class="method-badge">{{ item.method }}</span>
                <span :class="['status-dot-text', getStatusDetails(item.status).class]">
                  {{ getStatusDetails(item.status).label }}
                </span>
@@ -140,227 +149,140 @@ onMounted(() => {
 <style scoped>
 * { box-sizing: border-box; }
 
-/* Variables locales basées sur tes constantes */
 .history-page {
   padding: 15px;
   padding-top: 85px;
-  background: #ffffff;
+  background: #fff;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
 }
 
 /* App Bar */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 70px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  height: 65px;
+  background: white;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 15px;
   z-index: 1000;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f1f1f1;
 }
 
 .back-btn {
-  width: 42px; height: 42px;
+  width: 45px; height: 45px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s;
 }
-
-.back-btn:active { transform: scale(0.9); }
-.back-btn i { font-size: 1.2rem; color: #111; }
 
 .app-bar-title {
   flex: 1; text-align: center;
-  font-weight: 800; font-size: 18px;
+  font-weight: 800; font-size: 17px;
   color: #111;
-  letter-spacing: -0.5px;
 }
 
-/* Filtres (Chips) */
+.spacer { width: 45px; }
+
+/* Filtres */
 .filter-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 25px;
+  display: flex; gap: 10px;
+  margin-bottom: 20px;
   overflow-x: auto;
-  padding: 5px 2px;
-  scrollbar-width: none; /* Firefox */
+  padding-bottom: 5px;
 }
-.filter-row::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
 .filter-chip {
-  padding: 10px 22px;
-  background: #f2f2f2;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #777;
+  padding: 8px 18px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 13px; font-weight: 700;
+  color: #888;
   white-space: nowrap;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .filter-chip.active {
   background: v-bind('AppColor.primary.base');
   color: white;
-  box-shadow: 0 4px 12px v-bind('AppColor.primary.base + "40"');
 }
 
-/* Liste de Transactions */
-.transaction-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+/* Cartes de transaction */
+.transaction-list { display: flex; flex-direction: column; gap: 12px; }
 
 .transaction-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  background: #ffffff;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px;
+  background: #fbfbfb;
   border: 1px solid #f1f1f1;
-  border-radius: 22px;
-  transition: transform 0.2s;
+  border-radius: 20px;
 }
 
-.transaction-card:active { background: #f9f9f9; }
-
-/* Left Part: Icon & Basic Info */
-.card-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.card-left { display: flex; align-items: center; gap: 12px; }
 
 .type-icon {
-  width: 48px; height: 48px;
-  border-radius: 15px;
+  width: 45px; height: 45px;
+  border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
 }
 
-/* Couleurs dynamiques selon le type */
-.type-icon.deposit {
-  background: #e8f5e9;
-  color: #27ae60;
-}
+.type-icon.deposit { background: #e8f5e9; color: #27ae60; }
+.type-icon.withdrawal { background: #ffebee; color: #eb4d4b; }
 
-.type-icon.withdrawal {
-  background: #ffebee;
-  color: #eb4d4b;
-}
+.trans-type { font-weight: 800; font-size: 15px; color: #111; display: block; }
+.trans-date { font-size: 11px; color: #aaa; font-weight: 600; }
 
-.details .trans-type {
-  display: block;
-  font-weight: 800;
-  font-size: 15px;
-  color: #1a1a1a;
-}
-
-.details .trans-date {
-  font-size: 11px;
-  color: #999;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-/* Right Part: Amount & Meta */
-.card-right {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.trans-amount {
-  font-weight: 900;
-  font-size: 17px;
-  letter-spacing: -0.2px;
-}
-
+.card-right { text-align: right; display: flex; flex-direction: column; gap: 4px; }
+.trans-amount { font-weight: 900; font-size: 16px; }
 .trans-amount.deposit { color: #27ae60; }
-.trans-amount.withdrawal { color: #1a1a1a; } /* Montant retrait souvent en noir pour lisibilité */
 
-.meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
+.meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 
-/* Méthodes de paiement */
+/* Badge Méthode (Orange Transparent) */
 .method-badge {
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 800;
-    padding: 3px;
-    border-radius: 6px;
+    
+    border-radius: 7px;
     text-transform: uppercase;
-    /* Orange transparent par défaut */
     background-color: rgba(255, 165, 0, 0.15); 
-    color: #e67e22; /* Un orange plus sombre pour le texte (lisibilité) */
-  
+    color: #e67e22;
+    
 }
-
-
 
 /* Statuts */
-.status-dot-text {
-  font-size: 11px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-dot-text::before {
-  content: "•";
-  font-size: 18px;
-}
-
+.status-dot-text { font-size: 10px; font-weight: 800; }
 .status-success { color: #27ae60; }
-.status-pending { color: #f39c12; }
+.status-pending { color: #e67e22; }
 .status-error { color: #eb4d4b; }
 
-/* Loader & Pagination */
-.loader-area {
-  padding: 30px 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Etat Vide */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 60px 20px; text-align: center;
 }
+.empty-icon {
+  width: 70px; height: 70px; background: #f8f9fa;
+  border-radius: 25px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 15px; font-size: 28px; color: #ccc;
+}
+.empty-state h3 { font-weight: 800; color: #111; margin-bottom: 5px; }
+.empty-state p { color: #888; font-size: 13px; }
 
+/* Loader */
+.loader-area { padding: 20px; display: flex; justify-content: center; }
 .spinner {
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
   border: 3px solid #f3f3f3;
   border-top: 3px solid v-bind('AppColor.primary.base');
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
-.end-msg {
-  font-size: 12px;
-  color: #ccc;
-  font-weight: 600;
-}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* Animations */
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.unroll-enter-active {
-  transition: all 0.4s ease-out;
-}
-.unroll-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
+/* Animations Liste */
+.unroll-enter-active { transition: all 0.3s ease-out; }
+.unroll-enter-from { opacity: 0; transform: translateY(15px); }
 </style>
