@@ -138,90 +138,168 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.history-page { 
-  padding: 85px 15px 20px; 
-  background: #fff; 
+* { box-sizing: border-box; }
+
+.history-page {
+  padding: 15px;
+  padding-top: 85px;
+  background: #fff;
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
-/* --- EFFET PAPIER TOILETTE (UNROLL) --- */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  z-index: 1000;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.back-btn {
+  width: 45px; height: 45px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.app-bar-title {
+  flex: 1; text-align: center;
+  font-weight: 800; font-size: 17px;
+  color: #111;
+}
+
+.spacer { width: 45px; }
+
+/* Filtres */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.filter-chip {
+  padding: 8px 18px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  white-space: nowrap;
+}
+
+.filter-chip.active {
+  background: v-bind('AppColor.primary.base');
+  color: white;
+}
+
+/* Liste de Transactions */
 .transaction-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  perspective: 1200px; /* Profondeur pour la rotation 3D */
 }
 
-.unroll-enter-active {
-  transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-  transition-delay: calc(var(--index) * 0.07s);
+.transaction-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #fbfbfb;
+  border: 1px solid #f1f1f1;
+  border-radius: 20px;
 }
 
-.unroll-enter-from {
-  opacity: 0;
-  /* La carte part d'en haut, pivotée à 110 degrés pour l'effet enroulé */
-  transform: translateY(-80px) rotateX(-110deg) scale(0.9);
-  transform-origin: top center;
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Animation de sortie et de déplacement pour les filtres */
-.unroll-leave-active {
-  transition: all 0.4s ease;
-  position: absolute;
-  width: 100%;
-}
-.unroll-leave-to {
-  opacity: 0;
-  transform: scale(0.8) translateY(30px);
-}
-.unroll-move {
-  transition: transform 0.5s ease;
+.type-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
-/* UI Components */
-.app-bar { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: white; display: flex; align-items: center; padding: 0 15px; z-index: 100; border-bottom: 1px solid #f1f1f1; }
-.back-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid #eee; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
-.app-bar-title { flex: 1; text-align: center; font-weight: 800; font-size: 17px; }
-.spacer { width: 40px; }
-
-.filter-row { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; }
-.filter-chip { 
-  padding: 10px 20px; background: #f5f5f5; border-radius: 14px; 
-  font-size: 13px; font-weight: 700; color: #888; cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-.filter-chip.active { background: v-bind('AppColor.primary.base'); color: white; transform: scale(1.05); }
-
-.transaction-card { 
-  display: flex; justify-content: space-between; padding: 16px; 
-  background: #fbfbfb; border: 1px solid #f1f1f1; border-radius: 22px;
-  backface-visibility: hidden;
+.details {
+  display: flex;
+  flex-direction: column;
 }
 
-.type-icon { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.type-icon.deposit { background: #27ae6015; color: #27ae60; }
-.type-icon.withdrawal { background: #e67e2215; color: #e67e22; }
+.trans-type {
+  font-weight: 800;
+  font-size: 15px;
+  color: #111;
+}
 
-.details { display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-.trans-type { font-weight: 800; font-size: 15px; color: #111; }
-.trans-date { font-size: 11px; color: #aaa; font-weight: 600; }
+.trans-date {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 600;
+}
 
-.card-right { text-align: right; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-.trans-amount { font-weight: 900; font-size: 16px; }
-.trans-amount.deposit { color: #27ae60; }
-.trans-amount.withdrawal { color: #111; }
+.card-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-.meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.method-badge { font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; background: #eee; color: #666; }
-.status-dot-text { font-size: 10px; font-weight: 800; }
+.trans-amount {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.trans-amount small {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+/* Badges Méthodes */
+.method-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.method-tmoney {
+    background: #FFD70030;
+    color: #b8860b;
+}
+
+.method-moov {
+    background: #00a8ff20;
+    color: #0097e6;
+}
+
+/* Statuts */
+.status-dot-text {
+  font-size: 10px;
+  font-weight: 800;
+}
+
 .status-success { color: #27ae60; }
 .status-pending { color: #e67e22; }
 .status-error { color: #eb4d4b; }
 
-.loader-area { padding: 30px; text-align: center; }
-.spinner { width: 28px; height: 28px; border: 3px solid #f3f3f3; border-top: 3px solid v-bind('AppColor.primary.base'); border-radius: 50%; animation: spin 1s linear infinite; margin: auto; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.end-msg { font-size: 12px; color: #aaa; font-weight: 700; letter-spacing: 0.5px; }
 </style>
