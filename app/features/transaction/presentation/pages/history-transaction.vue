@@ -140,166 +140,227 @@ onMounted(() => {
 <style scoped>
 * { box-sizing: border-box; }
 
+/* Variables locales basées sur tes constantes */
 .history-page {
   padding: 15px;
   padding-top: 85px;
-  background: #fff;
+  background: #ffffff;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
+/* App Bar */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 65px;
-  background: white;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
-  padding: 0 15px;
+  padding: 0 20px;
   z-index: 1000;
-  border-bottom: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .back-btn {
-  width: 45px; height: 45px;
+  width: 42px; height: 42px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
+
+.back-btn:active { transform: scale(0.9); }
+.back-btn i { font-size: 1.2rem; color: #111; }
 
 .app-bar-title {
   flex: 1; text-align: center;
-  font-weight: 800; font-size: 17px;
+  font-weight: 800; font-size: 18px;
   color: #111;
+  letter-spacing: -0.5px;
 }
 
-.spacer { width: 45px; }
-
-/* Filtres */
+/* Filtres (Chips) */
 .filter-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 25px;
   overflow-x: auto;
-  padding-bottom: 5px;
+  padding: 5px 2px;
+  scrollbar-width: none; /* Firefox */
 }
+.filter-row::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
 .filter-chip {
-  padding: 8px 18px;
-  background: #f5f5f5;
-  border-radius: 12px;
-  font-size: 13px;
+  padding: 10px 22px;
+  background: #f2f2f2;
+  border-radius: 14px;
+  font-size: 14px;
   font-weight: 700;
-  color: #888;
+  color: #777;
   white-space: nowrap;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .filter-chip.active {
   background: v-bind('AppColor.primary.base');
   color: white;
+  box-shadow: 0 4px 12px v-bind('AppColor.primary.base + "40"');
 }
 
 /* Liste de Transactions */
 .transaction-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .transaction-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background: #fbfbfb;
+  padding: 16px;
+  background: #ffffff;
   border: 1px solid #f1f1f1;
-  border-radius: 20px;
+  border-radius: 22px;
+  transition: transform 0.2s;
 }
 
+.transaction-card:active { background: #f9f9f9; }
+
+/* Left Part: Icon & Basic Info */
 .card-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .type-icon {
-  width: 45px;
-  height: 45px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+  width: 48px; height: 48px;
+  border-radius: 15px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
 }
 
-.details {
-  display: flex;
-  flex-direction: column;
+/* Couleurs dynamiques selon le type */
+.type-icon.deposit {
+  background: #e8f5e9;
+  color: #27ae60;
 }
 
-.trans-type {
+.type-icon.withdrawal {
+  background: #ffebee;
+  color: #eb4d4b;
+}
+
+.details .trans-type {
+  display: block;
   font-weight: 800;
   font-size: 15px;
-  color: #111;
+  color: #1a1a1a;
 }
 
-.trans-date {
+.details .trans-date {
   font-size: 11px;
-  color: #aaa;
+  color: #999;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
+/* Right Part: Amount & Meta */
 .card-right {
   text-align: right;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .trans-amount {
   font-weight: 900;
-  font-size: 16px;
+  font-size: 17px;
+  letter-spacing: -0.2px;
 }
 
-.trans-amount small {
-  font-size: 10px;
-  opacity: 0.6;
-}
+.trans-amount.deposit { color: #27ae60; }
+.trans-amount.withdrawal { color: #1a1a1a; } /* Montant retrait souvent en noir pour lisibilité */
 
 .meta-row {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-/* Badges Méthodes */
+/* Méthodes de paiement */
 .method-badge {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
-    padding: 2px 6px;
+    padding: 3px;
     border-radius: 6px;
     text-transform: uppercase;
+    /* Orange transparent par défaut */
+    background-color: rgba(255, 165, 0, 0.15); 
+    color: #e67e22; /* Un orange plus sombre pour le texte (lisibilité) */
+  
 }
 
-.method-tmoney {
-    background: #FFD70030;
-    color: #b8860b;
-}
 
-.method-moov {
-    background: #00a8ff20;
-    color: #0097e6;
-}
 
 /* Statuts */
 .status-dot-text {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-dot-text::before {
+  content: "•";
+  font-size: 18px;
 }
 
 .status-success { color: #27ae60; }
-.status-pending { color: #e67e22; }
+.status-pending { color: #f39c12; }
 .status-error { color: #eb4d4b; }
 
+/* Loader & Pagination */
+.loader-area {
+  padding: 30px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 24px; height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid v-bind('AppColor.primary.base');
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.end-msg {
+  font-size: 12px;
+  color: #ccc;
+  font-weight: 600;
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.unroll-enter-active {
+  transition: all 0.4s ease-out;
+}
+.unroll-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
 </style>
