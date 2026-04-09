@@ -239,11 +239,11 @@ onMounted(() => {
 
 .meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 
-/* Badge Méthode (Orange Transparent) */
+
 .method-badge {
     font-size: 8px;
     font-weight: 800;
-    
+    padding: 2px;
     border-radius: 7px;
     text-transform: uppercase;
     background-color: rgba(255, 165, 0, 0.15); 
