@@ -4,7 +4,6 @@ import type { GetMyPrincipalBalanceParam } from '../params/get_my_principal_bala
 import { Failure, AuthFailure } from '@/core/errors/failure'
 import type { UserBalanceParam } from '../../application/params/user_balance_params'
 
-// 1. Mise à jour du type générique de UseCase : number -> UserBalanceParam
 export class GetMyPrincipalBalanceUseCase implements UseCase<UserBalanceParam, GetMyPrincipalBalanceParam> {
     
   private repository: GetMyPrincipalBalanceRepository
@@ -12,7 +11,6 @@ export class GetMyPrincipalBalanceUseCase implements UseCase<UserBalanceParam, G
     this.repository = repository
   }
 
-  // 2. Mise à jour de la Promise de retour : number -> UserBalanceParam
   async execute(param: GetMyPrincipalBalanceParam): Promise<UserBalanceParam | Failure> {
 
     if (!param.userId || param.userId.trim() === "") {

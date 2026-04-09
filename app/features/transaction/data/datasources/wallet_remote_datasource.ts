@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { WalletModel } from '../models/wallet_model'
 import { DatabaseException } from '@/core/errors/exception'
 

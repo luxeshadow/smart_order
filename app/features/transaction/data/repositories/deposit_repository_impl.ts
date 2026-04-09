@@ -13,7 +13,6 @@ export class DepositRepositoryImpl implements DepositRepository {
     // Initialisation via ton helper Supabase
     const supabase = useApi()
     
-    // Initialisation de la source de données spécifique au dépôt
     this.datasource = new DepositRemoteDatasource(supabase)
   }
 
