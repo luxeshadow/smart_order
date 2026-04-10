@@ -11,13 +11,7 @@ import { AppColor } from '@/core/constants/app_colors'
       </div>
     </div>
 
-    <div class="skeleton-stat-container">
-      <div v-for="i in 2" :key="i" class="skeleton-stat-card shimmer">
-        <div class="skeleton-title"></div>
-        <div class="skeleton-value"></div>
-        <div class="skeleton-unit"></div>
-      </div>
-    </div>
+    
   </div>
 </template>
 
@@ -93,44 +87,4 @@ import { AppColor } from '@/core/constants/app_colors'
   border-radius: 4px;
 }
 
-/* Structure des cartes de stats */
-.skeleton-stat-container {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-}
-
-.skeleton-stat-card {
-  flex: 1;
-  height: 110px;
-  background: v-bind('AppColor.surface.pure');
-  border-radius: 20px;
-  padding: 16px 12px;
-  border: 1px solid v-bind('AppColor.surface.smoke');
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.skeleton-title {
-  width: 60%;
-  height: 10px;
-  background: v-bind('AppColor.surface.smoke');
-  border-radius: 4px;
-}
-
-.skeleton-value {
-  width: 80%;
-  height: 22px;
-  background: v-bind('AppColor.surface.smoke');
-  border-radius: 6px;
-}
-
-.skeleton-unit {
-  width: 35px;
-  height: 14px;
-  background: v-bind('AppColor.primary.light');
-  border-radius: 6px;
-  margin-top: 4px;
-}
 </style>
