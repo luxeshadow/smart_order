@@ -55,12 +55,12 @@ import { AppColor } from '@/core/constants/app_colors'
 .skeleton-levels-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .skeleton-badge {
   flex: 1;
-  height: 50px;
+  height: 40px;
   min-width: 65px;
   border-radius: 12px;
   display: flex;
@@ -80,7 +80,7 @@ import { AppColor } from '@/core/constants/app_colors'
 }
 
 .skeleton-text-price {
-  width: 45px;
+  width: 40px;
   height: 10px;
   background: v-bind('AppColor.surface.bone');
   opacity: 0.8;
