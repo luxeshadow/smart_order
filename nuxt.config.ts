@@ -22,7 +22,6 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt'
   ],
 
-  // @ts-ignore - Correction de l'erreur TypeScript pour Nuxt 4
   pwa: {
     registerType: 'autoUpdate',
     manifest: {

@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
         identifier: body.identifier
       }
     })
-    return response // On renvoie juste la réponse brute au client
+    return response 
   } catch (error: any) {
     throw createError({ statusCode: 500, statusMessage: error.message })
   }

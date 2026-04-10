@@ -1,9 +1,7 @@
 import { DatabaseException } from '@/core/errors/exception'
 import type { AssignLevelParam } from '../../application/params/assign_level_params'
 
-
-
-  export class AssignLevelRemoteDatasource {
+export class AssignLevelRemoteDatasource {
   constructor(private supabase: any) {}
 
   async assignLevel(param: AssignLevelParam): Promise<number> {

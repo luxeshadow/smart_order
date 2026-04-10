@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js'
+
 export type CreatePaymentPayload = {
   phone_number: string
   amount: number
@@ -17,11 +19,6 @@ export type PaygateCheckResponse = {
   message?: string
   transaction_status?: 'pending' | 'completed' | 'rejected'
 }
-
-
-
-import { createClient } from '@supabase/supabase-js'
-
 export class PaygateService {
   private supabase: any
 

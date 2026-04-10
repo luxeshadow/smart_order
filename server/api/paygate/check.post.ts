@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
         tx_reference: body.tx_reference
       }
     })
-    return response // On renvoie juste la réponse brute (status, message, etc.)
+    return response 
   } catch (error: any) {
     throw createError({ statusCode: 500, statusMessage: error.message })
   }
