@@ -1,6 +1,11 @@
 <template>
   <div class="stat-wrapper">
     <div class="balance-card">
+      
+      <div class="notch">
+        <span class="date-text">{{ currentDate }}</span>
+      </div>
+
       <div class="balance-content">
         <span class="label">Solde Total</span>
         <div class="amount-row">
@@ -8,29 +13,8 @@
           <h1 class="amount">{{ totalBalance.toLocaleString() }}</h1>
         </div>
       </div>
+      
       <div class="glow-effect"></div>
-    </div>
-
-    <div class="flows-grid">
-      <div class="flow-item deposit">
-        <div class="icon-circle">
-          <i class="fi fi-rr-arrow-trend-up"></i>
-        </div>
-        <div class="flow-info">
-          <span class="flow-label">Dépôts</span>
-          <span class="flow-value">{{ totalDeposit.toLocaleString() }}</span>
-        </div>
-      </div>
-
-      <div class="flow-item withdrawal">
-        <div class="icon-circle">
-          <i class="fi fi-rr-arrow-trend-down"></i>
-        </div>
-        <div class="flow-info">
-          <span class="flow-label">Retraits</span>
-          <span class="flow-value">{{ totalWithdrawal.toLocaleString() }}</span>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -41,123 +25,99 @@ import { AppColor } from '@/core/constants/app_colors'
 
 const totalDeposit = ref(25000)
 const totalWithdrawal = ref(10500)
-
 const totalBalance = computed(() => totalDeposit.value - totalWithdrawal.value)
+
+// Formatage de la date du jour (ex: 11 Avril 2026)
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+  })
+})
 </script>
 
 <style scoped>
-.stat-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* CARTE BALANCE : Style Dark & Pro */
 .balance-card {
-  background-color: v-bind('AppColor.tertiary.base'); /* Noir mat */
-  border-radius: 24px;
-  padding: 30px 24px;
+  background-color: v-bind('AppColor.tertiary.base');
+  border-radius: 28px;
+  padding: 40px 24px 30px 24px; /* Plus de padding top pour l'encoche */
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  margin-top: 20px; /* Espace pour laisser l'encoche respirer */
+}
+
+/* L'ENCOCHE STYLE SMARTPHONE */
+.notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: v-bind('AppColor.tertiary.pure'); /* Noir profond */
+  padding: 6px 20px;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  min-width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: none;
+}
+
+.date-text {
+  color: v-bind('AppColor.primary.accent'); /* Orange clair pour la date */
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
 }
 
 .balance-content {
   position: relative;
   z-index: 2;
+  text-align: center; /* Centré pour aller avec l'encoche */
 }
 
 .label {
   color: v-bind('AppColor.surface.bone');
-  font-size: 13px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.7;
+  letter-spacing: 1.5px;
+  opacity: 0.6;
 }
 
 .amount-row {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .currency {
-  color: v-bind('AppColor.primary.base'); /* Ton orange */
+  color: v-bind('AppColor.primary.base');
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .amount {
   color: #FFFFFF;
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: -1px;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
 }
 
-/* Effet de lumière orange en fond */
 .glow-effect {
   position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 150px;
-  height: 150px;
+  top: -20%;
+  right: -10%;
+  width: 180px;
+  height: 180px;
   background: v-bind('AppColor.primary.base');
-  filter: blur(80px);
-  opacity: 0.3;
-}
-
-/* GRILLE DE FLUX : Style épuré */
-.flows-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.flow-item {
-  background-color: v-bind('AppColor.surface.pure');
-  padding: 16px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid v-bind('AppColor.surface.bone');
-}
-
-.icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.deposit .icon-circle {
-  background-color: #E8F5E9;
-  color: v-bind('AppColor.status.success');
-}
-
-.withdrawal .icon-circle {
-  background-color: #FFEBEE;
-  color: v-bind('AppColor.status.error');
-}
-
-.flow-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.flow-label {
-  font-size: 11px;
-  color: v-bind('AppColor.tertiary.soft');
-  font-weight: 500;
-}
-
-.flow-value {
-  font-size: 14px;
-  font-weight: 700;
-  color: v-bind('AppColor.tertiary.charcoal');
+  filter: blur(90px);
+  opacity: 0.25;
+  pointer-events: none;
 }
 </style>
