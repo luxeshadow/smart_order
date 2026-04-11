@@ -32,17 +32,17 @@ const activeTab = ref('dashboard')
 <style scoped>
 .bottom-nav {
   position: fixed;
-  bottom: 20px; /* Décollé du bas pour l'effet flottant PWA */
-  left: 20px;
-  right: 20px;
-  height: 65px;
+  bottom: 10px; /* Décollé du bas pour l'effet flottant PWA */
+  left: 30px;
+  right: 30px;
+  height: 50px;
   background-color: v-bind('AppColor.surface.pure');
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding: 0 10px;
-  border-radius: 25px; /* Arrondi total */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-radius: 50px; /* Arrondi total */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08);
   border: 1px solid v-bind('AppColor.surface.bone');
   z-index: 100;
 }
@@ -51,9 +51,9 @@ const activeTab = ref('dashboard')
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 45px;
-  padding: 0 14px;
-  border-radius: 20px;
+  height: 35px;
+  padding: 0 22px;
+  border-radius: 50px;
   cursor: pointer;
   color: v-bind('AppColor.tertiary.soft');
   transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Transition plus smooth */
@@ -62,7 +62,7 @@ const activeTab = ref('dashboard')
 }
 
 .nav-item i {
-  font-size: 20px;
+  font-size: 18px;
   transition: transform 0.3s ease;
 }
 
@@ -78,7 +78,7 @@ const activeTab = ref('dashboard')
 }
 
 .nav-text {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   margin-left: 8px;
   white-space: nowrap;

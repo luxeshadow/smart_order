@@ -1,123 +1,211 @@
 <template>
-  <div class="stat-wrapper">
-    <div class="balance-card">
-      
-      <div class="notch">
-        <span class="date-text">{{ currentDate }}</span>
-      </div>
-
-      <div class="balance-content">
-        <span class="label">Solde Total</span>
-        <div class="amount-row">
-          <span class="currency">XOF</span>
-          <h1 class="amount">{{ totalBalance.toLocaleString() }}</h1>
+  <div class="wallet-wrap">
+    <div class="wallet-card">
+      <div class="notch-slot">
+        <div class="date-notch">
+          <i class="fi fi-rr-calendar"></i>
+          <span>{{ currentDate }}</span>
         </div>
       </div>
-      
-      <div class="glow-effect"></div>
+
+      <div class="hero-side">
+        <p class="label">
+          <i class="fi fi-rr-wallet"></i>
+          <span>Solde Total</span>
+        </p>
+
+        <div class="balance-row">
+          <span>XOF</span>
+          <h1>{{ totalBalance.toLocaleString() }}</h1>
+        </div>
+      </div>
+
+      <div class="stats-side">
+        <div class="stat-box deposit">
+          <div class="stat-head">
+            <i class="fi fi-rr-arrow-down"></i>
+            <small>Dépôt</small>
+          </div>
+          <strong>{{ totalDeposit.toLocaleString() }}</strong>
+        </div>
+
+        <div class="stat-box withdraw">
+          <div class="stat-head">
+            <i class="fi fi-rr-arrow-up"></i>
+            <small>Retrait</small>
+          </div>
+          <strong>{{ totalWithdrawal.toLocaleString() }}</strong>
+        </div>
+      </div>
+
+      <div class="soft-glow"></div>
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AppColor } from '@/core/constants/app_colors'
 
 const totalDeposit = ref(25000)
 const totalWithdrawal = ref(10500)
+
 const totalBalance = computed(() => totalDeposit.value - totalWithdrawal.value)
 
-// Formatage de la date du jour (ex: 11 Avril 2026)
 const currentDate = computed(() => {
   return new Date().toLocaleDateString('fr-FR', {
     day: 'numeric',
-    month: 'long',
+    month: 'short'
   })
 })
 </script>
 
+
 <style scoped>
-.balance-card {
-  background-color: v-bind('AppColor.tertiary.base');
-  border-radius: 28px;
-  padding: 40px 24px 30px 24px; /* Plus de padding top pour l'encoche */
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  margin-top: 20px; /* Espace pour laisser l'encoche respirer */
+.wallet-wrap {
+  padding: 16px;
 }
 
-/* L'ENCOCHE STYLE SMARTPHONE */
-.notch {
+.wallet-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 26px 18px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  box-shadow: 0 9px 20px rgba(0,0,0,0.18);
+}
+
+/* SLOT */
+.notch-slot {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: v-bind('AppColor.tertiary.pure'); /* Noir profond */
-  padding: 6px 20px;
-  border-bottom-left-radius: 14px;
-  border-bottom-right-radius: 14px;
-  min-width: 100px;
+  width: 120px;
+  height: 26px;
+  background: #0b1220;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-top: none;
 }
 
-.date-text {
-  color: v-bind('AppColor.primary.accent'); /* Orange clair pour la date */
+/* DATE */
+.date-notch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 10px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
+  color: white;
 }
 
-.balance-content {
-  position: relative;
+.date-notch i {
+  font-size: 11px;
+}
+
+/* LEFT */
+.hero-side {
+  flex: 1;
   z-index: 2;
-  text-align: center; /* Centré pour aller avec l'encoche */
 }
 
 .label {
-  color: v-bind('AppColor.surface.bone');
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  opacity: 0.6;
-}
-
-.amount-row {
+  margin: 0;
+  color: rgba(255,255,255,0.55);
+  font-size: 12px;
   display: flex;
-  align-items: baseline;
-  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.balance-row {
+  display: flex;
+  align-items: flex-end;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
-.currency {
-  color: v-bind('AppColor.primary.base');
-  font-weight: 700;
-  font-size: 16px;
+.balance-row span {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin-bottom: 6px;
 }
 
-.amount {
-  color: #FFFFFF;
-  font-size: 38px;
+.balance-row h1 {
+  margin: 0;
+  color: white;
+  font-size: 34px;
+  line-height: 1;
   font-weight: 900;
-  letter-spacing: -1.5px;
 }
 
-.glow-effect {
+/* RIGHT */
+.stats-side {
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2;
+}
+
+.stat-box {
+  padding: 12px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+}
+
+.deposit {
+  background: rgba(34,197,94,0.12);
+}
+
+.withdraw {
+  background: rgba(239,68,68,0.12);
+}
+
+.stat-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.stat-head i {
+  font-size: 12px;
+  color: white;
+}
+
+.stat-box small {
+  color: rgba(255,255,255,0.6);
+  font-size: 10px;
+}
+
+.stat-box strong {
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.soft-glow {
   position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 180px;
-  height: 180px;
-  background: v-bind('AppColor.primary.base');
-  filter: blur(90px);
-  opacity: 0.25;
-  pointer-events: none;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+  filter: blur(60px);
+  right: -20px;
+  top: -20px;
+}
+
+@media (max-width: 600px) {
+  .balance-row h1 {
+    font-size: 28px;
+  }
+
+  .stats-side {
+    width: 110px;
+  }
 }
 </style>

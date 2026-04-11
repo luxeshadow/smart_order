@@ -37,7 +37,7 @@ const shops = ref([
 
 <style scoped>
 .shop-section{
-    margin: 5px;
+    margin: 15px;
 }
 .section-title {
   margin: 24px 0 12px;
