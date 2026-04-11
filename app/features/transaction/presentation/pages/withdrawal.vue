@@ -7,8 +7,8 @@ import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
 import { useToast } from '@/core/utils/useToast'
 
-import { WithdrawalUseCase } from '../../application/usecases/withdrawal_usecase'
-import { WithdrawalRepositoryImpl } from '../../data/repositories/withdrawal_repository_impl'
+import { WithdrawalUseCase } from '../../application/usecases/create_withdrawal_usecase'
+import { WithdrawalRepositoryImpl } from '../../data/repositories/create_withdrawal_repository_impl'
 import { Failure } from '@/core/errors/failure'
 import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
 

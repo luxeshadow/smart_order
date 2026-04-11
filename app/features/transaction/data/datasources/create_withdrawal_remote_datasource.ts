@@ -41,7 +41,6 @@ export class WithdrawalRemoteDatasource {
   private translateError(message?: string): string {
     if (!message) return "Erreur lors de la transaction."
     
-    // Le message "password_incorrect" vient de notre fonction SQL ci-dessus
     if (message.includes("password_incorrect")) {
         return "Le mot de passe de retrait est incorrect."
     }

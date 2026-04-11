@@ -1,5 +1,5 @@
 import type { UseCase } from '@/core/usecase/usecase'
-import type { WithdrawalRepository } from '../../domain/repository/withdrawal_repository'
+import type { WithdrawalRepository } from '../../domain/repository/create_withdrawal_repository'
 import type { WithdrawParam } from '../params/withdrawal_params'
 import type { Withdrawal } from '../../domain/entities/withdrawal'
 import { Failure, AuthFailure } from '@/core/errors/failure'

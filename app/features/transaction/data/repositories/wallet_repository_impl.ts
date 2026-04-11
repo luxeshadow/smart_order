@@ -1,4 +1,4 @@
-import { WalletRemoteDatasource } from '../datasources/wallet_remote_datasource'
+import { WalletRemoteDatasource } from '../datasources/create_wallet_remote_datasource'
 import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
 import type { WalletRepository } from '../../domain/repository/wallet_repository'

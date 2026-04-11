@@ -6,8 +6,8 @@ import Input from '@/core/components/client/Input.vue'
 import { useToast } from '@/core/utils/useToast'
 import { PaygateService } from '@/services/paygate/paygate_service'
 import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
-import { DepositUseCase } from '../../application/usecases/deposit_usecase'
-import { DepositRepositoryImpl } from '../../data/repositories/deposit_repository_impl'
+import { DepositUseCase } from '../../application/usecases/create_deposit_usecase'
+import { DepositRepositoryImpl } from '../../data/repositories/create_deposit_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
 const { showToast } = useToast()
