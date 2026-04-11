@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia"
 import { AppImage } from "@/core/constants/app_images" 
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
-import Footer from '@/core/components/client/Footer.vue'
+import Footer from '@/core/components/client/mobile/Footer.vue'
 
 import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'

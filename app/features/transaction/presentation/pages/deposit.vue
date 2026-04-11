@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { AppImage } from '@/core/constants/app_images'
-import Button from '@/core/components/client/Button.vue'
-import Input from '@/core/components/client/Input.vue'
+import Button from '@/core/components/client/mobile/Button.vue'
+import Input from '@/core/components/client/mobile/Input.vue'
 import { useToast } from '@/core/utils/useToast'
 import { PaygateService } from '@/services/paygate/paygate_service'
 import { useAuthStore } from '../../../auth/presentation/stores/auth_store'

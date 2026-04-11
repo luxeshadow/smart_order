@@ -4,8 +4,6 @@ import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
 import { useOrderStore } from '@/features/order/presentation/stores/my_order_item_store'
-
-// UseCases
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
 import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
@@ -24,7 +22,6 @@ const balanceUseCase = new GetMyPrincipalBalanceUseCase(new GetMyPrincipalBalanc
 const myLevelsUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl())
 const listOrdersUseCase = new ListMyOrderItemUseCase(new ListMyOrderItemRepositoryImpl())
 
-// --- LOGIQUE DE DATE ---
 const getTodayDate = (): string => {
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
@@ -33,7 +30,6 @@ const getTodayDate = (): string => {
   }).format(new Date())
 }
 
-// --- COMPUTED ---
 const mainBalanceRaw = computed(() => transactionStore.mainBalance)
 const dailyEarningsRaw = computed(() => transactionStore.dailyEarnings)
 const refundBalanceRaw = computed(() => transactionStore.refundBalance)
@@ -186,7 +182,6 @@ defineProps({
   color: #bbb;
 }
 
-/* --- CONTENU METRICS --- */
 .metrics-content {
   flex: 1;
   padding: 18px;

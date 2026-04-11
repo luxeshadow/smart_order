@@ -2,7 +2,7 @@
 import { storeToRefs } from "pinia";
 import { AppColor } from "@/core/constants/app_colors";
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store";
-import { checkUserWallet } from "../../utils/haveWallet";
+import { checkUserWallet } from "../../../utils/haveWallet";
 import AuthAlert from "./AuthAlert.vue";
 
 const router = useRouter();

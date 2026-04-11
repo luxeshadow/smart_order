@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Button from '@/core/components/client/Button.vue'
-import Input from '@/core/components/client/Input.vue'
+import Button from '@/core/components/client/mobile/Button.vue'
+import Input from '@/core/components/client/mobile/Input.vue'
 import { AppColor } from "@/core/constants/app_colors"
 import { AppImage } from "@/core/constants/app_images"
 import { useToast } from "@/core/utils/useToast"

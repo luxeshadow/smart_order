@@ -14,10 +14,8 @@ import { ListMyOrderItemUseCase } from '../../application/usecases/list_my_order
 import { ListMyOrderItemRepositoryImpl } from '../../data/repositories/list_my_order_item_repository_impl'
 import { ValidateMyOrderItemUseCase } from '../../application/usecases/validate_my_order_item_usecase'
 import { ValidateMyOrderItemRepositoryImpl } from '../../data/repositories/validate_my_order_item_repository_impl'
-
-// Components
-import SmartChart from '@/core/components/client/SmartChart.vue'
-import Footer from '@/core/components/client/Footer.vue'
+import SmartChart from '@/core/components/client/mobile/SmartChart.vue'
+import Footer from '@/core/components/client/mobile/Footer.vue'
 
 const router = useRouter()
 const orderStore = useOrderStore()

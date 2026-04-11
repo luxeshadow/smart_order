@@ -1,13 +1,13 @@
 <!-- pages/index.vue -->
 <script setup lang="ts">
-import FloatingActionButton from '@/core/components/client/FloatingActionButton.vue'
-import AppBar from '@/core/components/client/AppBar.vue'
-import StatCard from '@/core/components/client/StatCard.vue'
-import TransactionActionButton from '@/core/components/client/TransactionActionButton.vue'
-import AccountMetricsCard from '@/core/components/client/AccountMetricsCard.vue'
-import LoopVideo from '@/core/components/client/LoopVideo.vue'
-import Shop from '@/core/components/client/Shop.vue'
-import Footer  from '@/core/components/client/Footer.vue'
+import FloatingActionButton from '@/core/components/client/mobile/FloatingActionButton.vue'
+import AppBar from '@/core/components/client/mobile/AppBar.vue'
+import StatCard from '@/core/components/client/mobile/StatCard.vue'
+import TransactionActionButton from '@/core/components/client/mobile/TransactionActionButton.vue'
+import AccountMetricsCard from '@/core/components/client/mobile/AccountMetricsCard.vue'
+import LoopVideo from '@/core/components/client/mobile/LoopVideo.vue'
+import Shop from '@/core/components/client/mobile/Shop.vue'
+import Footer  from '@/core/components/client/mobile/Footer.vue'
 </script>
 
 <template>
