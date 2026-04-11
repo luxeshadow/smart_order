@@ -166,7 +166,7 @@ const clearSearch = () => {
   border: 1px solid v-bind('AppColor.primary.light');
   border-radius: 18px;
   padding: 12px;
-  box-shadow: 0 6px 18px rgba(255, 94, 0, 0.05);
+
 }
 
 /* HEADER */

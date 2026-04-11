@@ -39,7 +39,7 @@ const updateTab = (tabName: string) => {
       @click="updateTab('withdrawal')" 
       :class="['nav-item', { active: modelValue === 'withdrawal' }]"
     >
-     <i class="fi fi-rr-wallet-change"></i>
+     <i class="fi fi-rr-money-transfer-coin-arrow"></i>
       <Transition name="expand">
         <span v-show="modelValue === 'withdrawal'" class="nav-text">Settings</span>
       </Transition>
