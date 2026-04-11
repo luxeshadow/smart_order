@@ -1,4 +1,3 @@
-<!-- pages/index.vue -->
 <script setup lang="ts">
 
 import AppBar from '@/core/components/admin/mobile/AppBar.vue'
@@ -12,7 +11,6 @@ import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
     <AppBar />
     <BottomNavigationBar/>
     <StatContainer/>
-
     <NuxtRouteAnnouncer />
 
   </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Button from '@/core/components/client/Button.vue'
-import Input from '@/core/components/client/Input.vue'
+import Button from '@/core/components/client/mobile/Button.vue'
+import Input from '@/core/components/client/mobile/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { LoginUseCase } from '../../application/usecases/login_usecase'
