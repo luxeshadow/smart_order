@@ -73,7 +73,7 @@ const currentDate = computed(() => {
   justify-content: space-between;
   gap: 16px;
   background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
-  box-shadow: 0 9px 20px rgba(0,0,0,0.18);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.18);
 }
 
 /* SLOT */

@@ -5,6 +5,7 @@ import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigation
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
 import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
 import ListUser from '@/core/components/admin/mobile/ListUser.vue'
+import AdminWithdrawalPage from '../../features/transaction/presentation/pages/admin-withdrawal.vue'
 
 const activeTab = ref('dashboard')
 </script>
@@ -23,10 +24,9 @@ const activeTab = ref('dashboard')
         <ListUser />
       </template>
 
-      <template v-if="activeTab === 'settings'">
+      <template v-if="activeTab === 'withdrawal'">
         <div class="placeholder-page">
-          <h3>Settings</h3>
-          <p>Configuration de l'application</p>
+            <AdminWithdrawalPage />
         </div>
       </template>
     </main>

@@ -1,33 +1,51 @@
+<script setup lang="ts">
+import { AppColor } from '@/core/constants/app_colors'
+
+// Reçoit la valeur active du parent
+const props = defineProps({
+  modelValue: { type: String, required: true }
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const updateTab = (tabName: string) => {
+  emit('update:modelValue', tabName)
+}
+</script>
+
 <template>
   <nav class="bottom-nav">
-    <div @click="activeTab = 'dashboard'" :class="['nav-item', { active: activeTab === 'dashboard' }]">
+    <div 
+      @click="updateTab('dashboard')" 
+      :class="['nav-item', { active: modelValue === 'dashboard' }]"
+    >
       <i class="fi fi-rr-apps"></i>
       <Transition name="expand">
-        <span v-show="activeTab === 'dashboard'" class="nav-text">Dashboar</span>
+        <span v-show="modelValue === 'dashboard'" class="nav-text">Dashboard</span>
       </Transition>
     </div>
 
-    <div @click="activeTab = 'manager'" :class="['nav-item', { active: activeTab === 'manager' }]">
+    <div 
+      @click="updateTab('manager')" 
+      :class="['nav-item', { active: modelValue === 'manager' }]"
+    >
       <i class="fi fi-rr-briefcase"></i>
       <Transition name="expand">
-        <span v-show="activeTab === 'manager'" class="nav-text">Manager</span>
+        <span v-show="modelValue === 'manager'" class="nav-text">Manager</span>
       </Transition>
     </div>
 
-    <div @click="activeTab = 'settings'" :class="['nav-item', { active: activeTab === 'settings' }]">
-      <i class="fi fi-rr-settings"></i>
+    <div 
+      @click="updateTab('withdrawal')" 
+      :class="['nav-item', { active: modelValue === 'withdrawal' }]"
+    >
+      <i class="fi fi-rr-wallet-money"></i>
       <Transition name="expand">
-        <span v-show="activeTab === 'settings'" class="nav-text">Settings</span>
+        <span v-show="modelValue === 'withdrawal'" class="nav-text">Settings</span>
       </Transition>
     </div>
   </nav>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { AppColor } from '@/core/constants/app_colors'
-const activeTab = ref('dashboard')
-</script>
 
 <style scoped>
 .bottom-nav {

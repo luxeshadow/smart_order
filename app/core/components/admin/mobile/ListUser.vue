@@ -128,11 +128,11 @@ const clearSearch = () => {
 
 <style scoped>
 .list-user-page {
-  padding: 16px;
+  padding: 12px;
 }
 
 .top-bar {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .search-box {
@@ -141,62 +141,45 @@ const clearSearch = () => {
 
 .clear-btn {
   position: absolute;
-  right: 14px;
-  top: 38px;
+  right: 12px;
+  top: 52px;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: 50%;
   background: v-bind('AppColor.primary.light');
   color: v-bind('AppColor.primary.base');
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* GRID */
+/* LIST */
 .users-grid {
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
-/* CARD */
 .user-card {
-  position: relative;
-  overflow: hidden;
   background: white;
-  border-radius: 22px;
-  padding: 18px;
   border: 1px solid v-bind('AppColor.primary.light');
-  box-shadow: 0 12px 30px rgba(255, 94, 0, 0.08);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(255, 94, 0, 0.05);
 }
 
-.accent-glow {
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  right: -20px;
-  top: -20px;
-  background: v-bind('AppColor.primary.base');
-  opacity: 0.08;
-  border-radius: 50%;
-  filter: blur(40px);
-}
-
+/* HEADER */
 .user-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  position: relative;
-  z-index: 2;
+  gap: 10px;
 }
 
 .avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.base'),
@@ -204,51 +187,62 @@ const clearSearch = () => {
   );
   color: white;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 16px;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+}
+
+.user-meta {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-meta h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   color: #1e293b;
+  line-height: 1.2;
 }
 
 .user-meta p {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: 2px 0 0;
+  font-size: 11px;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* MULTI SHOPS */
+/* INLINE SHOPS */
 .shops-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .shop-chip {
-  padding: 6px 12px;
+  padding: 4px 8px;
   border-radius: 999px;
   background: v-bind('AppColor.primary.light');
   color: v-bind('AppColor.primary.dark');
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
 }
 
-/* BALANCES */
+/* INLINE BALANCES */
 .balances {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .balance-box {
-  border-radius: 18px;
-  padding: 14px;
+  flex: 1;
+  border-radius: 12px;
+  padding: 8px 10px;
 }
 
 .main {
@@ -261,20 +255,14 @@ const clearSearch = () => {
 
 .balance-box span {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   color: #64748b;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
 }
 
 .balance-box strong {
-  font-size: 18px;
+  font-size: 14px;
   color: #1e293b;
   font-weight: 800;
-}
-
-@media (max-width: 600px) {
-  .balances {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
