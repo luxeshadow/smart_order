@@ -1,30 +1,24 @@
 <template>
   <nav class="bottom-nav">
-    <div 
-      class="nav-item" 
-      :class="{ 'active': activeTab === 'dashboard' }"
-      @click="activeTab = 'dashboard'"
-    >
+    <div @click="activeTab = 'dashboard'" :class="['nav-item', { active: activeTab === 'dashboard' }]">
       <i class="fi fi-rr-apps"></i>
-      <span v-if="activeTab === 'dashboard'" class="nav-text">Dashboard</span>
+      <Transition name="expand">
+        <span v-show="activeTab === 'dashboard'" class="nav-text">Dashboard</span>
+      </Transition>
     </div>
 
-    <div 
-      class="nav-item" 
-      :class="{ 'active': activeTab === 'manager' }"
-      @click="activeTab = 'manager'"
-    >
+    <div @click="activeTab = 'manager'" :class="['nav-item', { active: activeTab === 'manager' }]">
       <i class="fi fi-rr-briefcase"></i>
-      <span v-if="activeTab === 'manager'" class="nav-text">Manager</span>
+      <Transition name="expand">
+        <span v-show="activeTab === 'manager'" class="nav-text">Manager</span>
+      </Transition>
     </div>
 
-    <div 
-      class="nav-item" 
-      :class="{ 'active': activeTab === 'settings' }"
-      @click="activeTab = 'settings'"
-    >
+    <div @click="activeTab = 'settings'" :class="['nav-item', { active: activeTab === 'settings' }]">
       <i class="fi fi-rr-settings"></i>
-      <span v-if="activeTab === 'settings'" class="nav-text">Settings</span>
+      <Transition name="expand">
+        <span v-show="activeTab === 'settings'" class="nav-text">Settings</span>
+      </Transition>
     </div>
   </nav>
 </template>
@@ -32,23 +26,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
-
 const activeTab = ref('dashboard')
 </script>
 
 <style scoped>
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
+  bottom: 20px; /* Décollé du bas pour l'effet flottant PWA */
+  left: 20px;
+  right: 20px;
+  height: 65px;
   background-color: v-bind('AppColor.surface.pure');
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 20px;
-  border-top: 1px solid v-bind('AppColor.surface.bone');
+  padding: 0 10px;
+  border-radius: 25px; /* Arrondi total */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid v-bind('AppColor.surface.bone');
   z-index: 100;
 }
 
@@ -56,31 +51,56 @@ const activeTab = ref('dashboard')
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  border-radius: 999px;
+  height: 45px;
+  padding: 0 14px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: v-bind('AppColor.tertiary.soft');
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Transition plus smooth */
+  overflow: hidden; /* Crucial pour l'animation de largeur */
+  min-width: 45px;
 }
 
 .nav-item i {
   font-size: 20px;
+  transition: transform 0.3s ease;
 }
 
+/* État Actif */
 .nav-item.active {
   background-color: v-bind('AppColor.primary.base');
-  color: v-bind('AppColor.surface.pure');
-  gap: 8px;
+  color: #FFFFFF;
+  flex-grow: 0; /* Empêche de prendre trop de place */
+}
+
+.nav-item.active i {
+  transform: translateX(-2px); /* Décale l'icône vers la gauche quand le texte arrive */
 }
 
 .nav-text {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 8px;
   white-space: nowrap;
 }
 
-/* Animation au clic */
+/* --- ANIMATION DE TRANSITION (Le secret) --- */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  max-width: 100px; /* Valeur max arbitraire */
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  transform: translateX(-10px);
+}
+
+/* Petit feedback haptique au clic */
 .nav-item:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
 }
 </style>
