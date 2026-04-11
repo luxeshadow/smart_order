@@ -32,7 +32,7 @@ const activeTab = ref('dashboard')
 <style scoped>
 .bottom-nav {
   position: fixed;
-  bottom: 10px; /* Décollé du bas pour l'effet flottant PWA */
+  bottom: 15px; /* Décollé du bas pour l'effet flottant PWA */
   left: 30px;
   right: 30px;
   height: 50px;

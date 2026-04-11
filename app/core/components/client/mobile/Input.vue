@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AppColor } from '@/core/constants/app_colors'
-import { ref, computed, defineProps, defineEmits } from 'vue'
+import { ref, computed} from 'vue'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },

@@ -40,7 +40,7 @@ const shops = ref([
     margin: 15px;
 }
 .section-title {
-  margin: 24px 0 12px;
+  margin: 15px 0 12px;
   font-size: 15px;
   font-weight: 700;
   color: v-bind('AppColor.tertiary.charcoal');

@@ -1,20 +1,39 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 
 import AppBar from '@/core/components/admin/mobile/AppBar.vue'
 import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigationBar.vue'
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
 import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
+import ListUser from '@/core/components/admin/mobile/ListUser.vue'
 
+const activeTab = ref('dashboard')
 </script>
 
 <template>
   <div class="app-layout">
     <AppBar />
-    <BottomNavigationBar/>
-    <StatContainer/>
-    <ShopContainer/>
-    <NuxtRouteAnnouncer />
 
+    <main class="page-content">
+      <template v-if="activeTab === 'dashboard'">
+        <StatContainer />
+        <ShopContainer />
+      </template>
+
+      <template v-if="activeTab === 'manager'">
+        <ListUser />
+      </template>
+
+      <template v-if="activeTab === 'settings'">
+        <div class="placeholder-page">
+          <h3>Settings</h3>
+          <p>Configuration de l'application</p>
+        </div>
+      </template>
+    </main>
+
+    <BottomNavigationBar v-model="activeTab" />
+    <NuxtRouteAnnouncer />
   </div>
 </template>
 
@@ -33,5 +52,19 @@ body {
 
 h1, h2, h3, button, span {
   font-family: 'Inter', sans-serif;
+}
+
+.app-layout {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 90px;
+}
+
+.page-content {
+  padding-top: 12px;
+}
+
+.placeholder-page {
+  padding: 20px;
 }
 </style>
