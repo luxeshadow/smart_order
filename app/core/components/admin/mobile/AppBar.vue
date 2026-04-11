@@ -2,7 +2,7 @@
   <nav class="app-bar">
     <div class="profile-pill">
       <div class="avatar-container">
-        <img :src="AppImage.Logo_1 || '/images/default-avatar.png'" alt="Profile">
+        <img :src="AppImage.Profile" alt="Profile">
       </div>
       <span class="user-id">{{ formattedUserId }}</span>
       <button class="copy-btn" @click="copyId">
