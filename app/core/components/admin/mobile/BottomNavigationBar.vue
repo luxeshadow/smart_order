@@ -3,7 +3,7 @@
     <div @click="activeTab = 'dashboard'" :class="['nav-item', { active: activeTab === 'dashboard' }]">
       <i class="fi fi-rr-apps"></i>
       <Transition name="expand">
-        <span v-show="activeTab === 'dashboard'" class="nav-text">Dashboard</span>
+        <span v-show="activeTab === 'dashboard'" class="nav-text">Dashboar</span>
       </Transition>
     </div>
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-
 import AppBar from '@/core/components/admin/mobile/AppBar.vue'
 import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigationBar.vue'
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
