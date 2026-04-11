@@ -116,8 +116,11 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* HEADER */
+/* HEADER FIXE */
 .app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   height: 65px;
   background: white;
   display: flex;
@@ -154,6 +157,7 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  padding-top: 20px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -227,8 +231,11 @@ onMounted(() => {
   border-bottom-left-radius: 4px;
 }
 
-/* FOOTER INPUT */
+/* FOOTER INPUT FIXE EN BAS */
 .input-area {
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
   background: white;
   border-top: 1px solid #eee;
   padding: 12px 16px 18px;
@@ -305,6 +312,7 @@ input:focus {
 @media (max-width: 600px) {
   .chat-wrapper {
     padding: 12px;
+    padding-top: 16px;
   }
 
   .bubble-content {
