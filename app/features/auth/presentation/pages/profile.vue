@@ -6,7 +6,11 @@ import { AppImage } from "@/core/constants/app_images"
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 import Footer from '@/core/components/client/Footer.vue'
+
+// Utils
 import { useToast } from '@/core/utils/useToast'
+import { useConfetti } from '@/core/utils/useConfetti'
+
 import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
 import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
 import { RefundToMainBalanceUseCase } from '@/features/transaction/application/usecases/refund_to_main_balance_usecase'
@@ -16,14 +20,16 @@ import { Failure } from '@/core/errors/failure'
 const router = useRouter()
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
+
+// Initialisation des Utils
 const { showToast } = useToast()
+const { triggerConfetti } = useConfetti() // <-- Récupération de la fonction
 
 const { user } = storeToRefs(authStore)
 const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionStore)
 
 const isTransferring = ref(false)
 
-// Initialisation des couches
 const balanceRepo = new GetMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(balanceRepo)
 
@@ -61,7 +67,10 @@ const handleTransferRefund = async () => {
   if (result instanceof Failure) {
     showToast(result.message, "fi-rr-info","error")
   } else {
-    showToast("Transfert effectué avec succès !","fi-rr-check","success",)
+    // 🎉 APPEL DU CONFETTI DEPUIS L'UTILS
+    triggerConfetti();
+    
+    showToast("Transfert effectué avec succès !","fi-rr-check","success")
     await fetchBalance()
   }
 

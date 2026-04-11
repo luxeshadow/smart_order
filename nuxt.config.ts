@@ -70,11 +70,17 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'Smart Orders',
+      
+     
       script: [
         {
           src: 'https://cdn.jsdelivr.net/npm/toastify-js',
           type: 'text/javascript'
-        }
+        },
+         {
+        src: 'https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.9.1/tsparticles.confetti.bundle.min.js',
+        defer: true
+      }
       ],
       link: [
         { 
