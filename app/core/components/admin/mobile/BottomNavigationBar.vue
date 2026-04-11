@@ -41,7 +41,7 @@ const updateTab = (tabName: string) => {
     >
      <i class="fi fi-rr-money-transfer-coin-arrow"></i>
       <Transition name="expand">
-        <span v-show="modelValue === 'withdrawal'" class="nav-text">Settings</span>
+        <span v-show="modelValue === 'withdrawal'" class="nav-text">withdrawal</span>
       </Transition>
     </div>
   </nav>

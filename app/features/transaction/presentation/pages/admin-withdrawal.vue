@@ -71,79 +71,42 @@ const cancelWithdrawal = (id: number) => {
 </script>
 
 <template>
-  <div class="withdrawal-page">
-    <div class="filters">
-      <div class="search-box">
-        <Input
-          id="search-withdrawal"
-          v-model="search"
-          label="Recherche"
-          icon="fi-rr-search"
-        />
-
-        <button
-          v-if="search"
-          class="clear-btn"
-          @click="clearSearch"
-        >
+  <div class="withdrawal-grid">
+    <div v-for="item in filteredWithdrawals" :key="item.id" class="withdrawal-card">
+      
+      <div class="card-actions-top">
+        <button class="action-badge cancel" @click="cancelWithdrawal(item.id)">
           <i class="fi fi-rr-cross-small"></i>
         </button>
+        <button class="action-badge approve" @click="approveWithdrawal(item.id)">
+          <i class="fi fi-rr-check"></i>
+        </button>
       </div>
-    </div>
 
-    <div class="withdrawal-grid">
-      <div
-        v-for="item in filteredWithdrawals"
-        :key="item.id"
-        class="withdrawal-card"
-      >
-        <div class="user-header">
-          <div class="avatar">
-            {{ item.username.charAt(0).toUpperCase() }}
-          </div>
-
-          <div class="user-meta">
-            <h3>{{ item.username }}</h3>
-            <p>{{ item.email }}</p>
-          </div>
+      <div class="user-header">
+        <div class="avatar">
+          {{ item.username.charAt(0).toUpperCase() }}
         </div>
-
-        <div class="history-list">
-          <div
-            v-for="(history, index) in item.previousWithdrawals"
-            :key="index"
-            class="history-chip"
-          >
-            {{ history.toLocaleString() }} XOF
-          </div>
+        <div class="user-meta">
+          <h3>{{ item.username }}</h3>
+          <p>{{ item.email }}</p>
         </div>
+      </div>
 
-        <div class="withdrawal-info">
-          <div class="info-box amount">
-            <span>Montant</span>
-            <strong>{{ item.amount.toLocaleString() }} XOF</strong>
-          </div>
-
-          <div class="info-box date">
-            <span>Date</span>
-            <strong>{{ item.createdAt }}</strong>
-          </div>
+      <div class="history-list">
+        <div v-for="(history, index) in item.previousWithdrawals" :key="index" class="history-chip">
+          {{ history.toLocaleString() }} XOF
         </div>
+      </div>
 
-        <div class="actions">
-          <button
-            class="cancel-btn"
-            @click="cancelWithdrawal(item.id)"
-          >
-            Annuler
-          </button>
-
-          <button
-            class="approve-btn"
-            @click="approveWithdrawal(item.id)"
-          >
-            Valider
-          </button>
+      <div class="withdrawal-info">
+        <div class="info-box amount">
+          <span>Montant</span>
+          <strong>{{ item.amount.toLocaleString() }} XOF</strong>
+        </div>
+        <div class="info-box date">
+          <span>Date</span>
+          <strong>{{ item.createdAt }}</strong>
         </div>
       </div>
     </div>
@@ -151,160 +114,71 @@ const cancelWithdrawal = (id: number) => {
 </template>
 
 <style scoped>
-.withdrawal-page {
-
+.withdrawal-card {
+  position: relative; /* Indispensable pour placer les badges */
+  background: white;
+  border: 1px solid v-bind('AppColor.surface.bone');
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: transform 0.2s;
 }
 
-.filters {
-  display: grid;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.search-box {
-  position: relative;
-}
-
-.clear-btn {
+/* CONTAINER DES BADGES */
+.card-actions-top {
   position: absolute;
+  top: 12px;
   right: 12px;
-  top: 52px;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  display: flex;
+  gap: 8px;
+  z-index: 5;
+}
+
+/* STYLE DES BADGES */
+.action-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   border: none;
-  border-radius: 50%;
-  background: v-bind('AppColor.primary.light');
-  color: v-bind('AppColor.primary.base');
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.date-filter {
-  height: 46px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 0 14px;
-  outline: none;
-}
-
-/* LIST */
-.withdrawal-grid {
-  display: grid;
-  gap: 10px;
-}
-
-.withdrawal-card {
-  background: white;
-  border: 1px solid v-bind('AppColor.primary.light');
-  border-radius: 18px;
-  padding: 12px;
- 
-}
-
-.user-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    v-bind('AppColor.primary.base'),
-    v-bind('AppColor.primary.dark')
-  );
-  color: white;
-  font-weight: 800;
-  font-size: 16px;
-  display: grid;
-  place-items: center;
-}
-
-.user-meta h3 {
-  margin: 0;
-  font-size: 14px;
-}
-
-.user-meta p {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: #64748b;
-}
-
-.history-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.history-chip {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: v-bind('AppColor.primary.light');
-  color: v-bind('AppColor.primary.dark');
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.withdrawal-info {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.info-box {
-  flex: 1;
-  border-radius: 12px;
-  padding: 8px 10px;
-}
-
-.amount {
-  background: rgba(255, 94, 0, 0.06);
-}
-
-.date {
-  background: rgba(255, 183, 77, 0.12);
-}
-
-.info-box span {
-  display: block;
-  font-size: 10px;
-  color: #64748b;
-}
-
-.info-box strong {
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.actions button {
-  flex: 1;
-  height: 42px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.cancel-btn {
-  background: #f1f5f9;
-  color: #334155;
+.action-badge i {
+  font-size: 16px;
 }
 
-.approve-btn {
-  background: v-bind('AppColor.primary.base');
+/* Badge Annuler (Gris/Rouge soft) */
+.cancel {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+.cancel:active {
+  background-color: #FEE2E2;
+  color: #EF4444;
+  transform: scale(0.9);
+}
+
+/* Badge Valider (Orange/Primary) */
+.approve {
+  background-color: v-bind('AppColor.primary.light');
+  color: v-bind('AppColor.primary.base');
+}
+
+.approve:active {
+  background-color: v-bind('AppColor.primary.base');
   color: white;
+  transform: scale(0.9);
 }
+
+/* Ajustements pour que le texte du header ne touche pas les badges */
+.user-meta {
+  padding-right: 70px; /* On laisse de la place pour les badges */
+}
+
+/* On supprime l'ancien bloc .actions qui était en bas */
 </style>
