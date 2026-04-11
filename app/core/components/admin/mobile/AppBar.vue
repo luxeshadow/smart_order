@@ -2,7 +2,7 @@
   <nav class="app-bar">
     <div class="profile-pill">
       <div class="avatar-container">
-        <img :src="AppImage.Profile" alt="Profile">
+        <img :src="AppImage.Profile" alt="Profile" class="avatar-img">
       </div>
       <span class="user-id">{{ formattedUserId }}</span>
       <button class="copy-btn" @click="copyId">
@@ -30,7 +30,6 @@ import { AppImage } from '@/core/constants/app_images'
 import { useToast } from '@/core/utils/useToast'
 
 const userId = ref("81449240")
-const userProfileImage = ref(null)
 const hasNotifications = ref(true)
 const { showToast } = useToast()
 
@@ -47,13 +46,12 @@ const copyId = async () => {
 </script>
 
 <style scoped>
-/* Injection des couleurs via v-bind */
 .app-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background-color: v-bind('AppColor.surface.off + "CC"'); /* CC pour 80% d'opacité */
+  background-color: v-bind('AppColor.surface.off + "CC"');
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
@@ -76,21 +74,35 @@ const copyId = async () => {
   border-radius: 50%;
   overflow: hidden;
   background-color: v-bind('AppColor.surface.smoke');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix pour l'affichage de l'image statique */
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Important pour ne pas écraser l'image */
+  display: block;
 }
 
 .user-id {
   margin-left: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: v-bind('AppColor.tertiary.charcoal');
+  font-size: 13px; /* Légèrement réduit pour le mobile */
+  font-weight: 700;
+  color: v-bind('AppColor.tertiary.base');
 }
 
 .copy-btn {
   background: none;
   border: none;
   margin-left: 6px;
-  color: v-bind('AppColor.surface.bone');
+  color: v-bind('AppColor.primary.base'); /* Mis en couleur primaire pour plus de visibilité */
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
 }
 
 .actions-group {
@@ -105,9 +117,9 @@ const copyId = async () => {
   align-items: center;
   justify-content: center;
   background-color: v-bind('AppColor.surface.pure');
-  border-radius: 50%;
+  border-radius: 14px; /* Carré arrondi plus moderne que le rond parfait */
   border: 1px solid v-bind('AppColor.surface.bone');
-  color: v-bind('AppColor.tertiary.soft');
+  color: v-bind('AppColor.tertiary.base');
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -120,9 +132,9 @@ const copyId = async () => {
 .notification-dot {
   position: absolute;
   top: 10px;
-  right: 11px;
-  width: 8px;
-  height: 8px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
   background-color: v-bind('AppColor.primary.base');
   border: 2px solid v-bind('AppColor.surface.pure');
   border-radius: 50%;
