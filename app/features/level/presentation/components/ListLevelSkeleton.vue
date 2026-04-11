@@ -10,8 +10,6 @@ import { AppColor } from '@/core/constants/app_colors'
         <div class="skeleton-text-price"></div>
       </div>
     </div>
-
-    
   </div>
 </template>
 
@@ -55,7 +53,7 @@ import { AppColor } from '@/core/constants/app_colors'
 .skeleton-levels-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 1px;
 }
 
 .skeleton-badge {

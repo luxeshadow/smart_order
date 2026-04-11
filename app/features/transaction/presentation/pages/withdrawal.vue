@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/Button.vue'
 import Input from '@/core/components/client/Input.vue'
 import { useToast } from '@/core/utils/useToast'
 
+import { WithdrawalUseCase } from '../../application/usecases/withdrawal_usecase'
+import { WithdrawalRepositoryImpl } from '../../data/repositories/withdrawal_repository_impl'
+import { Failure } from '@/core/errors/failure'
+import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
+
 const { showToast } = useToast()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const form = ref({
   phoneNumber: '',
@@ -39,9 +47,7 @@ const defaultMethod: PaymentMethod = {
 }
 
 const selectedMethod = computed<PaymentMethod>(() => {
-  return (
-    paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
-  )
+  return paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
 })
 
 const selectMethod = (id: string) => {
@@ -55,24 +61,38 @@ const handleWithdraw = async () => {
     return
   }
 
-  if (!form.value.phoneNumber || !form.value.amount || !form.value.password) {
-    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error")
-    return
-  }
-
   isLoading.value = true
 
   try {
-    // TODO: brancher WithdrawUseCase
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    const repository = new WithdrawalRepositoryImpl()
+    const withdrawalUseCase = new WithdrawalUseCase(repository)
 
-    showToast("Demande de retrait envoyée !", "fi-rr-check", "success")
+    const result = await withdrawalUseCase.execute({
+      userId: authStore.user?.id || '', 
+      phoneNumber: form.value.phoneNumber,
+      amount: Number(form.value.amount),
+      method: form.value.method,
+      password: form.value.password,
+      firstName: form.value.firstName,
+      lastName: form.value.lastName
+    })
 
-    setTimeout(() => {
-      router.push('/home')
-    }, 1500)
-  } catch (error) {
-    showToast("Erreur lors de la transaction", "fi-rr-shield-exclamation", "error")
+    if (result instanceof Failure) {
+      showToast(result.message, "fi-rr-shield-exclamation", "error")
+    } else {
+      showToast("Demande de retrait envoyée avec succès !", "fi-rr-check", "success")
+      
+      setTimeout(() => {
+        router.push('/home')
+      }, 1500)
+    }
+
+  } catch (error: any) {
+    showToast(
+      error.message || "Une erreur inattendue est survenue", 
+      "fi-rr-shield-exclamation", 
+      "error"
+    )
   } finally {
     isLoading.value = false
   }

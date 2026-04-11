@@ -18,7 +18,7 @@ export class DepositModel implements Deposit {
     this.status = data.status
   }
 
-  // Transforme les données venant de Supabase (snake_case) en modèle (camelCase)
+
   static fromSupabase(data: any): DepositModel {
     return new DepositModel({
       id: data.id,
