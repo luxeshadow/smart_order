@@ -78,7 +78,7 @@ export default defineNuxtConfig({
           type: 'text/javascript'
         },
          {
-        src: 'https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.9.1/tsparticles.confetti.bundle.min.js',
+        src: 'https://cdn.jsdelivr.net/npm/@hiseb/confetti@2.1.0/dist/confetti.min.js',
         defer: true
       }
       ],

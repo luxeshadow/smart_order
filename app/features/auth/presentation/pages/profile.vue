@@ -7,7 +7,6 @@ import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 import Footer from '@/core/components/client/Footer.vue'
 
-// Utils
 import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'
 
@@ -21,9 +20,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
 
-// Initialisation des Utils
 const { showToast } = useToast()
-const { triggerConfetti } = useConfetti() // <-- Récupération de la fonction
+const { triggerConfetti } = useConfetti() 
 
 const { user } = storeToRefs(authStore)
 const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionStore)
@@ -36,14 +34,12 @@ const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(balanceRepo)
 const refundRepo = new RefundToMainBalanceRepositoryImpl()
 const refundUseCase = new RefundToMainBalanceUseCase(refundRepo)
 
-// --- Logique de Formatage ---
 const formatBalance = (value: number | null): string => {
   if (value === null || value === undefined) return "00,000,000";
   const padded = Math.floor(value).toString().padStart(8, '0');
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3");
 }
 
-// Récupération globale des soldes
 const fetchBalance = async () => {
   if (!user.value?.id) return
   const result = await getBalanceUseCase.execute({ userId: user.value.id })
@@ -67,7 +63,6 @@ const handleTransferRefund = async () => {
   if (result instanceof Failure) {
     showToast(result.message, "fi-rr-info","error")
   } else {
-    // 🎉 APPEL DU CONFETTI DEPUIS L'UTILS
     triggerConfetti();
     
     showToast("Transfert effectué avec succès !","fi-rr-check","success")
