@@ -2,7 +2,7 @@
   <nav class="app-bar">
     <div class="profile-pill">
       <div class="avatar-container">
-        <img :src="userProfileImage || '/images/default-avatar.png'" alt="Profile">
+        <img :src="AppImage.Logo_1 || '/images/default-avatar.png'" alt="Profile">
       </div>
       <span class="user-id">{{ formattedUserId }}</span>
       <button class="copy-btn" @click="copyId">
@@ -25,7 +25,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AppColor } from '@/core/constants/app_colors' // On importe tes couleurs
+import { AppColor } from '@/core/constants/app_colors'
+import { AppImage } from '@/core/constants/app_images'
 import { useToast } from '@/core/utils/useToast'
 
 const userId = ref("81449240")
