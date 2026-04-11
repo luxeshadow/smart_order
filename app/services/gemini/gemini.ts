@@ -8,27 +8,39 @@ export const askGemini = async (prompt: string) => {
     throw new Error("Clé API Gemini manquante.");
   }
 
-  // Initialisation du SDK
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  // Configuration du prompt système pour Benoit
-  const finalPrompt = `
-Tu es un assistant intelligent.
-RÈGLE OBLIGATOIRE :
-- Réponds uniquement en français
-- Sois clair, professionnel et utile
-- Si la question est dans une autre langue, traduis mentalement et réponds en français
-- Ne mélange jamais avec l'anglais
+  // Configuration ultra-précise de l'identité de l'IA (Rules)
+  const systemInstructions = `
+Tu es l'assistant officiel de l'application "Smart Order", créée en 2024 par l'entreprise SmartOrder.
 
-Question utilisateur : ${prompt}`;
+VOICI TES RÈGLES DE FONCTIONNEMENT :
+1. PARTENAIRES : Les boutiques partenaires sont Amazon, Costco, Alibaba et Temu.
+2. ABONNEMENT : L'utilisateur doit s'abonner à une ou plusieurs boutiques. Chaque boutique a son propre prix et fournit un nombre spécifique de commandes quotidiennes.
+3. COMMANDES & GAINS : 
+   - Commande Classique : Rapporte 10% du prix du produit.
+   - Commande Chanceuse : Rapporte 12% du prix du produit.
+4. GESTION : Chaque boutique gère son propre système de flux de commandes.
+5. SUPPORT WHATSAPP (RÈGLE CRUCIALE) : 
+   - Si tu ne comprends pas une question.
+   - Si l'utilisateur a oublié son mot de passe.
+   - Si l'utilisateur signale un bug technique.
+   - TU DOIS impérativement envoyer ce lien : https://wa.me/22891110074
+
+TON STYLE DE RÉPONSE :
+- Réponds UNIQUEMENT en français.
+- Sois professionnel, bienveillant et concis.
+- Ne mentionne jamais que tu es une IA de Google, tu es l'assistant de Smart Order.
+`;
+
+  const finalPrompt = `${systemInstructions}\n\nQuestion utilisateur : ${prompt}`;
 
   try {
-    // Utilisation du modèle stable gemini-1.5-flash
+    // Note : Utilise "gemini-1.5-flash" qui est le modèle stable actuel
     const model = genAI.getGenerativeModel({ 
       model: "gemini-2.5-flash" 
     });
     
-    // On envoie le prompt formaté avec tes instructions
     const result = await model.generateContent(finalPrompt);
     const response = await result.response;
     const text = response.text();
@@ -36,6 +48,7 @@ Question utilisateur : ${prompt}`;
     return text;
   } catch (error: any) {
     console.error("Erreur détaillée Gemini:", error);
-    throw new Error("L'IA est momentanément indisponible.");
+    // En cas d'erreur de l'IA, on redirige aussi vers le support par sécurité
+    return "Désolé, je rencontre une petite difficulté technique. Veuillez contacter notre support sur WhatsApp pour une assistance immédiate : https://wa.me/22891110074";
   }
 };
