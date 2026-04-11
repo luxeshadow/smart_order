@@ -11,7 +11,7 @@ const data: ChartItem[] = [
   { name: 'Alibaba', value: 1970 },
   { name: 'Temu', value: 10 },
   { name: 'Costco', value: 3409 },
-  { name: 'Amazon', value: 2050 },
+  { name: 'Amazon', value: 5050 },
   
 ]
 
