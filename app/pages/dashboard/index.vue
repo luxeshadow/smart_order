@@ -3,6 +3,7 @@
 import AppBar from '@/core/components/admin/mobile/AppBar.vue'
 import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigationBar.vue'
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
+import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
 
 </script>
 
@@ -11,6 +12,7 @@ import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
     <AppBar />
     <BottomNavigationBar/>
     <StatContainer/>
+    <ShopContainer/>
     <NuxtRouteAnnouncer />
 
   </div>
