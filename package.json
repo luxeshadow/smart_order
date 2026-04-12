@@ -16,6 +16,7 @@
     "chart.js": "^4.5.1",
     "motion": "^12.38.0",
     "nuxt": "^4.4.2",
+    "nuxt-bits": "^0.1.6",
     "nuxt-users": "^1.45.0",
     "vue": "^3.5.30",
     "vue-router": "^5.0.4"

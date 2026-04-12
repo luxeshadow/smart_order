@@ -7,7 +7,6 @@ export class WithdrawalRemoteDatasource {
 
   async withdraw(param: WithdrawParam): Promise<WithdrawalModel> {
     try {
-      // On utilise .rpc() pour appeler notre fonction sécurisée
       const { data, error } = await this.supabase
         .rpc('handle_withdrawal_request', {
           p_user_id: param.userId,

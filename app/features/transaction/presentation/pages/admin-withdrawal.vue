@@ -147,14 +147,11 @@ const approveWithdrawal = (id: number) => {
 
 const cancelWithdrawal = (id: number) => {
   console.log('Cancelling withdrawal:', id)
-  // Ajouter ici l'appel API pour annuler
+
 }
 </script>
 
 <style scoped>
-.withdrawal-page {
- 
-}
 
 .filters {
   margin-bottom: 16px;

@@ -12,15 +12,12 @@ export class ForgotPasswordUseCase implements UseCase<void, ForgotPasswordParam>
   }
 
   async execute(param: ForgotPasswordParam): Promise<void | Failure> {
-    // 1. Validation de l'email via ton validator
+  
     const validationError = ForgotPasswordValidator.validate(param)
 
     if (validationError) {
       return new AuthFailure(validationError)
     }
-
-    // 2. Appel au repository pour l'envoi du lien via Supabase
-    // Le lien généré pointera vers : https://mysmartorder.netlify.app/auth/reset-password
     const result = await this.repository.forgotPassword(param)
     
     return result
