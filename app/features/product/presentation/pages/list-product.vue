@@ -1,141 +1,156 @@
 <script setup lang="ts">
-import DomeGallery from '~/core/bits-components/DomeGallery/DomeGallery.vue';
-import { ListProductUseCase } from '../../application/usecases/list_product_usecase';
-import { ListProductRepositoryImpl } from '../../data/repositories/list_product_repository_impl';
-import { Failure } from '~/core/errors/failure';
-// Importe ta classe de couleurs (ajuste le chemin selon ton projet)
-import { AppColor } from '~/core/constants/app_colors'; 
+import { ref, onMounted } from 'vue'
+import { ListProductUseCase } from '../../application/usecases/list_product_usecase'
+import { ListProductRepositoryImpl } from '../../data/repositories/list_product_repository_impl'
+import { Failure } from '~/core/errors/failure'
+import { AppColor } from '~/core/constants/app_colors'
+import type { Product } from '../../domain/entities/product'
 
-const productImages = ref<string[]>([]);
-const errorMsg = ref<string | null>(null);
-const pending = ref(true);
-
-// Clean Architecture
-const repository = new ListProductRepositoryImpl();
-const listProductUseCase = new ListProductUseCase(repository);
+const products = ref<Product[]>([])
+const pending = ref(true)
+const errorMsg = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const result = await listProductUseCase.execute();
+    const repository = new ListProductRepositoryImpl()
+    const useCase = new ListProductUseCase(repository)
+    const result = await useCase.execute()
+
     if (result instanceof Failure) {
-      errorMsg.value = result.message;
+      errorMsg.value = result.message
     } else {
-      productImages.value = result
-        .map(p => p.photoUrl)
-        .filter((url): url is string => typeof url === 'string' && url.length > 0);
-      
-      if (productImages.value.length === 0) {
-        productImages.value = ['https://via.placeholder.com/400'];
-      }
+      products.value = result.filter((p) => p.photoUrl)
     }
-  } catch (e) {
-    errorMsg.value = "Une erreur est survenue";
+  } catch {
+    errorMsg.value = 'Erreur de chargement'
   } finally {
-    setTimeout(() => { pending.value = false; }, 300);
+    pending.value = false
   }
-});
+})
+
+/**
+ * 🔥 ARC VISUEL (NE TOUCHE PAS AU LAYOUT)
+ */
+const curveStrength = 60
+
+const getArcStyle = (index: number) => {
+  const total = products.value.length
+  const center = (total - 1) / 2
+  const distance = index - center
+  const normalized = distance / (total || 1)
+  const y = Math.pow(normalized, 2) * curveStrength
+
+  return {
+    transform: `translateY(${y}px)`
+  }
+}
 </script>
 
 <template>
-  <div class="page-container">
-    
-    <header class="header-overlay">
-      <h1 class="main-title">List Products</h1>
-      <div class="title-underline"></div>
-    </header>
+  <h1 class="page-title">Liste des produits</h1>
+  <div class="gallery-wrapper">
+    <div v-if="pending" class="status">Chargement...</div>
+    <div v-else-if="errorMsg" class="status">{{ errorMsg }}</div>
 
-    <div v-if="pending" class="status-container">
-      <div class="loader-wrapper">
-        <div class="spinner"></div>
-        <span class="pulse-text">Chargement...</span>
+    <div v-else class="carousel">
+      <div class="carousel-track">
+        <div
+          v-for="(product, index) in products"
+          :key="product.id"
+          class="card-item"
+          :style="getArcStyle(index)"
+        >
+          <div class="card-content">
+            <img :src="product.photoUrl" :alt="product.name" />
+            <div class="card-info">
+              <span class="name">{{ product.name }}</span>
+              <span class="price">
+                {{ product.price.toLocaleString() }} XOF
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div v-else-if="errorMsg" class="status-container error-text">
-      {{ errorMsg }}
-    </div>
-
-    <DomeGallery
-      v-else
-      :images="productImages"
-      :fit="0.8"
-      :min-radius="600"
-      :segments="34"
-      overlay-blur-color="#060010"
-      image-border-radius="20px"
-    />
   </div>
 </template>
 
 <style scoped>
-/* Liaison avec ta classe AppColor */
-.page-container {
-  --primary-base: v-bind('AppColor.primary.base');
-  --primary-dark: v-bind('AppColor.primary.dark');
-  --primary-light: v-bind('AppColor.primary.light');
-
-  position: relative;
-  margin: 5px;
-  height: 100vh;
+.gallery-wrapper {
   width: 100%;
-  background-color: #060010;
   overflow: hidden;
-  color: white;
 }
 
-.header-overlay {
-  position: absolute;
-  top: 40px;
-  width: 100%;
-  z-index: 20;
-  pointer-events: none;
+.page-title {
+  text-align: start;
+  margin-left: 15px;
+  font-size: 1rem;
+  font-weight: 800;
+  margin-top: 20px;
+  margin-bottom: 1px;
+  color: #1e293b;
+}
+
+.status {
   text-align: center;
+  padding: 40px;
+  font-weight: 600;
 }
 
-.main-title {
-  font-size: 3rem;
-  /* Utilisation de la couleur light pour le titre */
-  color: var(--primary-light); 
+.carousel {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 10px 20px;
+  scrollbar-width: none;
 }
 
-.title-underline {
-  width: 80px;
-  height: 4px;
-  /* Utilisation de la couleur base */
-  background-color: var(--primary-base); 
-  margin: 8px auto 0;
+.carousel::-webkit-scrollbar {
+  display: none;
 }
 
-.status-container {
+.carousel-track {
   display: flex;
-  height: 100%;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  z-index: 10;
+  gap: 20px;
+  align-items: flex-start;
+  width: max-content;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  /* Utilisation de base et dark pour le spinner */
-  border: 4px solid var(--primary-dark);
-  border-top-color: var(--primary-base);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.card-item {
+  width: 170px;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
 }
 
-.pulse-text {
-  color: var(--primary-light);
-  animation: pulse 2s infinite;
+.card-item:hover {
+  transform: scale(1.05);
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-:deep(body) {
-  margin: 0;
+.card-content {
+  background: white;
+  border-radius: 18px;
   overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.card-content img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.card-info {
+  padding: 12px;
+}
+
+.name {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #1e293b;
+}
+
+.price {
+  color: v-bind('AppColor.primary.base');
+  font-weight: 800;
 }
 </style>

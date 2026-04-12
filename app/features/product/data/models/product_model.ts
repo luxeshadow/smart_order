@@ -7,7 +7,7 @@ export class ProductModel implements Product {
     public name: string,
     public price: number,
     public createdAt: string,
-    public photoUrl: string // Ici on le rend obligatoire (comme OrderItem)
+    public photoUrl: string 
   ) {}
 
   static fromSupabase(map: any): ProductModel {
@@ -16,7 +16,7 @@ export class ProductModel implements Product {
       map.name,
       Number(map.price),
       map.created_at,
-      map.photo_url || '' // Même logique : si null, alors string vide
+      map.photo_url || ''
     )
   }
 

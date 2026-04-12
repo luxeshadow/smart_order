@@ -18,10 +18,13 @@
     "nuxt": "^4.4.2",
     "nuxt-bits": "^0.1.6",
     "nuxt-users": "^1.45.0",
+    "ogl": "^1.0.11",
+    "three": "^0.183.2",
     "vue": "^3.5.30",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@types/three": "^0.183.1",
     "@vite-pwa/nuxt": "^1.1.1"
   }
 }

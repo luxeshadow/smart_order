@@ -22,7 +22,6 @@ export class ListProductRemoteDatasource {
         throw new DatabaseException(error.message);
       }
 
-      // Utilisation de la méthode statique que nous avons créée dans le modèle
       return ProductModel.fromSupabaseList(data || []);
 
     } catch (error: any) {
