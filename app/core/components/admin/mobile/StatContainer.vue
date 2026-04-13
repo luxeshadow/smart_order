@@ -99,7 +99,7 @@ const currentDate = computed(() => {
   gap: 6px;
   font-size: 10px;
   font-weight: 800;
-  color: rgb(245, 53, 5);
+  color: rgb(255, 255, 255);
 }
 
 .date-notch i {
