@@ -84,7 +84,7 @@ const currentDate = computed(() => {
   transform: translateX(-50%);
   width: 120px;
   height: 26px;
-  background: #0b1220;
+  background: #f2f3f5;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
   display: flex;
@@ -99,7 +99,7 @@ const currentDate = computed(() => {
   gap: 6px;
   font-size: 10px;
   font-weight: 800;
-  color: white;
+  color: rgb(245, 53, 5);
 }
 
 .date-notch i {
