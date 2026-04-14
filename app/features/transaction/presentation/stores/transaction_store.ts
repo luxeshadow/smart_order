@@ -6,17 +6,15 @@ import type { ListMyTransactionUseCase } from '@/features/transaction/applicatio
 import { DatabaseFailure } from '@/core/errors/failure'
 
 export const useTransactionStore = defineStore('transaction', () => {
-  // --- ÉTATS DES BALANCES ---
+
   const mainBalance = ref<number | null>(null)
   const dailyEarnings = ref<number>(0)
   const refundBalance = ref<number>(0)
 
-  // --- ÉTATS DE L'HISTORIQUE ---
   const transactions = ref<UserTransaction[]>([])
   const isLoading = ref(false)
   const hasMore = ref(true)
 
-  // --- ACTIONS BALANCES ---
   function updateBalance(newBalance: number) {
     mainBalance.value = newBalance
   }
@@ -35,46 +33,39 @@ export const useTransactionStore = defineStore('transaction', () => {
     refundBalance.value = balances.refund
   }
 
-  // --- ACTIONS HISTORIQUE (Clean Arch) ---
-  
-  /**
-   * Récupère l'historique via le UseCase
-   */
-  async function fetchTransactions(useCase: ListMyTransactionUseCase, userId: string) {
-    // Évite les appels multiples si déjà en cours ou si fin de liste
-    if (isLoading.value || !hasMore.value) return
-    
+
+  async function fetchTransactions(
+    useCase: ListMyTransactionUseCase,
+    userId: string
+  ) {
+    if (isLoading.value) return
+
     isLoading.value = true
-    
+
     const result = await useCase.execute({ userId })
 
     if (result instanceof DatabaseFailure) {
-      // Gérer l'erreur si nécessaire (ex: toast)
       isLoading.value = false
       return
     }
 
-    // On stocke les transactions (result est typé UserTransaction[])
-    const data = result as UserTransaction[]
-    
-    // Si on reçoit moins de data que prévu (ex: pagination), on peut déduire qu'il n'y a plus rien
-    if (data.length === 0) {
-      hasMore.value = false
-    } else {
-      // Pour l'instant on remplace, mais pour un vrai scroll infini on ferait:
-      // transactions.value.push(...data)
-      transactions.value = data
-      
-      // On coupe le scroll infini après le premier load pour cet exemple
-      hasMore.value = false 
+    const freshData = result as UserTransaction[]
+
+    // comparaison des données
+    const hasChanged =
+      JSON.stringify(freshData) !== JSON.stringify(transactions.value)
+
+    if (hasChanged) {
+      transactions.value = freshData
     }
-    
+
+    // ici hasMore devient juste informatif UI
+    hasMore.value = freshData.length > 0
+
     isLoading.value = false
   }
 
-  /**
-   * Réinitialise l'historique (utile pour le "Pull to Refresh")
-   */
+
   function resetHistory() {
     transactions.value = []
     hasMore.value = true
@@ -90,8 +81,6 @@ export const useTransactionStore = defineStore('transaction', () => {
     updateEarnings,
     updateRefund,
     updateAllBalances,
-    
-    // Historique
     transactions,
     isLoading,
     hasMore,
