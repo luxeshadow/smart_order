@@ -2,12 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppColor } from "@/core/constants/app_colors"
-
-// Stores
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '../stores/transaction_store'
-
-// Clean Arch
 import { ListMyTransactionUseCase } from '../../application/usecases/list_my_transaction_usecase'
 import { ListMyTransactionRepositoryImpl } from '../../data/repositories/list_my_transaction_repository_impl'
 
