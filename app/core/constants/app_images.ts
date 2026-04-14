@@ -16,7 +16,7 @@ export class AppImage {
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'
   static readonly Alibaba = '/assets/images/shops/Alibaba.jpeg'
-  static readonly Coscot = '/assets/images/shops/Coscot.jpeg'
+  static readonly Coscot = '/assets/images/shops/shopify.jpeg'
   static readonly Temu = '/assets/images/shops/Temu.jpeg'
   static readonly Walmart = '/assets/images/shops/Walmart.jpeg'
 
