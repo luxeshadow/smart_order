@@ -5,7 +5,7 @@ import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigation
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
 import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
 import ListUser from '@/core/components/admin/mobile/ListUser.vue'
-import AdminWithdrawalPage from '../../features/transaction/presentation/pages/admin-withdrawal.vue'
+import AdminWithdrawalPage from '../../features/transaction/presentation/pages/validate-withdrawal.vue'
 import ListProduct from '../../features/product/presentation/pages/list-product.vue'
 
 const activeTab = ref('dashboard')
