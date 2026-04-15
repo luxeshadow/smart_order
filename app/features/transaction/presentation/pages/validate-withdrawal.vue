@@ -23,19 +23,10 @@ const withdrawals = ref<GroupedWithdrawal[]>([
     id: 1,
     username: 'natanael',
     email: 'nat@gmail.com',
-    validatedWithdrawals: [10000, 15000, 12000],
+    validatedWithdrawals: [10000, 15000],
     pendingWithdrawals: [
-      { id: 11, amount: 25000, createdAt: '11 Avr 2026' },
-      { id: 12, amount: 18000, createdAt: '12 Avr 2026' }
-    ]
-  },
-  {
-    id: 2,
-    username: 'shadow',
-    email: 'shadow@gmail.com',
-    validatedWithdrawals: [20000, 8000],
-    pendingWithdrawals: [
-      { id: 21, amount: 45000, createdAt: '10 Avr 2026' }
+      { id: 101, amount: 25000, createdAt: '11 Avr 2026' },
+      { id: 102, amount: 18000, createdAt: '12 Avr 2026' }
     ]
   }
 ])
@@ -43,31 +34,28 @@ const withdrawals = ref<GroupedWithdrawal[]>([
 const filteredWithdrawals = computed(() => {
   const keyword = search.value.toLowerCase()
 
-  return withdrawals.value.filter((item) => {
-    return (
+  return withdrawals.value.filter(
+    (item) =>
       item.username.toLowerCase().includes(keyword) ||
       item.email.toLowerCase().includes(keyword)
-    )
-  })
+  )
 })
 
-const totalPending = (items: PendingWithdrawal[]) => {
-  return items.reduce((sum, item) => sum + item.amount, 0)
-}
+const totalPending = (items: PendingWithdrawal[]) =>
+  items.reduce((sum, item) => sum + item.amount, 0)
 
 const clearSearch = () => {
   search.value = ''
 }
 
-const approveWithdrawal = (id: number) => {
-  console.log('Validate:', id)
+const approveWithdrawal = (userId: number, withdrawalId: number) => {
+  console.log('validate', userId, withdrawalId)
 }
 
-const cancelWithdrawal = (id: number) => {
-  console.log('Cancel:', id)
+const cancelWithdrawal = (userId: number, withdrawalId: number) => {
+  console.log('cancel', userId, withdrawalId)
 }
 </script>
-
 
 <template>
   <div class="withdrawal-page">
@@ -92,7 +80,7 @@ const cancelWithdrawal = (id: number) => {
         :key="user.id"
         class="withdrawal-card"
       >
-        <!-- Header -->
+        <!-- user -->
         <div class="user-header">
           <div class="avatar">
             {{ user.username.charAt(0).toUpperCase() }}
@@ -104,13 +92,13 @@ const cancelWithdrawal = (id: number) => {
           </div>
 
           <div class="pending-badge">
-            {{ user.pendingWithdrawals.length }} en cours
+            {{ user.pendingWithdrawals.length }}
           </div>
         </div>
 
-        <!-- Historique validé -->
+        <!-- validated -->
         <div class="history-section">
-          <span class="section-title">Déjà validés</span>
+          <span class="section-title">Retraits validés</span>
           <div class="history-list">
             <div
               v-for="(history, index) in user.validatedWithdrawals"
@@ -122,34 +110,36 @@ const cancelWithdrawal = (id: number) => {
           </div>
         </div>
 
-        <!-- Pending withdrawals -->
+        <!-- pending individually -->
         <div class="pending-list">
           <div
             v-for="pending in user.pendingWithdrawals"
             :key="pending.id"
             class="pending-item"
           >
-            <div class="pending-info">
-              <span>Montant</span>
-              <strong>{{ pending.amount.toLocaleString() }} XOF</strong>
-            </div>
+            <div class="pending-main">
+              <div class="pending-data">
+                <span class="label">Montant</span>
+                <strong>{{ pending.amount.toLocaleString() }} XOF</strong>
+              </div>
 
-            <div class="pending-info">
-              <span>Date</span>
-              <strong>{{ pending.createdAt }}</strong>
+              <div class="pending-data">
+                <span class="label">Date</span>
+                <strong>{{ pending.createdAt }}</strong>
+              </div>
             </div>
 
             <div class="pending-actions">
               <button
-                class="action-badge cancel"
-                @click="cancelWithdrawal(pending.id)"
+                class="action-btn cancel"
+                @click="cancelWithdrawal(user.id, pending.id)"
               >
                 <i class="fi fi-rr-cross-small"></i>
               </button>
 
               <button
-                class="action-badge approve"
-                @click="approveWithdrawal(pending.id)"
+                class="action-btn approve"
+                @click="approveWithdrawal(user.id, pending.id)"
               >
                 <i class="fi fi-rr-check"></i>
               </button>
@@ -157,12 +147,9 @@ const cancelWithdrawal = (id: number) => {
           </div>
         </div>
 
-        <!-- Footer stats -->
         <div class="summary-box">
           <span>Total en attente</span>
-          <strong>
-            {{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF
-          </strong>
+          <strong>{{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF</strong>
         </div>
       </div>
     </div>
@@ -172,16 +159,18 @@ const cancelWithdrawal = (id: number) => {
 <style scoped>
 .withdrawal-grid {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .withdrawal-card {
   background: v-bind('AppColor.surface.pure');
   border: 1px solid v-bind('AppColor.surface.bone');
   border-radius: 24px;
-  padding: 16px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
 }
 
+/* HEADER USER */
 .user-header {
   display: flex;
   align-items: center;
@@ -189,22 +178,41 @@ const cancelWithdrawal = (id: number) => {
 }
 
 .avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
   display: grid;
   place-items: center;
   color: white;
+  font-size: 18px;
   font-weight: 800;
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.base'),
     v-bind('AppColor.primary.dark')
   );
+  flex-shrink: 0;
 }
 
 .user-meta {
   flex: 1;
+  min-width: 0;
+}
+
+.user-meta h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: v-bind('AppColor.tertiary.base');
+}
+
+.user-meta p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: v-bind('AppColor.tertiary.soft');
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pending-badge {
@@ -213,17 +221,20 @@ const cancelWithdrawal = (id: number) => {
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
+/* HISTORIQUE */
 .history-section {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .section-title {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   color: v-bind('AppColor.tertiary.soft');
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .history-list {
@@ -234,44 +245,111 @@ const cancelWithdrawal = (id: number) => {
 }
 
 .history-chip {
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: v-bind('AppColor.secondary.light');
+  color: v-bind('AppColor.secondary.dark');
   font-size: 10px;
   font-weight: 700;
 }
 
+/* LISTE PENDING */
 .pending-list {
-  margin-top: 14px;
+  margin-top: 16px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pending-item {
   border: 1px solid v-bind('AppColor.surface.bone');
   border-radius: 18px;
-  padding: 12px;
+  padding: 14px;
+  background: white;
 }
 
 .pending-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  align-items: center;
+  gap: 12px;
 }
 
+.pending-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pending-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: v-bind('AppColor.tertiary.charcoal');
+}
+
+.pending-date {
+  font-size: 11px;
+  color: v-bind('AppColor.tertiary.soft');
+}
+
+/* ACTIONS */
 .pending-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 8px;
 }
 
+.action-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn i {
+  font-size: 15px;
+}
+
+.cancel-btn {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.cancel-btn:active {
+  transform: scale(0.92);
+}
+
+.validate-btn {
+  background: v-bind('AppColor.primary.light');
+  color: v-bind('AppColor.primary.base');
+}
+
+.validate-btn:active {
+  transform: scale(0.92);
+}
+
+/* FOOTER SUMMARY */
 .summary-box {
-  margin-top: 14px;
+  margin-top: 16px;
   border-radius: 18px;
-  padding: 12px;
+  padding: 14px;
   background: v-bind('AppColor.surface.off');
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: v-bind('AppColor.tertiary.soft');
   font-weight: 700;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: v-bind('AppColor.primary.base');
 }
 </style>
