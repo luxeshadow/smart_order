@@ -6,12 +6,14 @@ interface PendingWithdrawal {
   id: number
   amount: number
   createdAt: string
+  method: string 
 }
 
 interface GroupedWithdrawal {
   id: number
   username: string
   email: string
+  phone: string
   validatedWithdrawals: number[]
   pendingWithdrawals: PendingWithdrawal[]
 }
@@ -23,95 +25,90 @@ const withdrawals = ref<GroupedWithdrawal[]>([
     id: 1,
     username: 'natanael',
     email: 'nat@gmail.com',
-    validatedWithdrawals: [10000, 15000],
+    phone: '+225 0707070707',
+    validatedWithdrawals: [10000, 15000, 12000],
     pendingWithdrawals: [
-      { id: 101, amount: 25000, createdAt: '11 Avr 2026' },
-      { id: 102, amount: 18000, createdAt: '12 Avr 2026' }
+      { id: 11, amount: 25000, createdAt: '11 Avr 2026', method: 'Tmoney' },
+      { id: 12, amount: 18000, createdAt: '12 Avr 2026', method: 'Tmoney' }
+    ]
+  },
+  {
+    id: 2,
+    username: 'shadow',
+    email: 'shadow@gmail.com',
+    phone: '+225 0505050505',
+    validatedWithdrawals: [20000, 8000],
+    pendingWithdrawals: [
+      { id: 21, amount: 45000, createdAt: '10 Avr 2026', method: 'Tmoney' }
     ]
   }
 ])
 
 const filteredWithdrawals = computed(() => {
   const keyword = search.value.toLowerCase()
-
-  return withdrawals.value.filter(
-    (item) =>
-      item.username.toLowerCase().includes(keyword) ||
-      item.email.toLowerCase().includes(keyword)
+  return withdrawals.value.filter((item) =>
+    item.username.toLowerCase().includes(keyword) ||
+    item.email.toLowerCase().includes(keyword) ||
+    item.phone.includes(keyword)
   )
 })
 
-const totalPending = (items: PendingWithdrawal[]) =>
-  items.reduce((sum, item) => sum + item.amount, 0)
-
-const clearSearch = () => {
-  search.value = ''
-}
-
-const approveWithdrawal = (userId: number, withdrawalId: number) => {
-  console.log('validate', userId, withdrawalId)
-}
-
-const cancelWithdrawal = (userId: number, withdrawalId: number) => {
-  console.log('cancel', userId, withdrawalId)
-}
+const clearSearch = () => { search.value = '' }
+const approveWithdrawal = (id: number) => { console.log('Validate:', id) }
+const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
 </script>
 
 <template>
   <div class="withdrawal-page">
     <div class="filters">
       <div class="search-box">
-        <Input
-          id="search-withdrawal"
-          v-model="search"
-          label="Recherche"
-          icon="fi-rr-search"
-        />
+        <Input id="search-withdrawal" v-model="search" label="Recherche" icon="fi-rr-search" />
         <button v-if="search" class="clear-btn" @click="clearSearch">
           <i class="fi fi-rr-cross-small"></i>
         </button>
       </div>
     </div>
 
-    <div class="withdrawal-list">
-      <div
-        v-for="user in filteredWithdrawals"
-        :key="user.id"
-        class="user-row"
-      >
-        <div class="row-main">
-          <div class="user-info">
-            <div class="avatar-mini">
-              {{ user.username.charAt(0).toUpperCase() }}
-            </div>
-            <div class="user-details">
-              <h3>{{ user.username }}</h3>
-              <p>{{ user.email }}</p>
-            </div>
+    <div class="withdrawal-grid">
+      <div v-for="user in filteredWithdrawals" :key="user.id" class="withdrawal-card">
+
+        <div class="user-header">
+          <div class="avatar-mini">
+            {{ user.username.charAt(0).toUpperCase() }}
           </div>
 
-          <div class="user-stats">
-            <span class="total-amount">{{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF</span>
-            <span class="count-badge">{{ user.pendingWithdrawals.length }} en attente</span>
+          <div class="user-meta">
+            <div class="main-line">
+              <div class="user-identity">
+                <h3>{{ user.username }}</h3>
+                <span class="phone-text">{{ user.phone }}</span>
+              </div>
+              <span class="pending-count">{{ user.pendingWithdrawals.length }} en cours</span>
+            </div>
           </div>
         </div>
 
-        <div class="pending-container">
-          <div
-            v-for="pending in user.pendingWithdrawals"
-            :key="pending.id"
-            class="compact-item"
-          >
-            <div class="item-data">
-              <span class="item-amount">{{ pending.amount.toLocaleString() }} XOF</span>
-              <span class="item-date">{{ pending.createdAt }}</span>
+        <div class="history-list">
+          <div v-for="(history, index) in user.validatedWithdrawals" :key="index" class="history-chip">
+            {{ history.toLocaleString() }}
+          </div>
+        </div>
+
+        <div class="pending-section">
+          <div v-for="pending in user.pendingWithdrawals" :key="pending.id" class="pending-row">
+            <div class="amount-group">
+              <div class="amount-line">
+                <span class="amount">{{ pending.amount.toLocaleString() }} XOF</span>
+                <span class="method-badge">{{ pending.method }}</span>
+              </div>
+              <span class="date">{{ pending.createdAt }}</span>
             </div>
 
-            <div class="item-actions">
-              <button class="btn-icon cancel" @click="cancelWithdrawal(user.id, pending.id)">
+            <div class="actions">
+              <button class="btn-mini cancel" @click="cancelWithdrawal(pending.id)">
                 <i class="fi fi-rr-cross-small"></i>
               </button>
-              <button class="btn-icon approve" @click="approveWithdrawal(user.id, pending.id)">
+              <button class="btn-mini approve" @click="approveWithdrawal(pending.id)">
                 <i class="fi fi-rr-check"></i>
               </button>
             </div>
@@ -123,34 +120,41 @@ const cancelWithdrawal = (userId: number, withdrawalId: number) => {
 </template>
 
 <style scoped>
-.withdrawal-list {
+.withdrawal-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 10px;
+  gap: 10px;
 }
 
-.user-row {
+.withdrawal-card {
   background: v-bind('AppColor.surface.pure');
   border: 1px solid v-bind('AppColor.surface.bone');
   border-radius: 16px;
-  overflow: hidden;
+  padding: 12px;
 }
 
-/* HEADER COMPACT */
-.row-main {
+.user-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: v-bind('AppColor.surface.off');
-  border-bottom: 1px solid v-bind('AppColor.surface.bone');
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: flex-start;
+}
+
+/* Nouveaux styles pour la ligne de montant et le badge */
+.amount-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.method-badge {
+  font-size: 9px;
+  background: #004a99;
+  /* Couleur Tmoney ou une couleur distinctive */
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .avatar-mini {
@@ -162,104 +166,119 @@ const cancelWithdrawal = (userId: number, withdrawalId: number) => {
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
-.user-details h3 {
+.user-meta {
+  flex: 1;
+}
+
+.main-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.user-identity {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-identity h3 {
   font-size: 14px;
   margin: 0;
   color: v-bind('AppColor.tertiary.base');
-}
-
-.user-details p {
-  font-size: 10px;
-  margin: 0;
-  color: v-bind('AppColor.tertiary.soft');
-}
-
-.user-stats {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-}
-
-.total-amount {
-  font-size: 14px;
   font-weight: 800;
-  color: v-bind('AppColor.primary.base');
 }
 
-.count-badge {
-  font-size: 9px;
-  text-transform: uppercase;
-  font-weight: 700;
+.phone-text {
+  font-size: 10px;
   color: v-bind('AppColor.tertiary.soft');
+  font-weight: 600;
 }
 
-/* LISTE DES ITEMS RÉDUITE */
-.pending-container {
-  padding: 8px 16px;
+.pending-count {
+  font-size: 9px;
+  font-weight: 800;
+  color: v-bind('AppColor.tertiary.soft');
+  text-transform: uppercase;
+}
+
+.history-list {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
 }
 
-.compact-item {
+.history-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: v-bind('AppColor.secondary.light');
+  color: v-bind('AppColor.secondary.dark');
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pending-section {
+  margin-top: 10px;
+  border-top: 1px solid v-bind('AppColor.surface.bone');
+  padding-top: 6px;
+}
+
+.pending-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
+}
+
+.pending-row:not(:last-child) {
   border-bottom: 1px dashed v-bind('AppColor.surface.bone');
 }
 
-.compact-item:last-child {
-  border-bottom: none;
-}
-
-.item-data {
+.amount-group {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  flex-direction: column;
 }
 
-.item-amount {
+.amount {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
+  color: v-bind('AppColor.tertiary.base');
 }
 
-.item-date {
-  font-size: 11px;
+.date {
+  font-size: 10px;
   color: v-bind('AppColor.tertiary.soft');
 }
 
-/* ACTIONS MINI */
-.item-actions {
+.actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-.btn-icon {
+.btn-mini {
   width: 28px;
   height: 28px;
   border-radius: 8px;
   border: none;
-  cursor: pointer;
   display: grid;
   place-items: center;
-  transition: 0.2s;
+  cursor: pointer;
 }
 
-.btn-icon.cancel {
+.btn-mini.cancel {
   background: #fef2f2;
   color: #dc2626;
 }
 
-.btn-icon.approve {
+.btn-mini.approve {
   background: v-bind('AppColor.primary.light');
   color: v-bind('AppColor.primary.base');
-}
-
-.btn-icon:active {
-  transform: scale(0.9);
 }
 </style>
