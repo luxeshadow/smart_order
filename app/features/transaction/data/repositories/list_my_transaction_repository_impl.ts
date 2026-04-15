@@ -1,5 +1,4 @@
 import { ListMyTransactionRemoteDatasource } from '../datasources/list_my_transaction_remote_datasource'
-import { UserTransactionModel } from '../models/user_transaction_model' // Import du model
 import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
 import type { ListMyTransactionRepository } from '../../domain/repository/list_my_transaction_repository'
@@ -8,7 +7,8 @@ import type { Failure } from '@/core/errors/failure'
 import type { UserTransaction } from '../../domain/entities/user_transaction'
 import { useApi } from '@/core/constants/supabase_client'
 
-export class ListMyTransactionRepositoryImpl implements ListMyTransactionRepository {
+export class ListMyTransactionRepositoryImpl implements ListMyTransactionRepository
+{
   private datasource: ListMyTransactionRemoteDatasource
 
   constructor() {
@@ -18,32 +18,21 @@ export class ListMyTransactionRepositoryImpl implements ListMyTransactionReposit
 
   async listMyTransaction(param: ListMyTransactionParam): Promise<UserTransaction[] | Failure> {
     try {
-      const { withdrawals, deposits } = await this.datasource.getRawTransactions(param)
+      const transactions = await this.datasource.getTransactions(param)
 
-      const mappedWithdrawals = withdrawals.map((w) => 
-        UserTransactionModel.fromSupabase(w, 'withdrawal')
+      return transactions.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
       )
-      const mappedDeposits = deposits.map((d) => 
-        UserTransactionModel.fromSupabase(d, 'deposit')
-      )
-
-      const allTransactions = [...mappedWithdrawals, ...mappedDeposits]
-
-      allTransactions.sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime()
-        const dateB = new Date(b.createdAt).getTime()
-        return dateB - dateA
-      })
-
-      return allTransactions
-
     } catch (error: any) {
       if (error instanceof DatabaseException) {
         return new DatabaseFailure(error.message)
       }
 
       return new DatabaseFailure(
-        error.message || "Erreur lors de la récupération de l'historique des transactions."
+        error.message ||
+          "Erreur lors de la récupération de l'historique des transactions."
       )
     }
   }

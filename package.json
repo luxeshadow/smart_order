@@ -24,7 +24,11 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.0.2",
     "@types/three": "^0.183.1",
-    "@vite-pwa/nuxt": "^1.1.1"
+    "@vite-pwa/nuxt": "^1.1.1",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^20.9.0",
+    "vitest": "^4.1.4"
   }
 }

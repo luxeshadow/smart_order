@@ -8,10 +8,10 @@ type ChartItem = {
 }
 
 const data: ChartItem[] = [
-  { name: 'Alibaba', value: 270 },
+  { name: 'Alibaba', value: 19070 },
   { name: 'Temu', value: 10 },
-  { name: 'Shopify', value: 2409 },
-  { name: 'Amazon', value: 5050 },
+  { name: 'Shopify', value: 7409 },
+  { name: 'Amazon', value: 1050 },
   
 ]
 

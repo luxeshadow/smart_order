@@ -18,7 +18,6 @@ const currentFilter = ref('all') // 'all' | 'deposit' | 'withdrawal'
 const repo = new ListMyTransactionRepositoryImpl()
 const listUseCase = new ListMyTransactionUseCase(repo)
 
-// --- LOGIQUE DE FILTRAGE ---
 const setFilter = (filter: string) => {
   currentFilter.value = filter
 }

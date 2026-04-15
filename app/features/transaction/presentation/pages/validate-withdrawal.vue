@@ -1,129 +1,45 @@
-<template>
-  <div class="withdrawal-page">
-    <div class="filters">
-      <div class="search-box">
-        <Input
-          id="search-withdrawal"
-          v-model="search"
-          label="Recherche"
-          icon="fi-rr-search"
-        />
-
-        <button
-          v-if="search"
-          class="clear-btn"
-          @click="clearSearch"
-        >
-          <i class="fi fi-rr-cross-small"></i>
-        </button>
-      </div>
-    </div>
-
-    <div class="withdrawal-grid">
-      <div
-        v-for="item in filteredWithdrawals"
-        :key="item.id"
-        class="withdrawal-card"
-      >
-        <div class="card-actions-top">
-          <button 
-            class="action-badge cancel" 
-            title="Annuler la demande"
-            @click="cancelWithdrawal(item.id)"
-          >
-            <i class="fi fi-rr-cross-small"></i>
-          </button>
-          <button 
-            class="action-badge approve" 
-            title="Valider le retrait"
-            @click="approveWithdrawal(item.id)"
-          >
-            <i class="fi fi-rr-check"></i>
-          </button>
-        </div>
-
-        <div class="user-header">
-          <div class="avatar">
-            {{ item.username.charAt(0).toUpperCase() }}
-          </div>
-
-          <div class="user-meta">
-            <h3>{{ item.username }}</h3>
-            <p>{{ item.email }}</p>
-          </div>
-        </div>
-
-        <div class="history-list">
-          <div
-            v-for="(history, index) in item.previousWithdrawals"
-            :key="index"
-            class="history-chip"
-          >
-            {{ history.toLocaleString() }} XOF
-          </div>
-        </div>
-
-        <div class="withdrawal-info">
-          <div class="info-box amount">
-            <span>Montant demandé</span>
-            <strong>{{ item.amount.toLocaleString() }} XOF</strong>
-          </div>
-
-          <div class="info-box date">
-            <span>Date</span>
-            <strong>{{ item.createdAt }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import Input from '@/core/components/client/mobile/Input.vue'
-import { AppColor } from '@/core/constants/app_colors'
 
-interface WithdrawalRequest {
+interface PendingWithdrawal {
+  id: number
+  amount: number
+  createdAt: string
+}
+
+interface GroupedWithdrawal {
   id: number
   username: string
   email: string
-  amount: number
-  createdAt: string
-  previousWithdrawals: number[]
+  validatedWithdrawals: number[]
+  pendingWithdrawals: PendingWithdrawal[]
 }
 
 const search = ref('')
 
-// Données fictives Smart Order
-const withdrawals = ref<WithdrawalRequest[]>([
+const withdrawals = ref<GroupedWithdrawal[]>([
   {
     id: 1,
     username: 'natanael',
     email: 'nat@gmail.com',
-    amount: 25000,
-    createdAt: '11 Avr 2026',
-    previousWithdrawals: [10000, 15000, 12000]
+    validatedWithdrawals: [10000, 15000, 12000],
+    pendingWithdrawals: [
+      { id: 11, amount: 25000, createdAt: '11 Avr 2026' },
+      { id: 12, amount: 18000, createdAt: '12 Avr 2026' }
+    ]
   },
   {
     id: 2,
     username: 'shadow',
     email: 'shadow@gmail.com',
-    amount: 45000,
-    createdAt: '10 Avr 2026',
-    previousWithdrawals: [20000, 8000]
-  },
-  {
-    id: 3,
-    username: 'benoit',
-    email: 'benoit@gmail.com',
-    amount: 30000,
-    createdAt: '11 Avr 2026',
-    previousWithdrawals: [5000]
+    validatedWithdrawals: [20000, 8000],
+    pendingWithdrawals: [
+      { id: 21, amount: 45000, createdAt: '10 Avr 2026' }
+    ]
   }
 ])
 
-// Logique de filtrage
 const filteredWithdrawals = computed(() => {
   const keyword = search.value.toLowerCase()
 
@@ -135,116 +51,137 @@ const filteredWithdrawals = computed(() => {
   })
 })
 
+const totalPending = (items: PendingWithdrawal[]) => {
+  return items.reduce((sum, item) => sum + item.amount, 0)
+}
+
 const clearSearch = () => {
   search.value = ''
 }
 
-// Actions de gestion
 const approveWithdrawal = (id: number) => {
-  console.log('Validating withdrawal:', id)
-  // Ajouter ici l'appel API pour valider
+  console.log('Validate:', id)
 }
 
 const cancelWithdrawal = (id: number) => {
-  console.log('Cancelling withdrawal:', id)
-
+  console.log('Cancel:', id)
 }
 </script>
 
+
+<template>
+  <div class="withdrawal-page">
+    <div class="filters">
+      <div class="search-box">
+        <Input
+          id="search-withdrawal"
+          v-model="search"
+          label="Recherche"
+          icon="fi-rr-search"
+        />
+
+        <button v-if="search" class="clear-btn" @click="clearSearch">
+          <i class="fi fi-rr-cross-small"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="withdrawal-grid">
+      <div
+        v-for="user in filteredWithdrawals"
+        :key="user.id"
+        class="withdrawal-card"
+      >
+        <!-- Header -->
+        <div class="user-header">
+          <div class="avatar">
+            {{ user.username.charAt(0).toUpperCase() }}
+          </div>
+
+          <div class="user-meta">
+            <h3>{{ user.username }}</h3>
+            <p>{{ user.email }}</p>
+          </div>
+
+          <div class="pending-badge">
+            {{ user.pendingWithdrawals.length }} en cours
+          </div>
+        </div>
+
+        <!-- Historique validé -->
+        <div class="history-section">
+          <span class="section-title">Déjà validés</span>
+          <div class="history-list">
+            <div
+              v-for="(history, index) in user.validatedWithdrawals"
+              :key="index"
+              class="history-chip"
+            >
+              {{ history.toLocaleString() }} XOF
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending withdrawals -->
+        <div class="pending-list">
+          <div
+            v-for="pending in user.pendingWithdrawals"
+            :key="pending.id"
+            class="pending-item"
+          >
+            <div class="pending-info">
+              <span>Montant</span>
+              <strong>{{ pending.amount.toLocaleString() }} XOF</strong>
+            </div>
+
+            <div class="pending-info">
+              <span>Date</span>
+              <strong>{{ pending.createdAt }}</strong>
+            </div>
+
+            <div class="pending-actions">
+              <button
+                class="action-badge cancel"
+                @click="cancelWithdrawal(pending.id)"
+              >
+                <i class="fi fi-rr-cross-small"></i>
+              </button>
+
+              <button
+                class="action-badge approve"
+                @click="approveWithdrawal(pending.id)"
+              >
+                <i class="fi fi-rr-check"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer stats -->
+        <div class="summary-box">
+          <span>Total en attente</span>
+          <strong>
+            {{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-
-.filters {
-  margin-bottom: 16px;
-}
-
-.search-box {
-  position: relative;
-}
-
-.clear-btn {
-  position: absolute;
-  right: 14px;
-  top: 50%; /* Centré dans l'input */
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 50%;
-  background: v-bind('AppColor.surface.smoke');
-  color: v-bind('AppColor.tertiary.soft');
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-/* GRILLE DE DEMANDES */
 .withdrawal-grid {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .withdrawal-card {
-  position: relative; /* Crucial pour les badges absolus */
   background: v-bind('AppColor.surface.pure');
   border: 1px solid v-bind('AppColor.surface.bone');
   border-radius: 24px;
   padding: 16px;
-
 }
 
-/* CONTAINER DES BADGES (STYLÉ) */
-.card-actions-top {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: flex;
-  gap: 8px;
-  z-index: 5;
-}
-
-/* STYLE DES BADGES INDIVIDUELS */
-.action-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.action-badge i {
-  font-size: 16px;
-}
-
-/* Badge Annuler (Gris -> Rouge soft au clic) */
-.cancel {
-  background-color: v-bind('AppColor.surface.smoke');
-  color: v-bind('AppColor.tertiary.soft');
-}
-
-.cancel:active {
-  background-color: #FEE2E2; /* Rouge très clair */
-  color: v-bind('AppColor.status.error');
-  transform: scale(0.9);
-}
-
-/* Badge Valider (Orange clair -> Orange base au clic) */
-.approve {
-  background-color: v-bind('AppColor.primary.light');
-  color: v-bind('AppColor.primary.base');
-}
-
-.approve:active {
-  background-color: v-bind('AppColor.primary.base');
-  color: #FFFFFF;
-  transform: scale(0.9);
-}
-
-/* CONTENU DE LA CARTE */
 .user-header {
   display: flex;
   align-items: center;
@@ -252,38 +189,40 @@ const cancelWithdrawal = (id: number) => {
 }
 
 .avatar {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.base'),
     v-bind('AppColor.primary.dark')
   );
-  color: white;
-  font-weight: 800;
-  font-size: 18px;
-  display: grid;
-  place-items: center;
 }
 
 .user-meta {
-  display: flex;
-  flex-direction: column;
-  /* Laisse de l'espace pour ne pas chevaucher les badges */
-  padding-right: 75px; 
+  flex: 1;
 }
 
-.user-meta h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: v-bind('AppColor.tertiary.base');
-}
-
-.user-meta p {
-  margin: 2px 0 0;
+.pending-badge {
+  background: v-bind('AppColor.primary.light');
+  color: v-bind('AppColor.primary.base');
+  padding: 6px 10px;
+  border-radius: 999px;
   font-size: 11px;
+  font-weight: 700;
+}
+
+.history-section {
+  margin-top: 14px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
   color: v-bind('AppColor.tertiary.soft');
 }
 
@@ -291,53 +230,48 @@ const cancelWithdrawal = (id: number) => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .history-chip {
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: v-bind('AppColor.secondary.light');
-  color: v-bind('AppColor.secondary.dark');
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.3px;
 }
 
-.withdrawal-info {
-  display: flex;
+.pending-list {
+  margin-top: 14px;
+  display: grid;
   gap: 10px;
-  margin-top: 12px;
 }
 
-.info-box {
-  flex: 1;
-  border-radius: 16px;
-  padding: 10px 12px;
+.pending-item {
   border: 1px solid v-bind('AppColor.surface.bone');
+  border-radius: 18px;
+  padding: 12px;
 }
 
-.amount {
-  background-color: v-bind('AppColor.surface.off');
+.pending-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 
-.date {
-  background-color: #FFFFFF;
+.pending-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.info-box span {
-  display: block;
-  font-size: 10px;
-  color: v-bind('AppColor.tertiary.soft');
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
-}
-
-.info-box strong {
-  font-size: 14px;
-  font-weight: 800;
-  color: v-bind('AppColor.tertiary.charcoal');
+.summary-box {
+  margin-top: 14px;
+  border-radius: 18px;
+  padding: 12px;
+  background: v-bind('AppColor.surface.off');
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
 }
 </style>
