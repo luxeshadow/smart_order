@@ -30,5 +30,8 @@
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^20.9.0",
     "vitest": "^4.1.4"
+  },
+  "optionalDependencies": {
+    "@oxc-parser/binding-linux-x64-gnu": "^0.125.0"
   }
 }
