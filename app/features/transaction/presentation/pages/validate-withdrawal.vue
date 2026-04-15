@@ -67,89 +67,55 @@ const cancelWithdrawal = (userId: number, withdrawalId: number) => {
           label="Recherche"
           icon="fi-rr-search"
         />
-
         <button v-if="search" class="clear-btn" @click="clearSearch">
           <i class="fi fi-rr-cross-small"></i>
         </button>
       </div>
     </div>
 
-    <div class="withdrawal-grid">
+    <div class="withdrawal-list">
       <div
         v-for="user in filteredWithdrawals"
         :key="user.id"
-        class="withdrawal-card"
+        class="user-row"
       >
-        <!-- user -->
-        <div class="user-header">
-          <div class="avatar">
-            {{ user.username.charAt(0).toUpperCase() }}
-          </div>
-
-          <div class="user-meta">
-            <h3>{{ user.username }}</h3>
-            <p>{{ user.email }}</p>
-          </div>
-
-          <div class="pending-badge">
-            {{ user.pendingWithdrawals.length }}
-          </div>
-        </div>
-
-        <!-- validated -->
-        <div class="history-section">
-          <span class="section-title">Retraits validés</span>
-          <div class="history-list">
-            <div
-              v-for="(history, index) in user.validatedWithdrawals"
-              :key="index"
-              class="history-chip"
-            >
-              {{ history.toLocaleString() }} XOF
+        <div class="row-main">
+          <div class="user-info">
+            <div class="avatar-mini">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-details">
+              <h3>{{ user.username }}</h3>
+              <p>{{ user.email }}</p>
             </div>
           </div>
+
+          <div class="user-stats">
+            <span class="total-amount">{{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF</span>
+            <span class="count-badge">{{ user.pendingWithdrawals.length }} en attente</span>
+          </div>
         </div>
 
-        <!-- pending individually -->
-        <div class="pending-list">
+        <div class="pending-container">
           <div
             v-for="pending in user.pendingWithdrawals"
             :key="pending.id"
-            class="pending-item"
+            class="compact-item"
           >
-            <div class="pending-main">
-              <div class="pending-data">
-                <span class="label">Montant</span>
-                <strong>{{ pending.amount.toLocaleString() }} XOF</strong>
-              </div>
-
-              <div class="pending-data">
-                <span class="label">Date</span>
-                <strong>{{ pending.createdAt }}</strong>
-              </div>
+            <div class="item-data">
+              <span class="item-amount">{{ pending.amount.toLocaleString() }} XOF</span>
+              <span class="item-date">{{ pending.createdAt }}</span>
             </div>
 
-            <div class="pending-actions">
-              <button
-                class="action-btn cancel"
-                @click="cancelWithdrawal(user.id, pending.id)"
-              >
+            <div class="item-actions">
+              <button class="btn-icon cancel" @click="cancelWithdrawal(user.id, pending.id)">
                 <i class="fi fi-rr-cross-small"></i>
               </button>
-
-              <button
-                class="action-btn approve"
-                @click="approveWithdrawal(user.id, pending.id)"
-              >
+              <button class="btn-icon approve" @click="approveWithdrawal(user.id, pending.id)">
                 <i class="fi fi-rr-check"></i>
               </button>
             </div>
           </div>
-        </div>
-
-        <div class="summary-box">
-          <span>Total en attente</span>
-          <strong>{{ totalPending(user.pendingWithdrawals).toLocaleString() }} XOF</strong>
         </div>
       </div>
     </div>
@@ -157,199 +123,143 @@ const cancelWithdrawal = (userId: number, withdrawalId: number) => {
 </template>
 
 <style scoped>
-.withdrawal-grid {
-  display: grid;
-  gap: 16px;
+.withdrawal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
 }
 
-.withdrawal-card {
+.user-row {
   background: v-bind('AppColor.surface.pure');
   border: 1px solid v-bind('AppColor.surface.bone');
-  border-radius: 24px;
-  padding: 18px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
-}
-
-/* HEADER USER */
-.user-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  color: white;
-  font-size: 18px;
-  font-weight: 800;
-  background: linear-gradient(
-    135deg,
-    v-bind('AppColor.primary.base'),
-    v-bind('AppColor.primary.dark')
-  );
-  flex-shrink: 0;
-}
-
-.user-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-meta h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: v-bind('AppColor.tertiary.base');
-}
-
-.user-meta p {
-  margin: 3px 0 0;
-  font-size: 11px;
-  color: v-bind('AppColor.tertiary.soft');
-  white-space: nowrap;
+  border-radius: 16px;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.pending-badge {
-  background: v-bind('AppColor.primary.light');
-  color: v-bind('AppColor.primary.base');
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-/* HISTORIQUE */
-.history-section {
-  margin-top: 16px;
-}
-
-.section-title {
-  font-size: 11px;
-  font-weight: 800;
-  color: v-bind('AppColor.tertiary.soft');
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.history-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.history-chip {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: v-bind('AppColor.secondary.light');
-  color: v-bind('AppColor.secondary.dark');
-  font-size: 10px;
-  font-weight: 700;
-}
-
-/* LISTE PENDING */
-.pending-list {
-  margin-top: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.pending-item {
-  border: 1px solid v-bind('AppColor.surface.bone');
-  border-radius: 18px;
-  padding: 14px;
-  background: white;
-}
-
-.pending-info {
+/* HEADER COMPACT */
+.row-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 16px;
+  background: v-bind('AppColor.surface.off');
+  border-bottom: 1px solid v-bind('AppColor.surface.bone');
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, v-bind('AppColor.primary.base'), v-bind('AppColor.primary.dark'));
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.user-details h3 {
+  font-size: 14px;
+  margin: 0;
+  color: v-bind('AppColor.tertiary.base');
+}
+
+.user-details p {
+  font-size: 10px;
+  margin: 0;
+  color: v-bind('AppColor.tertiary.soft');
+}
+
+.user-stats {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.total-amount {
+  font-size: 14px;
+  font-weight: 800;
+  color: v-bind('AppColor.primary.base');
+}
+
+.count-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: v-bind('AppColor.tertiary.soft');
+}
+
+/* LISTE DES ITEMS RÉDUITE */
+.pending-container {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed v-bind('AppColor.surface.bone');
+}
+
+.compact-item:last-child {
+  border-bottom: none;
+}
+
+.item-data {
+  display: flex;
+  align-items: baseline;
   gap: 12px;
 }
 
-.pending-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.item-amount {
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.pending-amount {
-  font-size: 16px;
-  font-weight: 800;
-  color: v-bind('AppColor.tertiary.charcoal');
-}
-
-.pending-date {
+.item-date {
   font-size: 11px;
   color: v-bind('AppColor.tertiary.soft');
 }
 
-/* ACTIONS */
-.pending-actions {
+/* ACTIONS MINI */
+.item-actions {
   display: flex;
   gap: 8px;
 }
 
-.action-btn {
-  width: 34px;
-  height: 34px;
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   border: none;
-  border-radius: 12px;
+  cursor: pointer;
   display: grid;
   place-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.2s;
 }
 
-.action-btn i {
-  font-size: 15px;
-}
-
-.cancel-btn {
+.btn-icon.cancel {
   background: #fef2f2;
   color: #dc2626;
 }
 
-.cancel-btn:active {
-  transform: scale(0.92);
-}
-
-.validate-btn {
+.btn-icon.approve {
   background: v-bind('AppColor.primary.light');
   color: v-bind('AppColor.primary.base');
 }
 
-.validate-btn:active {
-  transform: scale(0.92);
-}
-
-/* FOOTER SUMMARY */
-.summary-box {
-  margin-top: 16px;
-  border-radius: 18px;
-  padding: 14px;
-  background: v-bind('AppColor.surface.off');
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-label {
-  font-size: 12px;
-  color: v-bind('AppColor.tertiary.soft');
-  font-weight: 700;
-}
-
-.summary-value {
-  font-size: 16px;
-  font-weight: 800;
-  color: v-bind('AppColor.primary.base');
+.btn-icon:active {
+  transform: scale(0.9);
 }
 </style>
