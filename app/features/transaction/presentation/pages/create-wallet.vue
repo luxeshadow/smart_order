@@ -14,7 +14,6 @@ const router = useRouter()
 const { showToast } = useToast()
 const authStore = useAuthStore()
 
-// Initialisation Architecture
 const walletRepository = new WalletRepositoryImpl()
 const walletUseCase = new CreateWalletUseCase(walletRepository)
 
