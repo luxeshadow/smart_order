@@ -1,13 +1,13 @@
 import { DatabaseException } from '@/core/errors/exception'
 import type { ListMyTransactionParam } from '../../application/params/list_my_transaction_params'
-import { UserTransactionModel } from '../models/user_transaction_model'
+import { MyTransactionModel } from '../models/my_transaction_model'
 
 export class ListMyTransactionRemoteDatasource {
   constructor(private supabase: any) {}
 
   async getTransactions(
     param: ListMyTransactionParam
-  ): Promise<UserTransactionModel[]> {
+  ): Promise<MyTransactionModel[]> {
     try {
       const [wResponse, dResponse] = await Promise.all([
         this.supabase
@@ -30,11 +30,11 @@ export class ListMyTransactionRemoteDatasource {
       }
 
       const withdrawals = (wResponse.data || []).map((w: any) =>
-        UserTransactionModel.fromSupabase(w, 'withdrawal')
+        MyTransactionModel.fromSupabase(w, 'withdrawal')
       )
 
       const deposits = (dResponse.data || []).map((d: any) =>
-        UserTransactionModel.fromSupabase(d, 'deposit')
+        MyTransactionModel.fromSupabase(d, 'deposit')
       )
 
       return [...withdrawals, ...deposits]

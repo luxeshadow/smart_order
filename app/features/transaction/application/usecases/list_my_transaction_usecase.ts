@@ -1,7 +1,7 @@
 import type { UseCase } from '@/core/usecase/usecase'
 import type { ListMyTransactionRepository } from '../../domain/repository/list_my_transaction_repository'
 import type { ListMyTransactionParam } from '../params/list_my_transaction_params'
-import type { UserTransaction } from '../../domain/entities/user_transaction'
+import type { UserTransaction } from '../../domain/entities/my_transaction'
 import { Failure, AuthFailure } from '@/core/errors/failure'
 
 export class ListMyTransactionUseCase implements UseCase<UserTransaction[], ListMyTransactionParam> {

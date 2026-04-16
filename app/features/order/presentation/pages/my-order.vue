@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
+import { AppImage } from '@/core/constants/app_images'
 import { Failure } from '@/core/errors/failure'
 import { useToast } from '@/core/utils/useToast'
 
@@ -185,7 +186,7 @@ const categories = computed(() => [
 
                     <div v-else class="empty-state">
                         <div class="empty-icon-wrapper">
-                            <i class="fi fi-rr-box-open empty-icon"></i>
+                            <img :src="AppImage.EmptyBox" alt="Aucune donnée" class="empty-gif" />
                         </div>
                         <h3>Aucune commande</h3>
                         <p>Revenez plus tard pour de nouvelles opportunités.</p>
@@ -214,37 +215,38 @@ const categories = computed(() => [
 </template>
 
 <style scoped>
-
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 20px 20px;
+    padding: 40px 20px;
+    /* Augmenté un peu pour l'équilibre visuel */
     width: 100%;
     animation: fadeIn 0.5s ease-out;
 }
 
 .empty-icon-wrapper {
-    width: 55px;
-    height: 55px;
+    width: 80px;
+    /* Augmenté pour que le GIF soit bien visible */
+    height: 80px;
     background-color: #f8f9fa;
-    /* Fond gris très léger */
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
     border: 1px solid #f1f1f1;
-
+    overflow: hidden;
+    /* Pour que le GIF ne dépasse pas du cercle */
 }
 
-.empty-icon {
-    font-size: 25px;
-    color: #bdc3c7;
-    /* Couleur grise icône */
-    display: flex;
+.empty-gif {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Remplit le cercle proprement */
 }
 
 .empty-state h3 {
@@ -253,15 +255,30 @@ const categories = computed(() => [
     color: #2d3436;
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
+    text-transform: uppercase;
+    /* Optionnel : pour le style admin */
 }
 
 .empty-state p {
-    font-size: 10px;
+    font-size: 11px;
+    /* Légèrement plus grand pour la lisibilité */
     font-weight: 500;
     color: #95a5a6;
     margin: 0;
     max-width: 250px;
-    line-height: 1.5;
+    line-height: 1.4;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Petite animation d'entrée */

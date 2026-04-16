@@ -4,7 +4,7 @@ import { DatabaseFailure } from '@/core/errors/failure'
 import type { ListMyTransactionRepository } from '../../domain/repository/list_my_transaction_repository'
 import type { ListMyTransactionParam } from '../../application/params/list_my_transaction_params'
 import type { Failure } from '@/core/errors/failure'
-import type { UserTransaction } from '../../domain/entities/user_transaction'
+import type { MyTransaction } from '../../domain/entities/my_transaction'
 import { useApi } from '@/core/constants/supabase_client'
 
 export class ListMyTransactionRepositoryImpl implements ListMyTransactionRepository
@@ -16,7 +16,7 @@ export class ListMyTransactionRepositoryImpl implements ListMyTransactionReposit
     this.datasource = new ListMyTransactionRemoteDatasource(supabase)
   }
 
-  async listMyTransaction(param: ListMyTransactionParam): Promise<UserTransaction[] | Failure> {
+  async listMyTransaction(param: ListMyTransactionParam): Promise<MyTransaction[] | Failure> {
     try {
       const transactions = await this.datasource.getTransactions(param)
 

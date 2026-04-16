@@ -1,21 +1,21 @@
-import { ListWithdrawalRemoteDatasource } from '../datasources/list_withdrawal_remote_datasource'
+import { ListUsersWithdrawalRemoteDatasource } from '../datasources/list_users_withdrawal_remote_datasource'
 import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
-import type { ListWithdrawalRepository } from '../../domain/repository/list_withdrawal_repository'
+import type { ListUsersWithdrawalRepository } from '../../domain/repository/list_users_withdrawal_repository'
 import type { Failure } from '@/core/errors/failure'
-import type { UserTransaction } from '../../domain/entities/user_transaction'
+import type { UserWithdrawal } from '../../domain/entities/users_withdrawal'
 import { useApi } from '@/core/constants/supabase_client'
 
-export class ListWithdrawalRepositoryImpl implements ListWithdrawalRepository
+export class ListUsersWithdrawalRepositoryImpl implements ListUsersWithdrawalRepository
 {
-  private datasource: ListWithdrawalRemoteDatasource
+  private datasource: ListUsersWithdrawalRemoteDatasource
 
   constructor() {
     const supabase = useApi()
-    this.datasource = new ListWithdrawalRemoteDatasource(supabase)
+    this.datasource = new ListUsersWithdrawalRemoteDatasource(supabase)
   }
 
-  async getAllWithdrawals(): Promise<UserTransaction[] | Failure> {
+  async getAllWithdrawals(): Promise< UserWithdrawal[] | Failure> {
     try {
       const withdrawals = await this.datasource.getAllWithdrawals()
 

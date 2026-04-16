@@ -8,6 +8,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     paygateApiKey: process.env.PAYGATE_API_KEY,
+    cinetpayApiKey: process.env.CINETPAY_API_KEY,
     public: {
       geminiApiKey: process.env.VITE_GEMINI_KEY,
       geminiProjectId: process.env.VITE_GEMINI_PROJECT_ID,

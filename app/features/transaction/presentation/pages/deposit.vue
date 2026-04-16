@@ -4,18 +4,23 @@ import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
 import Input from '@/core/components/client/mobile/Input.vue'
 import { useToast } from '@/core/utils/useToast'
-import { PaygateService } from '@/services/paygate/paygate_service'
 import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
 import { DepositUseCase } from '../../application/usecases/create_deposit_usecase'
 import { DepositRepositoryImpl } from '../../data/repositories/create_deposit_repository_impl'
 import { Failure } from '@/core/errors/failure'
+import type { PaymentServiceInterface } from '@/services/payment/payment_interface'
+import { PaygateService } from '~/services/payment/paygate/paygate_service'
+import { CinetpayService } from '~/services/payment/cinetpay/cinetpay_service'
 
 const { showToast } = useToast()
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const paygateService = new PaygateService()
+let paymentService: PaymentServiceInterface
+
+paymentService = new PaygateService()
+// paymentService = new CinetpayService()
 
 const depositRepository = new DepositRepositoryImpl()
 const depositUseCase = new DepositUseCase(depositRepository)
@@ -70,7 +75,9 @@ const selectMethod = (id: string) => {
 
 const startCountdown = (seconds: number) => {
   countdown.value = seconds
+
   if (countdownInterval) clearInterval(countdownInterval)
+
   countdownInterval = setInterval(() => {
     if (countdown.value > 0) {
       countdown.value--
@@ -88,9 +95,22 @@ const stopCountdown = () => {
   countdown.value = 0
 }
 
+const resetForm = () => {
+  form.value = {
+    phoneNumber: '',
+    amount: '',
+    method: 'tmoney'
+  }
+}
+
 const handleDeposit = async () => {
   if (!authStore.user?.id) {
-    showToast('Utilisateur non connecté', 'fi-rr-cross-circle', 'error', '#ff4757')
+    showToast(
+      'Utilisateur non connecté',
+      'fi-rr-cross-circle',
+      'error',
+      '#ff4757'
+    )
     return
   }
 
@@ -98,6 +118,9 @@ const handleDeposit = async () => {
   isLoading.value = true
 
   try {
+    /**
+     * ✅ 1) création dépôt local
+     */
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
       depositPhoneNumber: form.value.phoneNumber,
@@ -110,41 +133,62 @@ const handleDeposit = async () => {
       throw new Error(depositResult.message)
     }
 
-    const paygateRes = await paygateService.createPayment({
+    /**
+     * ✅ 2) création paiement dynamique
+     */
+    const paymentRes = await paymentService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
       network: form.value.method === 'flooz' ? 'FLOOZ' : 'TMONEY',
       description: 'Recharge de compte',
-      identifier
+      identifier,
+      email: authStore.user.email,
+      name: authStore.user.username
     })
 
-    showToast('Validez le paiement sur votre téléphone', 'fi-rr-mobile-button', 'success', '#2ecc71')
-    
+    showToast(
+      'Validez le paiement sur votre téléphone',
+      'fi-rr-mobile-button',
+      'success',
+      '#2ecc71'
+    )
+
+    /**
+     * ✅ 3) attente confirmation
+     */
     startCountdown(15)
     await new Promise(resolve => setTimeout(resolve, 15000))
 
-    const statusRes = await paygateService.checkPaymentStatus(
-      String(paygateRes.tx_reference),
-      identifier 
+    /**
+     * ✅ 4) check status dynamique
+     */
+    const statusRes = await paymentService.checkPaymentStatus(
+      String(paymentRes.tx_reference),
+      identifier
     )
 
-    if (statusRes.status !== 0 || statusRes.transaction_status === 'rejected') {
+    if (
+      statusRes.status !== 0 ||
+      statusRes.transaction_status === 'rejected'
+    ) {
       throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
     }
 
-    showToast('Recharge réussie !', 'fi-rr-check', 'success', '#2ecc71')
+    showToast(
+      'Recharge réussie !',
+      'fi-rr-check',
+      'success',
+      '#2ecc71'
+    )
+
+    resetForm()
 
     setTimeout(() => {
       router.push('/home')
     }, 1000)
 
   } catch (error: any) {
-
-    form.value = {
-      phoneNumber: '',
-      amount: '',
-      method: 'tmoney'
-    }
+    resetForm()
 
     showToast(
       error.message || 'Erreur lors de la transaction',
@@ -160,6 +204,7 @@ const handleDeposit = async () => {
 
 const closeDropdown = (e: MouseEvent) => {
   const target = e.target as HTMLElement
+
   if (!target.closest('.custom-select-group')) {
     isDropdownOpen.value = false
   }

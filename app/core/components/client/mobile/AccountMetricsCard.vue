@@ -4,8 +4,8 @@ import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
 import { useLevelStore } from '@/features/level/presentation/stores/level_store'
 import { useOrderStore } from '@/features/order/presentation/stores/my_order_item_store'
-import { GetMyPrincipalBalanceUseCase } from '@/features/transaction/application/usecases/get_my_principal_balance_usecase'
-import { GetMyPrincipalBalanceRepositoryImpl } from '@/features/transaction/data/repositories/get_my_principal_balance_repository_impl'
+import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
+import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { ListMyLevelUseCase } from '@/features/level/application/usecases/list_my_level_usecase'
 import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/list_my_level_repository_impl'
 import { ListMyOrderItemUseCase } from '@/features/order/application/usecases/list_my_order_item_usecase'
@@ -18,17 +18,11 @@ const transactionStore = useTransactionStore()
 const levelStore = useLevelStore()
 const orderStore = useOrderStore()
 
-const balanceUseCase = new GetMyPrincipalBalanceUseCase(new GetMyPrincipalBalanceRepositoryImpl())
+const balanceUseCase = new ShowMyPrincipalBalanceUseCase(new ShowMyPrincipalBalanceRepositoryImpl())
 const myLevelsUseCase = new ListMyLevelUseCase(new ListMyLevelRepositoryImpl())
 const listOrdersUseCase = new ListMyOrderItemUseCase(new ListMyOrderItemRepositoryImpl())
 
-const getTodayDate = (): string => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric'
-  }).format(new Date())
-}
+
 
 const mainBalanceRaw = computed(() => transactionStore.mainBalance)
 const dailyEarningsRaw = computed(() => transactionStore.dailyEarnings)

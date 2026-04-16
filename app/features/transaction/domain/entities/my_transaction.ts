@@ -1,4 +1,4 @@
-export interface UserTransaction {
+export interface MyTransaction {
   id: string;
   amount: number;
   method: string;

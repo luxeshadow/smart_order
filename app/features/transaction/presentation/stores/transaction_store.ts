@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { UserBalanceParam } from '@/features/transaction/application/params/user_balance_params'
-import type { UserTransaction } from '@/features/transaction/domain/entities/user_transaction'
+import type { MyTransaction } from '~/features/transaction/domain/entities/my_transaction'
 import type { ListMyTransactionUseCase } from '@/features/transaction/application/usecases/list_my_transaction_usecase'
 import { DatabaseFailure } from '@/core/errors/failure'
 
@@ -11,7 +11,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   const dailyEarnings = ref<number>(0)
   const refundBalance = ref<number>(0)
 
-  const transactions = ref<UserTransaction[]>([])
+  const transactions = ref<MyTransaction[]>([])
   const isLoading = ref(false)
   const hasMore = ref(true)
 
@@ -49,7 +49,7 @@ export const useTransactionStore = defineStore('transaction', () => {
       return
     }
 
-    const freshData = result as UserTransaction[]
+    const freshData = result as MyTransaction[]
 
     // comparaison des données
     const hasChanged =

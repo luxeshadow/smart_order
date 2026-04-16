@@ -1,6 +1,6 @@
-import type { UserTransaction } from '../../domain/entities/user_transaction'
+import type { MyTransaction } from '../../domain/entities/my_transaction'
 
-export class UserTransactionModel implements UserTransaction {
+export class MyTransactionModel implements MyTransaction {
   id: string
   amount: number
   method: string
@@ -8,7 +8,7 @@ export class UserTransactionModel implements UserTransaction {
   type: 'deposit' | 'withdrawal'
   createdAt: string
 
-  constructor(data: UserTransaction) {
+  constructor(data: MyTransaction) {
     this.id = data.id
     this.amount = data.amount
     this.method = data.method
@@ -18,8 +18,8 @@ export class UserTransactionModel implements UserTransaction {
   }
 
 
-  static fromSupabase(data: any, type: 'deposit' | 'withdrawal'): UserTransactionModel {
-    return new UserTransactionModel({
+  static fromSupabase(data: any, type: 'deposit' | 'withdrawal'): MyTransactionModel {
+    return new MyTransactionModel({
       id: data.id,
       amount: Number(data.amount),
       method: data.method,

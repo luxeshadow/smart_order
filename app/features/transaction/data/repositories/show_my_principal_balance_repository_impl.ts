@@ -1,21 +1,21 @@
-import { GetMyPrincipalBalanceRemoteDatasource } from '../datasources/get_my_principal_balance_remote_datasource'
+import { ShowMyPrincipalBalanceRemoteDatasource } from '../datasources/show_my_principal_balance_remote_datasource'
 import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
-import type { GetMyPrincipalBalanceRepository } from '../../domain/repository/get_my_principal_balance_repository'
-import type { GetMyPrincipalBalanceParam } from '../../application/params/get_my_principal_balance_params'
+import type { ShowMyPrincipalBalanceRepository } from '../../domain/repository/show_my_principal_balance_repository'
+import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_my_principal_balance_params'
 import type { UserBalanceParam } from '../../application/params/user_balance_params'
 import { useApi } from '@/core/constants/supabase_client'
 
-export class GetMyPrincipalBalanceRepositoryImpl implements GetMyPrincipalBalanceRepository {
-  private datasource: GetMyPrincipalBalanceRemoteDatasource
+export class ShowMyPrincipalBalanceRepositoryImpl implements ShowMyPrincipalBalanceRepository {
+  private datasource: ShowMyPrincipalBalanceRemoteDatasource
 
   constructor() {
     const supabase = useApi()
-    this.datasource = new GetMyPrincipalBalanceRemoteDatasource(supabase)
+    this.datasource = new ShowMyPrincipalBalanceRemoteDatasource(supabase)
   }
 
   async getMyPrincipalBalance(
-    param: GetMyPrincipalBalanceParam
+    param: ShowMyPrincipalBalanceParam 
   ): Promise< UserBalanceParam | DatabaseFailure> { 
     try {
       const balances = await this.datasource.getMyPrincipalBalance(param)

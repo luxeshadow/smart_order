@@ -1,31 +1,29 @@
 import { DatabaseException } from '@/core/errors/exception'
-import { UserTransactionModel } from '../models/user_transaction_model'
+import { UserWithdrawalModel } from '../models/user_withdrawal_model'
 
-export class ListWithdrawalRemoteDatasource {
+export class ListUsersWithdrawalRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getAllWithdrawals(): Promise<UserTransactionModel[]> {
+  async getAllWithdrawals(): Promise<UserWithdrawalModel[]> {
     try {
+
       const { data, error } = await this.supabase
-        .from('withdrawals')
+        .from('withdrawal_with_user_details') 
         .select('*')
         .order('created_at', { ascending: false })
 
       if (error) {
         throw new DatabaseException(error.message)
       }
-
-      const withdrawals = (data || []).map((w: any) =>
-        UserTransactionModel.fromSupabase(w, 'withdrawal')
+      return (data || []).map((w: any) =>
+        UserWithdrawalModel.fromSupabase(w)
       )
 
-      return withdrawals
     } catch (error: any) {
       if (error instanceof DatabaseException) throw error
 
       throw new DatabaseException(
-        error.message ||
-          'Erreur lors de la récupération de la liste globale des retraits.'
+        error.message || 'Erreur lors de la récupération de la liste globale des retraits.'
       )
     }
   }

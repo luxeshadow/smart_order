@@ -1,10 +1,10 @@
 import { DatabaseException } from '@/core/errors/exception'
-import type { GetMyPrincipalBalanceParam } from '../../application/params/get_my_principal_balance_params'
+import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_my_principal_balance_params'
 
-export class GetMyPrincipalBalanceRemoteDatasource {
+export class ShowMyPrincipalBalanceRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getMyPrincipalBalance(param: GetMyPrincipalBalanceParam): Promise<{ main: number; earnings: number; refund: number }> {
+  async getMyPrincipalBalance(param: ShowMyPrincipalBalanceParam): Promise<{ main: number; earnings: number; refund: number }> {
     try {
       const { data, error } = await this.supabase
         .from('users')
