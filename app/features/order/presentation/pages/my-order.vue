@@ -221,16 +221,16 @@ const categories = computed(() => [
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px 20px;
+    padding: 20px 20px;
     /* Augmenté un peu pour l'équilibre visuel */
     width: 100%;
     animation: fadeIn 0.5s ease-out;
 }
 
 .empty-icon-wrapper {
-    width: 120px;
-
-    height: 120px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -258,7 +258,7 @@ const categories = computed(() => [
 }
 
 .empty-state p {
-    font-size: 10px;
+    font-size: 11px;
     /* Légèrement plus grand pour la lisibilité */
     font-weight: 500;
     color: #95a5a6;
