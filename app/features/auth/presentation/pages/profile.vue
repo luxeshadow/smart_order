@@ -10,8 +10,8 @@ import Footer from '@/core/components/client/mobile/Footer.vue'
 import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'
 
-import { GetMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
-import { GetMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
+import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
+import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { RefundToMainBalanceUseCase } from '@/features/transaction/application/usecases/refund_to_main_balance_usecase'
 import { RefundToMainBalanceRepositoryImpl } from '@/features/transaction/data/repositories/refund_to_main_balance_repository_impl'
 import { Failure } from '@/core/errors/failure'
@@ -28,8 +28,8 @@ const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionSto
 
 const isTransferring = ref(false)
 
-const balanceRepo = new GetMyPrincipalBalanceRepositoryImpl()
-const getBalanceUseCase = new GetMyPrincipalBalanceUseCase(balanceRepo)
+const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
+const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
 const refundRepo = new RefundToMainBalanceRepositoryImpl()
 const refundUseCase = new RefundToMainBalanceUseCase(refundRepo)
