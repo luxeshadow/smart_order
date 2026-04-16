@@ -221,7 +221,7 @@ const categories = computed(() => [
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 20px 20px;
+    padding: 10px 20px;
     /* Augmenté un peu pour l'équilibre visuel */
     width: 100%;
     animation: fadeIn 0.5s ease-out;
