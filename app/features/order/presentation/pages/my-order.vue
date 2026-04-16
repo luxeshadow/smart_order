@@ -228,8 +228,8 @@ const categories = computed(() => [
 }
 
 .empty-icon-wrapper {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     display: flex;
     align-items: center;
