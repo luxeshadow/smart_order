@@ -228,11 +228,9 @@ const categories = computed(() => [
 }
 
 .empty-icon-wrapper {
-    width: 80px;
-    /* Augmenté pour que le GIF soit bien visible */
-    height: 80px;
-    background-color: #f8f9fa;
-    border-radius: 50%;
+    width: 120px;
+
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,7 +248,7 @@ const categories = computed(() => [
 }
 
 .empty-state h3 {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 800;
     color: #2d3436;
     margin: 0 0 8px 0;
@@ -260,7 +258,7 @@ const categories = computed(() => [
 }
 
 .empty-state p {
-    font-size: 11px;
+    font-size: 10px;
     /* Légèrement plus grand pour la lisibilité */
     font-weight: 500;
     color: #95a5a6;
