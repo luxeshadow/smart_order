@@ -221,8 +221,7 @@ const categories = computed(() => [
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 10px 20px;
-    /* Augmenté un peu pour l'équilibre visuel */
+    padding: 5px 20px;
     width: 100%;
     animation: fadeIn 0.5s ease-out;
 }
@@ -237,14 +236,12 @@ const categories = computed(() => [
     margin-bottom: 16px;
     border: 1px solid #f1f1f1;
     overflow: hidden;
-    /* Pour que le GIF ne dépasse pas du cercle */
 }
 
 .empty-gif {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Remplit le cercle proprement */
 }
 
 .empty-state h3 {
@@ -254,12 +251,10 @@ const categories = computed(() => [
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
     text-transform: uppercase;
-    /* Optionnel : pour le style admin */
 }
 
 .empty-state p {
     font-size: 11px;
-    /* Légèrement plus grand pour la lisibilité */
     font-weight: 500;
     color: #95a5a6;
     margin: 0;
@@ -279,7 +274,6 @@ const categories = computed(() => [
     }
 }
 
-/* Petite animation d'entrée */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -381,7 +375,6 @@ const categories = computed(() => [
     color: #3f3e3e;
 }
 
-/* Product Card */
 .product-view {
     width: 100%;
     display: flex;
