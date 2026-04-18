@@ -17,6 +17,7 @@ export class DepositRepositoryImpl implements DepositRepository {
 
   async deposit(param: DepositParam): Promise<Deposit | DatabaseFailure> {
     try {
+
       const result = await this.datasource.deposit(param)
       return result
 
