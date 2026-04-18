@@ -38,6 +38,7 @@ export class DepositModel implements Deposit {
       amount: this.amount,
       method: this.method,
       status: this.status,
+      reference_id: this.referenceId || null
    
     }
   }
