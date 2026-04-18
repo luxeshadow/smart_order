@@ -1,5 +1,6 @@
 export interface Withdrawal {
   userId: string
+  id: string
   amount: number
   method: string
   phoneNumber: string

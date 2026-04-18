@@ -7,8 +7,8 @@ export interface PendingWithdrawalItem {
 
 export interface UserWithdrawalGroupViewModel {
   userId: string
-  username: string
-  email: string
+  username?: string
+  email?: string
   phone: string
   validatedAmounts: number[]
   totalValidated: number  

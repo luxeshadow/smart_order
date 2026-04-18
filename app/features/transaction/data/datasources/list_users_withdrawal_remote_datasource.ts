@@ -1,29 +1,30 @@
 import { DatabaseException } from '@/core/errors/exception'
-import { WithdrawalModel } from '../models/withdrawal_model'
+import type { ListUsersWithdrawalParam } from '../../application/params/list_users_withdrawal_params'
 
 export class ListUsersWithdrawalRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getAllWithdrawals(): Promise<WithdrawalModel[]> {
+  async getAllWithdrawals(param: ListUsersWithdrawalParam): Promise<any> {
     try {
-
-      const { data, error } = await this.supabase
-        .from('withdrawal_with_user_details') 
-        .select('*')
-        .order('created_at', { ascending: false })
+      const { data, error } = await this.supabase.rpc(
+        'get_users_with_withdrawals',
+        {
+          p_page: param.page,
+          p_limit: param.limit
+        }
+      )
 
       if (error) {
         throw new DatabaseException(error.message)
       }
-      return (data || []).map((w: any) =>
-        WithdrawalModel.fromSupabase(w)
-      )
+
+      return data || { data: [], total: 0 }
 
     } catch (error: any) {
       if (error instanceof DatabaseException) throw error
 
       throw new DatabaseException(
-        error.message || 'Erreur lors de la récupération de la liste globale des retraits.'
+        error.message || 'Erreur chargement withdrawals'
       )
     }
   }

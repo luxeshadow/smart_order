@@ -4,30 +4,64 @@ import { ListUsersWithdrawalUseCase } from '../../application/usecases/list_user
 import { ListUsersWithdrawalRepositoryImpl } from '../../data/repositories/list_users_withdrawal_repository_impl'
 import { Failure } from '@/core/errors/failure'
 import type { UserWithdrawalGroupViewModel } from '../viewmodels/users_withdrawal_view_model'
+import type { ListUsersWithdrawalParam } from '../../application/params/list_users_withdrawal_params'
+import { AppColor } from '@/core/constants/app_colors'
 
 const withdrawals = ref<UserWithdrawalGroupViewModel[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-onMounted(async () => {
+const page = ref(1)
+const limit = 2
+const hasMore = ref(true)
+
+async function loadWithdrawals() {
+  if (loading.value || !hasMore.value) return
+
   loading.value = true
+  error.value = null
 
   const usecase = new ListUsersWithdrawalUseCase(
     new ListUsersWithdrawalRepositoryImpl()
   )
 
-  const result = await usecase.execute()
+  const param: ListUsersWithdrawalParam = {
+    page: page.value,
+    limit
+  }
+
+  const result = await usecase.execute(param)
 
   if (result instanceof Failure) {
     error.value = result.message
   } else {
-    withdrawals.value = result
+    // 🔥 NOUVELLE STRUCTURE
+    const users = result.data || []
+    const total = result.total || 0
+
+    if (page.value === 1) {
+      withdrawals.value = users
+    } else {
+      withdrawals.value = [...withdrawals.value, ...users]
+    }
+
+    // 🔥 LA VRAIE FIX
+    hasMore.value = withdrawals.value.length < total
   }
 
   loading.value = false
+}
+
+onMounted(() => {
+  loadWithdrawals()
 })
 
-// actions
+const loadMore = async () => {
+  if (!hasMore.value) return
+  page.value++
+  await loadWithdrawals()
+}
+
 const approveWithdrawal = (id: string) => {
   console.log('Validate:', id)
 }
@@ -40,29 +74,30 @@ const cancelWithdrawal = (id: string) => {
 <template>
   <div class="withdrawal-page">
 
-    <div v-if="loading" class="state loading">
+    <!-- STATES -->
+    <div v-if="loading && page === 1" class="state loading">
       Chargement des retraits...
     </div>
 
     <div v-else-if="error" class="state error">
       {{ error }}
     </div>
+
     <div v-else-if="withdrawals.length === 0" class="state empty">
       Aucun retrait trouvé
     </div>
 
-    <!-- DATA -->
+    <!-- LIST -->
     <div v-else class="withdrawal-grid">
+
       <div
         v-for="user in withdrawals"
         :key="user.userId"
         class="withdrawal-card"
       >
-
-        <!-- HEADER -->
         <div class="user-header">
           <div class="avatar-mini">
-            {{ user.username.charAt(0).toUpperCase() }}
+            {{ user.username?.charAt(0)?.toUpperCase() || '?' }}
           </div>
 
           <div class="user-meta">
@@ -79,7 +114,6 @@ const cancelWithdrawal = (id: string) => {
           </div>
         </div>
 
-        <!-- VALIDATED -->
         <div class="history-list">
           <div
             v-for="(amount, index) in user.validatedAmounts"
@@ -90,7 +124,6 @@ const cancelWithdrawal = (id: string) => {
           </div>
         </div>
 
-        <!-- PENDING -->
         <div class="pending-section">
           <div
             v-for="pending in user.pendingWithdrawals"
@@ -110,30 +143,65 @@ const cancelWithdrawal = (id: string) => {
             </div>
 
             <div class="actions">
-              <button
-                class="btn-mini cancel"
-                @click="cancelWithdrawal(pending.id)"
-              >
-                <i class="fi fi-rr-cross-small"></i>
+              <button class="btn-mini cancel" @click="cancelWithdrawal(pending.id)">
+                ✕
               </button>
 
-              <button
-                class="btn-mini approve"
-                @click="approveWithdrawal(pending.id)"
-              >
-                <i class="fi fi-rr-check"></i>
+              <button class="btn-mini approve" @click="approveWithdrawal(pending.id)">
+                ✓
               </button>
             </div>
           </div>
         </div>
-
       </div>
-    </div>
 
+      <!-- LOAD MORE -->
+      <div v-if="hasMore" class="load-more-container">
+        <button
+          @click="loadMore"
+          :disabled="loading"
+          class="btn-load-more"
+        >
+          <span v-if="loading">Chargement...</span>
+          <span v-else>Voir plus de retraits</span>
+        </button>
+      </div>
+
+    </div>
   </div>
 </template>
 
 <style scoped>
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.btn-load-more {
+  background: v-bind('AppColor.surface.pure');
+  border: 2px solid v-bind('AppColor.primary.base');
+  color: v-bind('AppColor.primary.base');
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  max-width: 300px;
+}
+
+.btn-load-more:hover:not(:disabled) {
+  background: v-bind('AppColor.primary.base');
+  color: white;
+}
+
+.withdrawal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
 .withdrawal-grid {
   display: flex;
   flex-direction: column;

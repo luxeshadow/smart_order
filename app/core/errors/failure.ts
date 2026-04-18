@@ -1,15 +1,37 @@
 export abstract class Failure {
   message: string
+  type: string
 
-  constructor(message: string) {
+  constructor(message: string, type: string) {
     this.message = message
+    this.type = type
+  }
+
+  static isFailure(obj: any): obj is Failure {
+    return obj instanceof Failure
   }
 }
 
-export class AuthFailure extends Failure {}
+export class AuthFailure extends Failure {
+  constructor(message: string) {
+    super(message, 'AUTH_FAILURE')
+  }
+}
 
-export class UserAlreadyExistsFailure extends Failure {}
+export class UserAlreadyExistsFailure extends Failure {
+  constructor(message: string) {
+    super(message, 'USER_ALREADY_EXISTS')
+  }
+}
 
-export class DatabaseFailure extends Failure {}
+export class DatabaseFailure extends Failure {
+  constructor(message: string) {
+    super(message, 'DATABASE_FAILURE')
+  }
+}
 
-export class ServerFailure extends Failure {}
+export class ServerFailure extends Failure {
+  constructor(message: string) {
+    super(message, 'SERVER_FAILURE')
+  }
+}

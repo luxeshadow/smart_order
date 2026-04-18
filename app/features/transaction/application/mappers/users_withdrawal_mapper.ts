@@ -1,21 +1,23 @@
-import type { UserWithdrawal } from '../../domain/entities/users_withdrawal'
+import type { Withdrawal } from '../../domain/entities/withdrawal'
 import type { UserWithdrawalGroupViewModel } from '../../presentation/viewmodels/users_withdrawal_view_model'
 
 export class UserWithdrawalMapper {
   static toViewModel(
-    data: UserWithdrawal[]
+    data: Withdrawal[]
   ): UserWithdrawalGroupViewModel[] {
 
     const map = new Map<string, UserWithdrawalGroupViewModel>()
 
-    data.forEach((item) => {
+    for (const item of data) {
+
+      const createdAt = item.createdAt ?? ''
+
       if (!map.has(item.userId)) {
         map.set(item.userId, {
           userId: item.userId,
-
-          username: item.username,
-          email: item.email,
-          phone: item.phoneNumber,
+          username: item.username ?? '',
+          email: item.email ?? '',
+          phone: item.phoneNumber ?? '',
 
           validatedAmounts: [],
           totalValidated: 0,
@@ -24,48 +26,61 @@ export class UserWithdrawalMapper {
           totalPending: 0,
 
           pendingCount: 0,
-          lastWithdrawalDate: null
+          lastWithdrawalDate: createdAt || null
         })
       }
 
       const user = map.get(item.userId)!
+
+      // LAST DATE SAFE
       if (
-        !user.lastWithdrawalDate ||
-        new Date(item.createdAt) > new Date(user.lastWithdrawalDate)
+        createdAt &&
+        (!user.lastWithdrawalDate ||
+          new Date(createdAt) > new Date(user.lastWithdrawalDate))
       ) {
-        user.lastWithdrawalDate = item.createdAt
+        user.lastWithdrawalDate = createdAt
       }
 
+      // VALIDATED
       if (item.status === 'completed') {
         user.validatedAmounts.push(item.amount)
         user.totalValidated += item.amount
       }
 
+      // PENDING
       if (item.status === 'pending') {
         user.pendingWithdrawals.push({
           id: item.id,
           amount: item.amount,
-          createdAt: item.createdAt,
+          createdAt,
           method: item.method
         })
 
         user.totalPending += item.amount
         user.pendingCount += 1
       }
+    }
 
-    })
-
-    map.forEach((user) => {
+    // SORT PENDING
+    for (const user of map.values()) {
       user.pendingWithdrawals.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() -
           new Date(a.createdAt).getTime()
       )
+    }
+
+    // FINAL SORT USERS
+    return Array.from(map.values()).sort((a, b) => {
+      const dateA = a.lastWithdrawalDate
+        ? new Date(a.lastWithdrawalDate).getTime()
+        : 0
+
+      const dateB = b.lastWithdrawalDate
+        ? new Date(b.lastWithdrawalDate).getTime()
+        : 0
+
+      return dateB - dateA
     })
-    return Array.from(map.values()).sort(
-      (a, b) =>
-        new Date(b.lastWithdrawalDate || 0).getTime() -
-        new Date(a.lastWithdrawalDate || 0).getTime()
-    )
   }
 }
