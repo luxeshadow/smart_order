@@ -12,7 +12,7 @@ export class AppImage {
   //Gifs
   static readonly Money = '/assets/videos/gif/money.gif'
    static readonly Profile = '/assets/videos/gif/profile.gif'
-  static readonly EmptyBox = '/assets/videos/gif/empty_box_1.gif'
+  static readonly EmptyBox = '/assets/videos/gif/empty_box.gif'
 
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'
