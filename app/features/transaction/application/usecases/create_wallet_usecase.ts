@@ -6,11 +6,16 @@ import { WalletValidator } from '../../presentation/validators/wallet_validator'
 
 export class CreateWalletUseCase implements UseCase<Wallet, Wallet> {
   private repository: WalletRepository 
-  constructor(repository: WalletRepository) {this.repository = repository}
+
+  constructor(repository: WalletRepository) {
+this.repository = repository
+  }
+
   async execute(param: Wallet): Promise<Wallet | Failure> {
     const validationError = WalletValidator.validate({
       phoneNumber: param.paymentAddress,
-      withdrawPassword: param.withdrawalPassword})
+      withdrawPassword: param.withdrawalPassword
+    })
 
     if (validationError) {
       return new DatabaseFailure(validationError)
