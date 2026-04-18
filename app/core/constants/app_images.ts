@@ -8,10 +8,11 @@ export class AppImage {
   static readonly Fliyer_1 = '/assets/images/logo/fliyer_1.png'
   static readonly Fliyer_2 = '/assets/images/logo/fliyer_2.png'
   static readonly Ria = '/assets/images/logo/ria.png'
+  static readonly Money = '/assets/images/logo/wallet.png'
 
   //Gifs
-  static readonly Money = '/assets/videos/gif/money.gif'
-   static readonly Profile = '/assets/videos/gif/profile.gif'
+
+  static readonly Profile = '/assets/videos/gif/profile.gif'
   static readonly EmptyBox = '/assets/videos/gif/empty_box.gif'
 
   // Shops / 

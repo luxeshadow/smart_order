@@ -1,14 +1,18 @@
 import { DatabaseException } from '@/core/errors/exception'
 import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_my_principal_balance_params'
+import { UserBalanceModel } from '../models/user_balance_model'
+import type { UserBalance } from '../../domain/entities/user_balance'
 
 export class ShowMyPrincipalBalanceRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getMyPrincipalBalance(param: ShowMyPrincipalBalanceParam): Promise<{ main: number; earnings: number; refund: number }> {
+  async getMyPrincipalBalance(
+    param: ShowMyPrincipalBalanceParam
+  ): Promise<UserBalance> {
     try {
       const { data, error } = await this.supabase
         .from('users')
-        .select('main_balance, daily_earnings, refund_balance') 
+        .select('main_balance, daily_earnings, refund_balance')
         .eq('id', param.userId)
         .single()
 
@@ -16,14 +20,12 @@ export class ShowMyPrincipalBalanceRemoteDatasource {
         throw new DatabaseException(this.translateError(error.message))
       }
 
-      return {
-        main: data?.main_balance ?? 0,
-        earnings: data?.daily_earnings ?? 0,
-        refund: data?.refund_balance ?? 0
-      }
+      // 🔥 utilisation du model + conversion
+      return UserBalanceModel.fromSupabase(data)
 
     } catch (error: any) {
       if (error instanceof DatabaseException) throw error
+
       throw new DatabaseException(
         error.message || "Impossible de récupérer vos soldes."
       )

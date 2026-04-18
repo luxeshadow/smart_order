@@ -145,9 +145,7 @@ const handleUpdateWallet = async () => {
   pointer-events: v-bind("isLoading ? 'none' : 'auto'");
   transition: all 0.3s ease;
 }
-</style>
 
-<style scoped>
 /* AppBar & Base */
 .app-bar {
   position: fixed;
@@ -180,7 +178,7 @@ const handleUpdateWallet = async () => {
 }
 
 .video-wrapper {
-  padding: 0 0 20px 0;
+  padding: 0 0 10px 0;
 }
 
 .video-container {
@@ -207,7 +205,7 @@ const handleUpdateWallet = async () => {
   display: block;
 }
 
-.header-content { text-align: center; margin-bottom: 25px; }
+.header-content { text-align: start; margin-bottom: 25px; }
 .title { font-size: 22px; font-weight: 800; color: #2d3436; }
 .subtitle { color: #95a5a6; font-size: 14px; }
 

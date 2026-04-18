@@ -8,8 +8,8 @@ export class WithdrawalModel implements Withdrawal {
   password: string
   firstName?: string
   lastName?: string
-  id?: string 
-  status?: 'pending' | 'completed' | 'rejected'
+  status: 'pending' | 'completed' | 'rejected'
+  createdAt: string | null
 
   constructor(data: Withdrawal) {
     this.userId = data.userId
@@ -19,6 +19,8 @@ export class WithdrawalModel implements Withdrawal {
     this.password = data.password
     this.firstName = data.firstName
     this.lastName = data.lastName
+    this.status = data.status
+    this.createdAt = data.createdAt
   }
 
   static fromSupabase(data: any): WithdrawalModel {
@@ -30,6 +32,8 @@ export class WithdrawalModel implements Withdrawal {
       password: data.password,
       firstName: data.first_name,
       lastName: data.last_name,
+      status: data.status,
+      createdAt: data.created_at ?? null
     })
   }
 
@@ -42,6 +46,7 @@ export class WithdrawalModel implements Withdrawal {
       password: this.password,
       first_name: this.firstName,
       last_name: this.lastName,
+      status: this.status
     }
   }
 }

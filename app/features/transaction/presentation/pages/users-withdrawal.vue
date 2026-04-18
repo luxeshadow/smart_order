@@ -1,77 +1,65 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import Input from '@/core/components/client/mobile/Input.vue'
+import { ref, onMounted } from 'vue'
+import { ListUsersWithdrawalUseCase } from '../../application/usecases/list_users_withdrawal_usecase'
+import { ListUsersWithdrawalRepositoryImpl } from '../../data/repositories/list_users_withdrawal_repository_impl'
+import { Failure } from '@/core/errors/failure'
+import type { UserWithdrawalGroupViewModel } from '../viewmodels/users_withdrawal_view_model'
 
-interface PendingWithdrawal {
-  id: number
-  amount: number
-  createdAt: string
-  method: string 
-}
+const withdrawals = ref<UserWithdrawalGroupViewModel[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
-interface GroupedWithdrawal {
-  id: number
-  username: string
-  email: string
-  phone: string
-  validatedWithdrawals: number[]
-  pendingWithdrawals: PendingWithdrawal[]
-}
+onMounted(async () => {
+  loading.value = true
 
-const search = ref('')
-
-const withdrawals = ref<GroupedWithdrawal[]>([
-  {
-    id: 1,
-    username: 'natanael',
-    email: 'nat@gmail.com',
-    phone: '+225 0707070707',
-    validatedWithdrawals: [10000, 15000, 12000],
-    pendingWithdrawals: [
-      { id: 11, amount: 25000, createdAt: '11 Avr 2026', method: 'Tmoney' },
-      { id: 12, amount: 18000, createdAt: '12 Avr 2026', method: 'Tmoney' }
-    ]
-  },
-  {
-    id: 2,
-    username: 'shadow',
-    email: 'shadow@gmail.com',
-    phone: '+225 0505050505',
-    validatedWithdrawals: [20000, 8000],
-    pendingWithdrawals: [
-      { id: 21, amount: 45000, createdAt: '10 Avr 2026', method: 'Tmoney' }
-    ]
-  }
-])
-
-const filteredWithdrawals = computed(() => {
-  const keyword = search.value.toLowerCase()
-  return withdrawals.value.filter((item) =>
-    item.username.toLowerCase().includes(keyword) ||
-    item.email.toLowerCase().includes(keyword) ||
-    item.phone.includes(keyword)
+  const usecase = new ListUsersWithdrawalUseCase(
+    new ListUsersWithdrawalRepositoryImpl()
   )
+
+  const result = await usecase.execute()
+
+  if (result instanceof Failure) {
+    error.value = result.message
+  } else {
+    withdrawals.value = result
+  }
+
+  loading.value = false
 })
 
-const clearSearch = () => { search.value = '' }
-const approveWithdrawal = (id: number) => { console.log('Validate:', id) }
-const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
+// actions
+const approveWithdrawal = (id: string) => {
+  console.log('Validate:', id)
+}
+
+const cancelWithdrawal = (id: string) => {
+  console.log('Cancel:', id)
+}
 </script>
 
 <template>
   <div class="withdrawal-page">
-    <div class="filters">
-      <div class="search-box">
-        <Input id="search-withdrawal" v-model="search" label="Recherche" icon="fi-rr-search" />
-        <button v-if="search" class="clear-btn" @click="clearSearch">
-          <i class="fi fi-rr-cross-small"></i>
-        </button>
-      </div>
+
+    <div v-if="loading" class="state loading">
+      Chargement des retraits...
     </div>
 
-    <div class="withdrawal-grid">
-      <div v-for="user in filteredWithdrawals" :key="user.id" class="withdrawal-card">
+    <div v-else-if="error" class="state error">
+      {{ error }}
+    </div>
+    <div v-else-if="withdrawals.length === 0" class="state empty">
+      Aucun retrait trouvé
+    </div>
 
+    <!-- DATA -->
+    <div v-else class="withdrawal-grid">
+      <div
+        v-for="user in withdrawals"
+        :key="user.userId"
+        class="withdrawal-card"
+      >
+
+        <!-- HEADER -->
         <div class="user-header">
           <div class="avatar-mini">
             {{ user.username.charAt(0).toUpperCase() }}
@@ -83,39 +71,65 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
                 <h3>{{ user.username }}</h3>
                 <span class="phone-text">{{ user.phone }}</span>
               </div>
-              <span class="pending-count">{{ user.pendingWithdrawals.length }} en cours</span>
+
+              <span class="pending-count">
+                {{ user.pendingCount }} en cours
+              </span>
             </div>
           </div>
         </div>
 
+        <!-- VALIDATED -->
         <div class="history-list">
-          <div v-for="(history, index) in user.validatedWithdrawals" :key="index" class="history-chip">
-            {{ history.toLocaleString() }}
+          <div
+            v-for="(amount, index) in user.validatedAmounts"
+            :key="index"
+            class="history-chip"
+          >
+            {{ amount.toLocaleString() }} XOF
           </div>
         </div>
 
+        <!-- PENDING -->
         <div class="pending-section">
-          <div v-for="pending in user.pendingWithdrawals" :key="pending.id" class="pending-row">
+          <div
+            v-for="pending in user.pendingWithdrawals"
+            :key="pending.id"
+            class="pending-row"
+          >
             <div class="amount-group">
               <div class="amount-line">
-                <span class="amount">{{ pending.amount.toLocaleString() }} XOF</span>
-                <span class="method-badge">{{ pending.method }}</span>
+                <span class="amount">
+                  {{ pending.amount.toLocaleString() }} XOF
+                </span>
+                <span class="method-badge">
+                  {{ pending.method }}
+                </span>
               </div>
               <span class="date">{{ pending.createdAt }}</span>
             </div>
 
             <div class="actions">
-              <button class="btn-mini cancel" @click="cancelWithdrawal(pending.id)">
+              <button
+                class="btn-mini cancel"
+                @click="cancelWithdrawal(pending.id)"
+              >
                 <i class="fi fi-rr-cross-small"></i>
               </button>
-              <button class="btn-mini approve" @click="approveWithdrawal(pending.id)">
+
+              <button
+                class="btn-mini approve"
+                @click="approveWithdrawal(pending.id)"
+              >
                 <i class="fi fi-rr-check"></i>
               </button>
             </div>
           </div>
         </div>
+
       </div>
     </div>
+
   </div>
 </template>
 
@@ -139,7 +153,6 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
   align-items: flex-start;
 }
 
-/* Nouveaux styles pour la ligne de montant et le badge */
 .amount-line {
   display: flex;
   align-items: center;
@@ -149,7 +162,6 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
 .method-badge {
   font-size: 9px;
   background: #004a99;
-  /* Couleur Tmoney ou une couleur distinctive */
   color: white;
   padding: 1px 6px;
   border-radius: 4px;
@@ -161,7 +173,11 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: linear-gradient(135deg, v-bind('AppColor.primary.base'), v-bind('AppColor.primary.dark'));
+  background: linear-gradient(
+    135deg,
+    v-bind('AppColor.primary.base'),
+    v-bind('AppColor.primary.dark')
+  );
   color: white;
   display: grid;
   place-items: center;
@@ -219,9 +235,6 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
   color: v-bind('AppColor.secondary.dark');
   font-size: 10px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .pending-section {
@@ -280,5 +293,24 @@ const cancelWithdrawal = (id: number) => { console.log('Cancel:', id) }
 .btn-mini.approve {
   background: v-bind('AppColor.primary.light');
   color: v-bind('AppColor.primary.base');
+}
+
+/* STATES */
+.state {
+  text-align: center;
+  padding: 20px;
+  font-weight: 600;
+}
+
+.state.loading {
+  color: v-bind('AppColor.tertiary.soft');
+}
+
+.state.error {
+  color: #dc2626;
+}
+
+.state.empty {
+  color: v-bind('AppColor.tertiary.soft');
 }
 </style>

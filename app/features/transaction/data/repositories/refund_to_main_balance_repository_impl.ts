@@ -16,10 +16,8 @@ export class RefundToMainBalanceRepositoryImpl implements RefundToMainBalanceRep
 
   async refundToMainBalance(param: RefundToMainBalanceParam): Promise<void | Failure> {
     try {
-      // On appelle la datasource
       await this.datasource.refundToMainBalance(param)
-      
-      // Succès
+
       return;
 
     } catch (error: any) {

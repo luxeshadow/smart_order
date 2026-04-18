@@ -19,7 +19,6 @@ export class WithdrawalUseCase implements UseCase<Withdrawal, WithdrawParam> {
       return new AuthFailure(validationError)
     }
     const result = await this.repository.withdrawal(param)
-    
     return result
   }
 }

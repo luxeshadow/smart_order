@@ -1,25 +1,18 @@
 import { DatabaseException } from '@/core/errors/exception'
-import { DepositModel } from '../models/deposit_model'
-import type { DepositParam } from '../../application/params/deposit_params'
+import { UserBalanceModel } from '../models/user_balance_model'
+import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_my_principal_balance_params'
 
-export class DepositRemoteDatasource {
-   constructor(private supabase: any) {}
+export class ShowMyPrincipalBalanceRemoteDatasource {
+  constructor(private supabase: any) {}
 
-  async deposit(param: DepositParam): Promise<DepositModel> {
+  async getMyPrincipalBalance(
+    param: ShowMyPrincipalBalanceParam
+  ): Promise<UserBalanceModel> {
     try {
-      const insertData = {
-        user_id: param.userId,
-        deposit_phone_number: param.depositPhoneNumber,
-        amount: param.amount,
-        method: param.method,
-        status: 'pending',
-        reference_id: param.referenceId || null
-      }
-
       const { data, error } = await this.supabase
-        .from('deposits')
-        .insert([insertData])
-        .select() 
+        .from('users')
+        .select('main_balance, daily_earnings, refund_balance')
+        .eq('id', param.userId)
         .single()
 
       if (error) {
@@ -27,21 +20,31 @@ export class DepositRemoteDatasource {
       }
 
       if (!data) {
-        throw new DatabaseException("Aucune donnée retournée après l'insertion.")
+        throw new DatabaseException("Aucune donnée trouvée pour cet utilisateur.")
       }
 
-      return DepositModel.fromSupabase(data)
+      return UserBalanceModel.fromSupabase(data)
 
     } catch (error: any) {
       if (error instanceof DatabaseException) throw error
-      throw new DatabaseException(error.message || "Erreur lors de la communication avec le serveur.")
+
+      throw new DatabaseException(
+        error.message || "Impossible de récupérer vos soldes."
+      )
     }
   }
 
   private translateError(message?: string): string {
-    if (!message) return "Erreur lors de la transaction."
-    if (message.includes("violates check constraint")) return "Le montant doit être supérieur à 0."
-    if (message.includes("violates foreign key constraint")) return "Utilisateur non reconnu."
+    if (!message) return "Erreur lors de la récupération des soldes."
+
+    if (message.includes("JSON object requested, but no rows were returned")) {
+      return "Compte utilisateur introuvable."
+    }
+
+    if (message.includes("database connection error")) {
+      return "Problème de connexion à la base de données."
+    }
+
     return message
   }
 }

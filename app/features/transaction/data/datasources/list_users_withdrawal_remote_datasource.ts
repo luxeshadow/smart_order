@@ -1,10 +1,10 @@
 import { DatabaseException } from '@/core/errors/exception'
-import { UserWithdrawalModel } from '../models/user_withdrawal_model'
+import { WithdrawalModel } from '../models/withdrawal_model'
 
 export class ListUsersWithdrawalRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async getAllWithdrawals(): Promise<UserWithdrawalModel[]> {
+  async getAllWithdrawals(): Promise<WithdrawalModel[]> {
     try {
 
       const { data, error } = await this.supabase
@@ -16,7 +16,7 @@ export class ListUsersWithdrawalRemoteDatasource {
         throw new DatabaseException(error.message)
       }
       return (data || []).map((w: any) =>
-        UserWithdrawalModel.fromSupabase(w)
+        WithdrawalModel.fromSupabase(w)
       )
 
     } catch (error: any) {

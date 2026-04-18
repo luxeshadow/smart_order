@@ -7,7 +7,8 @@ import type { Failure } from '@/core/errors/failure'
 import type { MyTransaction } from '../../domain/entities/my_transaction'
 import { useApi } from '@/core/constants/supabase_client'
 
-export class ListMyTransactionRepositoryImpl implements ListMyTransactionRepository
+export class ListMyTransactionRepositoryImpl
+  implements ListMyTransactionRepository
 {
   private datasource: ListMyTransactionRemoteDatasource
 
@@ -18,13 +19,7 @@ export class ListMyTransactionRepositoryImpl implements ListMyTransactionReposit
 
   async listMyTransaction(param: ListMyTransactionParam): Promise<MyTransaction[] | Failure> {
     try {
-      const transactions = await this.datasource.getTransactions(param)
-
-      return transactions.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime()
-      )
+      return await this.datasource.getTransactions(param)
     } catch (error: any) {
       if (error instanceof DatabaseException) {
         return new DatabaseFailure(error.message)

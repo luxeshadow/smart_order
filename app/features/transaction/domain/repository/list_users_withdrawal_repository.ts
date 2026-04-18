@@ -1,6 +1,6 @@
 import type { Failure } from '@/core/errors/failure'
-import type { UserWithdrawal } from '../entities/users_withdrawal'
+import type { Withdrawal } from '../entities/withdrawal'
 
 export interface ListUsersWithdrawalRepository {
-    getAllWithdrawals(): Promise< UserWithdrawal[]|Failure>
+    getAllWithdrawals(): Promise< Withdrawal[]|Failure>
 }

@@ -3,10 +3,12 @@ import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
 import type { ShowMyPrincipalBalanceRepository } from '../../domain/repository/show_my_principal_balance_repository'
 import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_my_principal_balance_params'
-import type { UserBalanceParam } from '../../application/params/user_balance_params'
 import { useApi } from '@/core/constants/supabase_client'
+import { UserBalance } from '../../domain/entities/user_balance'
 
-export class ShowMyPrincipalBalanceRepositoryImpl implements ShowMyPrincipalBalanceRepository {
+export class ShowMyPrincipalBalanceRepositoryImpl
+  implements ShowMyPrincipalBalanceRepository
+{
   private datasource: ShowMyPrincipalBalanceRemoteDatasource
 
   constructor() {
@@ -15,12 +17,15 @@ export class ShowMyPrincipalBalanceRepositoryImpl implements ShowMyPrincipalBala
   }
 
   async getMyPrincipalBalance(
-    param: ShowMyPrincipalBalanceParam 
-  ): Promise< UserBalanceParam | DatabaseFailure> { 
+    param: ShowMyPrincipalBalanceParam
+  ): Promise<UserBalance | DatabaseFailure> {
     try {
-      const balances = await this.datasource.getMyPrincipalBalance(param)
-
-      return balances
+      const model = await this.datasource.getMyPrincipalBalance(param)
+      return new UserBalance({
+        main: model.main,
+        earnings: model.earnings,
+        refund: model.refund
+      })
 
     } catch (error: any) {
       if (error instanceof DatabaseException) {
