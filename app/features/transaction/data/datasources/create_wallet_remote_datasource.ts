@@ -4,7 +4,7 @@ import type { WalletConfigParam } from '../../application/params/wallet_params'
 export class WalletRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async upsertWallet(param: WalletConfigParam): Promise<void> {
+  async createWallet(param: WalletConfigParam): Promise<void> {
     const { error } = await this.supabase
       .from('wallets')
       .upsert(

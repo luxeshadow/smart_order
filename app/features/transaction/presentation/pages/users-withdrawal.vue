@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ListUsersWithdrawalUseCase } from '../../application/usecases/list_users_withdrawal_usecase'
+import { UpdateWithdrawalUseCase } from '../../application/usecases/update_withdrawal_usecase'
+import { UpdateWithdrawalRepositoryImpl } from '../../data/repositories/update_withdrawal_repository_impl'
 import { ListUsersWithdrawalRepositoryImpl } from '../../data/repositories/list_users_withdrawal_repository_impl'
 import { Failure } from '@/core/errors/failure'
 import type { UserWithdrawalGroupViewModel } from '../viewmodels/users_withdrawal_view_model'
 import type { ListUsersWithdrawalParam } from '../../application/params/list_users_withdrawal_params'
 import { AppColor } from '@/core/constants/app_colors'
+import { useToast } from '@/core/utils/useToast'
+
+const { showToast } = useToast()
 
 const withdrawals = ref<UserWithdrawalGroupViewModel[]>([])
 const loading = ref(false)
@@ -62,16 +67,71 @@ const loadMore = async () => {
   await loadWithdrawals()
 }
 
-const approveWithdrawal = (id: string) => {
-  console.log('Validate:', id)
+const showModal = ref(false)
+const actionType = ref<'approve' | 'cancel' | null>(null)
+const selectedId = ref<string | null>(null)
+
+const openConfirm = (type: 'approve' | 'cancel', id: string) => {
+  actionType.value = type
+  selectedId.value = id
+  showModal.value = true
 }
 
-const cancelWithdrawal = (id: string) => {
-  console.log('Cancel:', id)
+const confirmAction = async () => {
+  if (!selectedId.value) return
+
+  const status =
+    actionType.value === 'approve' ? 'completed' : 'rejected'
+
+  const repository = new UpdateWithdrawalRepositoryImpl()
+  const updateWithdrawalUseCase = new UpdateWithdrawalUseCase(repository)
+
+  const result = await updateWithdrawalUseCase.execute({
+    id: selectedId.value,
+    status
+  })
+
+  if (result instanceof Failure) {
+    showToast(result.message, 'fi-rr-cross-circle', 'error')
+  } else {
+    showToast(
+      actionType.value === 'approve'
+        ? 'Retrait validé avec succès'
+        : 'Retrait annulé et remboursé',
+      'fi-rr-check',
+      'success'
+    )
+
+    // 🔥 reset propre (sinon duplication)
+    page.value = 1
+    hasMore.value = true
+    withdrawals.value = []
+
+    await loadWithdrawals()
+  }
+
+  showModal.value = false
+}
+const closeModal = () => {
+  showModal.value = false
 }
 </script>
 
 <template>
+  <div v-if="showModal" class="confirm-modal">
+    <div class="modal-box">
+      <p class="modal-text">
+        {{ actionType === 'approve'
+          ? 'Voulez-vous vraiment compléter ce retrait ?'
+          : 'Voulez-vous vraiment annuler ce retrait ?' }}
+      </p>
+
+      <div class="modal-actions">
+        <button class="btn cancel" @click="closeModal">Non</button>
+        <button class="btn confirm" @click="confirmAction">Oui</button>
+      </div>
+    </div>
+  </div>
   <div class="withdrawal-page">
 
     <!-- STATES -->
@@ -90,11 +150,7 @@ const cancelWithdrawal = (id: string) => {
     <!-- LIST -->
     <div v-else class="withdrawal-grid">
 
-      <div
-        v-for="user in withdrawals"
-        :key="user.userId"
-        class="withdrawal-card"
-      >
+      <div v-for="user in withdrawals" :key="user.userId" class="withdrawal-card">
         <div class="user-header">
           <div class="avatar-mini">
             {{ user.username?.charAt(0)?.toUpperCase() || '?' }}
@@ -115,21 +171,13 @@ const cancelWithdrawal = (id: string) => {
         </div>
 
         <div class="history-list">
-          <div
-            v-for="(amount, index) in user.validatedAmounts"
-            :key="index"
-            class="history-chip"
-          >
+          <div v-for="(amount, index) in user.validatedAmounts" :key="index" class="history-chip">
             {{ amount.toLocaleString() }} XOF
           </div>
         </div>
 
         <div class="pending-section">
-          <div
-            v-for="pending in user.pendingWithdrawals"
-            :key="pending.id"
-            class="pending-row"
-          >
+          <div v-for="pending in user.pendingWithdrawals" :key="pending.id" class="pending-row">
             <div class="amount-group">
               <div class="amount-line">
                 <span class="amount">
@@ -143,11 +191,11 @@ const cancelWithdrawal = (id: string) => {
             </div>
 
             <div class="actions">
-              <button class="btn-mini cancel" @click="cancelWithdrawal(pending.id)">
+              <button class="btn-mini cancel" @click="openConfirm('cancel', pending.id)">
                 ✕
               </button>
 
-              <button class="btn-mini approve" @click="approveWithdrawal(pending.id)">
+              <button class="btn-mini approve" @click="openConfirm('approve', pending.id)">
                 ✓
               </button>
             </div>
@@ -155,13 +203,10 @@ const cancelWithdrawal = (id: string) => {
         </div>
       </div>
 
+
       <!-- LOAD MORE -->
       <div v-if="hasMore" class="load-more-container">
-        <button
-          @click="loadMore"
-          :disabled="loading"
-          class="btn-load-more"
-        >
+        <button @click="loadMore" :disabled="loading" class="btn-load-more">
           <span v-if="loading">Chargement...</span>
           <span v-else>Voir plus de retraits</span>
         </button>
@@ -169,9 +214,71 @@ const cancelWithdrawal = (id: string) => {
 
     </div>
   </div>
+
 </template>
 
 <style scoped>
+/*modal*/
+/*modal*/
+.confirm-modal {
+  position: fixed;
+  /* On remplace bottom par top */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* On ajoute un fond semi-transparent pour faire ressortir le modal */
+  background: rgba(0, 0, 0, 0.229); 
+  display: flex;
+  align-items: center; /* Centrage vertical */
+  justify-content: center; /* Centrage horizontal */
+  z-index: 999;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%; /* Pour mobile */
+  max-width: 320px; /* Taille max sur écran large */
+  /* On enlève le transform précédent */
+}
+
+/* ... le reste de ton CSS ne change pas ... */
+
+.modal-text {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn.cancel {
+  background: #f3f4f6;
+}
+
+.btn.confirm {
+  background: v-bind('AppColor.primary.base');
+  color: white;
+}
+
+/*modal*/
 .load-more-container {
   display: flex;
   justify-content: center;
@@ -241,11 +348,9 @@ const cancelWithdrawal = (id: string) => {
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: linear-gradient(
-    135deg,
-    v-bind('AppColor.primary.base'),
-    v-bind('AppColor.primary.dark')
-  );
+  background: linear-gradient(135deg,
+      v-bind('AppColor.primary.base'),
+      v-bind('AppColor.primary.dark'));
   color: white;
   display: grid;
   place-items: center;

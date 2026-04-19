@@ -6,8 +6,7 @@ import type { ShowMyPrincipalBalanceParam } from '../../application/params/show_
 import { useApi } from '@/core/constants/supabase_client'
 import { UserBalance } from '../../domain/entities/user_balance'
 
-export class ShowMyPrincipalBalanceRepositoryImpl
-  implements ShowMyPrincipalBalanceRepository
+export class ShowMyPrincipalBalanceRepositoryImpl implements ShowMyPrincipalBalanceRepository
 {
   private datasource: ShowMyPrincipalBalanceRemoteDatasource
 

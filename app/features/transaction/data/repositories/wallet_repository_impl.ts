@@ -12,15 +12,13 @@ export class WalletRepositoryImpl implements WalletRepository {
     this.datasource = new WalletRemoteDatasource(useApi())
   }
 
-  async createWallet(param: WalletConfigParam): Promise<Wallet | DatabaseFailure> {
+  async createWallet(param: WalletConfigParam): Promise<void | DatabaseFailure> {
     try {
-      return await this.datasource.createWallet(param)
+      await this.datasource.createWallet(param)
     } catch (error: any) {
       return new DatabaseFailure(
         error.message || "Erreur lors de l'enregistrement du wallet."
       )
     }
   }
-
-
 }

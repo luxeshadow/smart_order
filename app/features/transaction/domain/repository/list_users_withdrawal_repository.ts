@@ -8,7 +8,5 @@ export interface PaginatedWithdrawals {
 }
 
 export interface ListUsersWithdrawalRepository {
-  getAllWithdrawals(
-    param: ListUsersWithdrawalParam
-  ): Promise<PaginatedWithdrawals | Failure>
+  getAllWithdrawals(param: ListUsersWithdrawalParam): Promise<PaginatedWithdrawals | Failure>
 }

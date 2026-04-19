@@ -19,8 +19,6 @@ export class ShowMyPrincipalBalanceRemoteDatasource {
       if (error) {
         throw new DatabaseException(this.translateError(error.message))
       }
-
-      // 🔥 utilisation du model + conversion
       return UserBalanceModel.fromSupabase(data)
 
     } catch (error: any) {

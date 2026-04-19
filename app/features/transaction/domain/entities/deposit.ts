@@ -5,5 +5,4 @@ export interface Deposit {
   amount: number;            
   method: string;             
   status: 'pending' | 'completed' | 'failed'; 
-
 }

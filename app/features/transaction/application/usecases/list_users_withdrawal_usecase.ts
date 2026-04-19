@@ -4,9 +4,8 @@ import type { ListUsersWithdrawalParam } from '../params/list_users_withdrawal_p
 import { Failure } from '@/core/errors/failure'
 import type { UserWithdrawalGroupViewModel } from '../../presentation/viewmodels/users_withdrawal_view_model'
 
-export interface PaginatedWithdrawals {
-  data: UserWithdrawalGroupViewModel[]
-  total: number
+export interface PaginatedWithdrawals {data: UserWithdrawalGroupViewModel[]
+total: number
 }
 
 export class ListUsersWithdrawalUseCase
@@ -27,8 +26,6 @@ export class ListUsersWithdrawalUseCase
     if (result instanceof Failure) {
       return result
     }
-
-    // 🔥 IMPORTANT : retourner data + total
     return {
       data: result.data,
       total: result.total

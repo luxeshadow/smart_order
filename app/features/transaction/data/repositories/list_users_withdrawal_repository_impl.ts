@@ -21,12 +21,9 @@ export class ListUsersWithdrawalRepositoryImpl
     this.datasource = new ListUsersWithdrawalRemoteDatasource(supabase)
   }
 
-  async getAllWithdrawals(
-    param: ListUsersWithdrawalParam
-  ): Promise<PaginatedWithdrawals | Failure> {
+  async getAllWithdrawals(param: ListUsersWithdrawalParam): Promise<PaginatedWithdrawals | Failure> {
     try {
       const response = await this.datasource.getAllWithdrawals(param)
-
       return {
         data: response.data || [],
         total: response.total || 0
