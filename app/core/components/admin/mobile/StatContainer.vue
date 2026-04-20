@@ -13,7 +13,8 @@ const stats = ref<PlatformStats | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// 👉 SWITCH
+// scroll
+const containerRef = ref<HTMLElement | null>(null)
 const currentTab = ref(0)
 
 const totalBalance = computed(() => {
@@ -32,31 +33,50 @@ const currentDate = computed(() => {
 const fetchStats = async () => {
   loading.value = true
   error.value = null
+
   const result = await statsUseCase.execute()
-  
+
   if (result instanceof Failure) {
     error.value = result.message
-    console.error(result.message)
   } else {
     stats.value = result
   }
+
   loading.value = false
+}
+
+/* 🔥 SCROLL TRACK */
+const onScroll = () => {
+  if (!containerRef.value) return
+
+  const width = containerRef.value.clientWidth
+  currentTab.value = Math.round(containerRef.value.scrollLeft / width)
+}
+
+/* 🔥 CLICK INDICATOR */
+const goTo = (index: number) => {
+  if (!containerRef.value) return
+
+  const width = containerRef.value.clientWidth
+  containerRef.value.scrollTo({
+    left: index * width,
+    behavior: 'smooth'
+  })
 }
 
 onMounted(() => {
   fetchStats()
 })
 </script>
-
 <template>
   <div class="dashboard-container">
 
-    <!-- 🔥 SWITCH BLOCK -->
-    <div class="block-container">
+    <!-- 🔥 SCROLL BLOCK -->
+    <div class="block-container" ref="containerRef" @scroll="onScroll">
 
       <!-- ================= WALLET ================= -->
-      <div v-if="currentTab === 0" class="fade">
-        <div class="wallet-card" :class="{ 'loading': loading }">
+      <div class="block-page">
+        <div class="wallet-card" :class="{ loading }">
 
           <div v-if="loading" class="loading-overlay">
             <div class="spinner"></div>
@@ -84,12 +104,10 @@ onMounted(() => {
               <i class="fi fi-rr-wallet"></i>
               <span>Solde Total</span>
             </div>
-            <div class="balance-main">
-              <h1 class="balance-value">
-                {{ totalBalance.toLocaleString('fr-FR') }}
-              </h1>
-            </div>
-            <div class="balance-trend" v-if="stats"></div>
+
+            <h1 class="balance-value">
+              {{ totalBalance.toLocaleString('fr-FR') }}
+            </h1>
           </div>
 
           <div class="stats-grid">
@@ -99,7 +117,9 @@ onMounted(() => {
               </div>
               <div class="stat-content">
                 <span class="stat-label">Dépôts</span>
-                <strong class="stat-value">{{ stats?.totalDeposits.toLocaleString('fr-FR') || '0' }}</strong>
+                <strong class="stat-value">
+                  {{ stats?.totalDeposits.toLocaleString('fr-FR') || 0 }}
+                </strong>
               </div>
             </div>
 
@@ -109,20 +129,20 @@ onMounted(() => {
               </div>
               <div class="stat-content">
                 <span class="stat-label">Retraits</span>
-                <strong class="stat-value">{{ stats?.totalWithdrawals.toLocaleString('fr-FR') || '0' }}</strong>
-                
+                <strong class="stat-value">
+                  {{ stats?.totalWithdrawals.toLocaleString('fr-FR') || 0 }}
+                </strong>
               </div>
             </div>
           </div>
 
-          <div class="gradient-bg"></div>
-          <div class="noise-overlay"></div>
         </div>
       </div>
 
       <!-- ================= USERS ================= -->
-      <div v-if="currentTab === 1" class="fade">
+      <div class="block-page">
         <div class="user-section">
+
           <div class="section-header">
             <i class="fi fi-rr-users-alt"></i>
             <span>Utilisateurs</span>
@@ -144,7 +164,7 @@ onMounted(() => {
                 <i class="fi fi-rr-shield"></i>
               </div>
               <div class="user-stat-info">
-                <span class="user-stat-label">Administrateurs</span>
+                <span class="user-stat-label">Admins</span>
                 <strong class="user-stat-value">{{ stats?.countAdmins || 0 }}</strong>
               </div>
             </div>
@@ -154,11 +174,12 @@ onMounted(() => {
                 <i class="fi fi-rr-eye-crossed"></i>
               </div>
               <div class="user-stat-info">
-                <span class="user-stat-label">Comptes Factices</span>
+                <span class="user-stat-label">Fakes</span>
                 <strong class="user-stat-value">{{ stats?.countFakes || 0 }}</strong>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -166,14 +187,33 @@ onMounted(() => {
 
     <!-- 🔥 INDICATEURS -->
     <div class="block-indicators">
-      <span :class="{ active: currentTab === 0 }" @click="currentTab = 0"></span>
-      <span :class="{ active: currentTab === 1 }" @click="currentTab = 1"></span>
+      <span :class="{ active: currentTab === 0 }" @click="goTo(0)"></span>
+      <span :class="{ active: currentTab === 1 }" @click="goTo(1)"></span>
     </div>
 
   </div>
 </template>
 
 <style scoped>
+.block-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+.block-container > div {
+  min-width: 100%;
+  scroll-snap-align: start;
+}.block-container::-webkit-scrollbar {
+  display: none;
+}
+
+.block-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 /* 🔥 AJOUT MINIMAL */
 .block-indicators {
@@ -349,7 +389,7 @@ onMounted(() => {
   border-radius: 28px;
   padding: 20px;
   display: flex;
-  gap: 16px;
+  gap: 12px;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -417,7 +457,7 @@ onMounted(() => {
 .user-section {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-radius: 32px;
-  padding: 28px;
+  padding: 15px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
   position: sticky;
@@ -431,22 +471,22 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .user-stats-grid {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   background: transparent;
 }
 
 .user-stat-item {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 13px;
   padding: 16px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 24px;
