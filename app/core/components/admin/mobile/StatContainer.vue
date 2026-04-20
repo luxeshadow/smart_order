@@ -5,7 +5,6 @@ import type { PlatformStats } from '../../../../features/smartorder_stats/domain
 import { PlatformStatsRepositoryImpl } from '../../../../features/smartorder_stats/data/repositories/platform_stats_repository_impl'
 import { GetPlatformStatsUseCase } from '../../../../features/smartorder_stats/application/usecases/get_platform_stats_usecase'
 
-// Clean Architecture
 const repository = new PlatformStatsRepositoryImpl()
 const statsUseCase = new GetPlatformStatsUseCase(repository)
 
@@ -45,7 +44,6 @@ const fetchStats = async () => {
   loading.value = false
 }
 
-/* 🔥 SCROLL TRACK */
 const onScroll = () => {
   if (!containerRef.value) return
 
@@ -53,7 +51,6 @@ const onScroll = () => {
   currentTab.value = Math.round(containerRef.value.scrollLeft / width)
 }
 
-/* 🔥 CLICK INDICATOR */
 const goTo = (index: number) => {
   if (!containerRef.value) return
 
@@ -71,7 +68,6 @@ onMounted(() => {
 <template>
   <div class="dashboard-container">
 
-    <!-- 🔥 SCROLL BLOCK -->
     <div class="block-container" ref="containerRef" @scroll="onScroll">
 
       <!-- ================= WALLET ================= -->
@@ -185,7 +181,6 @@ onMounted(() => {
 
     </div>
 
-    <!-- 🔥 INDICATEURS -->
     <div class="block-indicators">
       <span :class="{ active: currentTab === 0 }" @click="goTo(0)"></span>
       <span :class="{ active: currentTab === 1 }" @click="goTo(1)"></span>

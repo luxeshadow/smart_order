@@ -17,7 +17,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 const page = ref(1)
-const limit = 2
+const limit = 25
 const hasMore = ref(true)
 
 async function loadWithdrawals() {
