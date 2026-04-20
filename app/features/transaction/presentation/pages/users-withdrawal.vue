@@ -40,7 +40,6 @@ async function loadWithdrawals() {
   if (result instanceof Failure) {
     error.value = result.message
   } else {
-    // 🔥 NOUVELLE STRUCTURE
     const users = result.data || []
     const total = result.total || 0
 
@@ -50,7 +49,6 @@ async function loadWithdrawals() {
       withdrawals.value = [...withdrawals.value, ...users]
     }
 
-    // 🔥 LA VRAIE FIX
     hasMore.value = withdrawals.value.length < total
   }
 
@@ -102,7 +100,6 @@ const confirmAction = async () => {
       'success'
     )
 
-    // 🔥 reset propre (sinon duplication)
     page.value = 1
     hasMore.value = true
     withdrawals.value = []
@@ -153,7 +150,7 @@ const closeModal = () => {
       <div v-for="user in withdrawals" :key="user.userId" class="withdrawal-card">
         <div class="user-header">
           <div class="avatar-mini">
-            {{ user.username?.charAt(0)?.toUpperCase() || '?' }}
+            {{ user.role }}
           </div>
 
           <div class="user-meta">
@@ -345,9 +342,9 @@ const closeModal = () => {
 }
 
 .avatar-mini {
-  width: 32px;
+  width: 40px;
   height: 32px;
-  border-radius: 10px;
+  border-radius: 7px;
   background: linear-gradient(135deg,
       v-bind('AppColor.primary.base'),
       v-bind('AppColor.primary.dark'));

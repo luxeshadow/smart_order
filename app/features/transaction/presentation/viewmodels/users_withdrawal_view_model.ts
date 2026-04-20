@@ -9,6 +9,7 @@ export interface UserWithdrawalGroupViewModel {
   userId: string
   username?: string
   email?: string
+  role: string
   phone: string
   validatedAmounts: number[]
   totalValidated: number  

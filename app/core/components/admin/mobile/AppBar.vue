@@ -11,11 +11,11 @@
     </div>
 
     <div class="actions-group">
-      <button class="action-btn" @click="$router.push('/history')">
+      <button class="action-btn" @click="">
         <i class="fi fi-rr-document-signed"></i>
       </button>
 
-      <button class="action-btn relative" @click="$router.push('/notifications')">
+      <button class="action-btn relative" @click="">
         <i class="fi fi-rr-bell"></i>
         <span v-if="hasNotifications" class="notification-dot"></span>
       </button>
