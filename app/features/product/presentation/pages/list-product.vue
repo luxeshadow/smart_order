@@ -69,7 +69,7 @@ onMounted(async () => {
 
 .page-title {
   margin-left: 16px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin-top: 24px;
   margin-bottom: 12px;

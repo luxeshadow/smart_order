@@ -13,6 +13,9 @@ const stats = ref<PlatformStats | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
+// 👉 SWITCH
+const currentTab = ref(0)
+
 const totalBalance = computed(() => {
   if (!stats.value) return 0
   return stats.value.totalDeposits - stats.value.totalWithdrawals
@@ -47,128 +50,167 @@ onMounted(() => {
 
 <template>
   <div class="dashboard-container">
-    <div class="dashboard-grid">
-      <!-- Main Wallet Card -->
-      <div class="wallet-card" :class="{ 'loading': loading }">
-        <!-- Loading Overlay -->
-        <div v-if="loading" class="loading-overlay">
-          <div class="spinner"></div>
-        </div>
 
-        <!-- Error State -->
-        <div v-if="error" class="error-state">
-          <i class="fi fi-rr-circle-exclamation"></i>
-          <p>{{ error }}</p>
-          <button @click="fetchStats" class="retry-btn">Réessayer</button>
-        </div>
+    <!-- 🔥 SWITCH BLOCK -->
+    <div class="block-container">
 
-        <!-- Header Section -->
-        <div class="card-header">
-          <div class="brand-badge">
-            <i class="fi fi-rr-chart-line"></i>
-            <span>SmartOrder Stats</span>
-          </div>
-          <div class="date-badge">
-            <i class="fi fi-rr-calendar"></i>
-            <span>{{ currentDate }}</span>
-          </div>
-        </div>
+      <!-- ================= WALLET ================= -->
+      <div v-if="currentTab === 0" class="fade">
+        <div class="wallet-card" :class="{ 'loading': loading }">
 
-        <!-- Hero Balance Section -->
-        <div class="hero-section">
-          <div class="balance-label">
-            <i class="fi fi-rr-wallet"></i>
-            <span>Solde Total</span>
+          <div v-if="loading" class="loading-overlay">
+            <div class="spinner"></div>
           </div>
-          <div class="balance-main">
-            
-            <h1 class="balance-value">
-              {{ totalBalance.toLocaleString('fr-FR') }}
-            </h1>
-          </div>
-          <div class="balance-trend" v-if="stats">
-          </div>
-        </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <div class="stat-card deposit">
-            <div class="stat-icon-wrapper">
-              <i class="fi fi-rr-arrow-down"></i>
+          <div v-if="error" class="error-state">
+            <i class="fi fi-rr-circle-exclamation"></i>
+            <p>{{ error }}</p>
+            <button @click="fetchStats" class="retry-btn">Réessayer</button>
+          </div>
+
+          <div class="card-header">
+            <div class="brand-badge">
+              <i class="fi fi-rr-chart-line"></i>
+              <span>SmartOrder Stats</span>
             </div>
-            <div class="stat-content">
-              <span class="stat-label">Dépôts</span>
-              <strong class="stat-value">{{ stats?.totalDeposits.toLocaleString('fr-FR') || '0' }}</strong>
-             
+            <div class="date-badge">
+              <i class="fi fi-rr-calendar"></i>
+              <span>{{ currentDate }}</span>
             </div>
           </div>
 
-          <div class="stat-card withdraw">
-            <div class="stat-icon-wrapper">
-              <i class="fi fi-rr-arrow-up"></i>
+          <div class="hero-section">
+            <div class="balance-label">
+              <i class="fi fi-rr-wallet"></i>
+              <span>Solde Total</span>
             </div>
-            <div class="stat-content">
-              <span class="stat-label">Retraits</span>
-              <strong class="stat-value">{{ stats?.totalWithdrawals.toLocaleString('fr-FR') || '0' }}</strong>
-              <span class="stat-change negative">-3.1%</span>
+            <div class="balance-main">
+              <h1 class="balance-value">
+                {{ totalBalance.toLocaleString('fr-FR') }}
+              </h1>
+            </div>
+            <div class="balance-trend" v-if="stats"></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card deposit">
+              <div class="stat-icon-wrapper">
+                <i class="fi fi-rr-arrow-down"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Dépôts</span>
+                <strong class="stat-value">{{ stats?.totalDeposits.toLocaleString('fr-FR') || '0' }}</strong>
+              </div>
+            </div>
+
+            <div class="stat-card withdraw">
+              <div class="stat-icon-wrapper">
+                <i class="fi fi-rr-arrow-up"></i>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Retraits</span>
+                <strong class="stat-value">{{ stats?.totalWithdrawals.toLocaleString('fr-FR') || '0' }}</strong>
+                
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Decorative Elements -->
-        <div class="gradient-bg"></div>
-        <div class="noise-overlay"></div>
+          <div class="gradient-bg"></div>
+          <div class="noise-overlay"></div>
+        </div>
       </div>
 
-      <!-- User Stats Section -->
-      <div class="user-section">
-        <div class="section-header">
-          <i class="fi fi-rr-users-alt"></i>
-          <span>Utilisateurs</span>
-        </div>
-        <div class="user-stats-grid">
-          <div class="user-stat-item clients">
-            <div class="user-stat-icon">
-              <i class="fi fi-rr-users"></i>
-            </div>
-            <div class="user-stat-info">
-              <span class="user-stat-label">Clients</span>
-              <strong class="user-stat-value">{{ stats?.countClients || 0 }}</strong>
-            </div>
-            
+      <!-- ================= USERS ================= -->
+      <div v-if="currentTab === 1" class="fade">
+        <div class="user-section">
+          <div class="section-header">
+            <i class="fi fi-rr-users-alt"></i>
+            <span>Utilisateurs</span>
           </div>
 
-          <div class="user-stat-item admins">
-            <div class="user-stat-icon">
-              <i class="fi fi-rr-shield"></i>
+          <div class="user-stats-grid">
+            <div class="user-stat-item clients">
+              <div class="user-stat-icon">
+                <i class="fi fi-rr-users"></i>
+              </div>
+              <div class="user-stat-info">
+                <span class="user-stat-label">Clients</span>
+                <strong class="user-stat-value">{{ stats?.countClients || 0 }}</strong>
+              </div>
             </div>
-            <div class="user-stat-info">
-              <span class="user-stat-label">Administrateurs</span>
-              <strong class="user-stat-value">{{ stats?.countAdmins || 0 }}</strong>
-            </div>
-          
-          </div>
 
-          <div class="user-stat-item fakes">
-            <div class="user-stat-icon">
-              <i class="fi fi-rr-eye-crossed"></i>
+            <div class="user-stat-item admins">
+              <div class="user-stat-icon">
+                <i class="fi fi-rr-shield"></i>
+              </div>
+              <div class="user-stat-info">
+                <span class="user-stat-label">Administrateurs</span>
+                <strong class="user-stat-value">{{ stats?.countAdmins || 0 }}</strong>
+              </div>
             </div>
-            <div class="user-stat-info">
-              <span class="user-stat-label">Comptes Factices</span>
-              <strong class="user-stat-value">{{ stats?.countFakes || 0 }}</strong>
+
+            <div class="user-stat-item fakes">
+              <div class="user-stat-icon">
+                <i class="fi fi-rr-eye-crossed"></i>
+              </div>
+              <div class="user-stat-info">
+                <span class="user-stat-label">Comptes Factices</span>
+                <strong class="user-stat-value">{{ stats?.countFakes || 0 }}</strong>
+              </div>
             </div>
-          
           </div>
         </div>
       </div>
+
     </div>
+
+    <!-- 🔥 INDICATEURS -->
+    <div class="block-indicators">
+      <span :class="{ active: currentTab === 0 }" @click="currentTab = 0"></span>
+      <span :class="{ active: currentTab === 1 }" @click="currentTab = 1"></span>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
+
+/* 🔥 AJOUT MINIMAL */
+.block-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.block-indicators span {
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.block-indicators span.active {
+  width: 20px;
+  border-radius: 10px;
+  background: #22c55e;
+}
+
+.fade {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
 /* Container principal - adapté pour PC */
 .dashboard-container {
-  min-height: 100vh;
+ 
   background: linear-gradient(135deg, #0f172a 0%, #1a2332 100%);
   padding: 32px;
 }
@@ -177,7 +219,7 @@ onMounted(() => {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 400px;
+ 
   gap: 24px;
   align-items: start;
 }
