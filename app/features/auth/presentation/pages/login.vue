@@ -148,14 +148,14 @@ const handleLogin = async () => {
   font-weight: 800;
   color: #2d3436;
   margin-bottom: 5px;
-  text-align: flex-start;
+  text-align: center;
 }
 
 .subtitle {
   color: #666;
   font-size: 15px;
   margin-bottom: 25px;
-  text-align: flex-start;
+  text-align: center;
 }
 
 .form-group {
