@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { AppColor } from '@/core/constants/app_colors'
+import { AppImage } from '@/core/constants/app_images'
+import { useToast } from '@/core/utils/useToast'
+
+const userId = ref("81449240")
+const hasNotifications = ref(true)
+const { showToast } = useToast()
+
+const formattedUserId = computed(() => {
+  return userId.value.length > 6 
+    ? `${userId.value.slice(0, 6)}**${userId.value.slice(-2)}` 
+    : userId.value
+})
+
+const copyId = async () => {
+  await navigator.clipboard.writeText(userId.value)
+  showToast("ID copié !", "fi-rr-check", "success")
+}
+</script>
+
 <template>
   <nav class="app-bar">
     <div class="profile-pill">
@@ -23,27 +45,6 @@
   </nav>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from 'vue'
-import { AppColor } from '@/core/constants/app_colors'
-import { AppImage } from '@/core/constants/app_images'
-import { useToast } from '@/core/utils/useToast'
-
-const userId = ref("81449240")
-const hasNotifications = ref(true)
-const { showToast } = useToast()
-
-const formattedUserId = computed(() => {
-  return userId.value.length > 6 
-    ? `${userId.value.slice(0, 6)}**${userId.value.slice(-2)}` 
-    : userId.value
-})
-
-const copyId = async () => {
-  await navigator.clipboard.writeText(userId.value)
-  showToast("ID copié !", "fi-rr-check", "success")
-}
-</script>
 
 <style scoped>
 .app-bar {

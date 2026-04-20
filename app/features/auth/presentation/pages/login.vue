@@ -52,7 +52,7 @@ const handleLogin = async () => {
 
     setTimeout(() => {
       if (result.role === 'admin') {
-        router.push('/admin/dashboard')
+        router.push('/dashboard')
       } else {
         router.push('/home')
       }
