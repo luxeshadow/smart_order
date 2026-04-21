@@ -1,3 +1,56 @@
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue'
+import Input from '@/core/components/client/mobile/Input.vue'
+import { AppColor } from '@/core/constants/app_colors'
+
+import { GetUsersDetailUseCase } from '../../../../features/user/application/usecases/get_user_detail_usercase'
+import { UserDetailRepositoryImpl } from '../../../../features/user/data/repositories/user_detail_repository_impl'
+import type { UserDetail } from '../../../../features/user/domain/entities/user_detail'
+import { Failure } from '@/core/errors/failure'
+
+const search = ref('')
+const users = ref<UserDetail[]>([])
+const loading = ref(false)
+
+const repository = new UserDetailRepositoryImpl()
+const useCase = new GetUsersDetailUseCase(repository)
+
+// 🔥 fetch users
+const fetchUsers = async () => {
+  loading.value = true
+
+  const result = await useCase.execute({
+    query: search.value
+  })
+
+  if (result instanceof Failure) {
+    console.error(result.message)
+  } else {
+    users.value = result
+  }
+
+  loading.value = false
+}
+
+// 🔥 init
+onMounted(() => {
+  fetchUsers()
+})
+
+// 🔥 recherche dynamique (debounce simple)
+let timeout: any
+watch(search, () => {
+  clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    fetchUsers()
+  }, 400)
+})
+
+const clearSearch = () => {
+  search.value = ''
+}
+</script>
+
 <template>
   <div class="list-user-page">
     <div class="top-bar">
@@ -14,12 +67,16 @@
       </div>
     </div>
 
-    <div class="users-grid">
-      <div v-for="user in filteredUsers" :key="user.id" class="user-card">
+    <!-- 🔥 loading -->
+    <div v-if="loading">Chargement...</div>
+
+    <!-- 🔥 users -->
+    <div v-else class="users-grid">
+      <div v-for="user in users" :key="user.id" class="user-card">
         
         <div class="user-header">
           <div class="avatar">
-            {{ user.username.charAt(0).toUpperCase() }}
+            {{ user.username?.charAt(0).toUpperCase() }}
           </div>
           <div class="user-meta">
             <h3>{{ user.username }}</h3>
@@ -28,7 +85,11 @@
         </div>
 
         <div class="shops-list">
-          <div v-for="shop in user.subscribedShops" :key="shop" class="shop-chip">
+          <div
+            v-for="shop in user.levelNames"
+            :key="shop"
+            class="shop-chip"
+          >
             <i class="fi fi-rr-shop"></i>
             {{ shop }}
           </div>
@@ -38,57 +99,30 @@
           <div class="balance-box main">
             <span class="box-label">Solde Principal</span>
             <div class="amount-row">
-              <strong class="amount">{{ user.mainBalance.toLocaleString() }}</strong>
+              <strong class="amount">
+                {{ Number(user.mainBalance || 0).toLocaleString() }}
+              </strong>
               <small class="unit">XOF</small>
             </div>
           </div>
+
           <div class="balance-box refund">
             <span class="box-label">Remboursement</span>
             <div class="amount-row">
-              <strong class="amount">{{ user.refundBalance.toLocaleString() }}</strong>
+              <strong class="amount">
+                {{ Number(user.refundBalance || 0).toLocaleString() }}
+              </strong>
               <small class="unit">XOF</small>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from 'vue'
-import Input from '@/core/components/client/mobile/Input.vue'
-import { AppColor } from '@/core/constants/app_colors'
 
-interface User {
-  id: number
-  username: string
-  email: string
-  subscribedShops: string[]
-  mainBalance: number
-  refundBalance: number
-}
-
-const search = ref('')
-
-const users = ref<User[]>([
-  { id: 1, username: 'natanael', email: 'nat@gmail.com', subscribedShops: ['Amazon', 'Temu'], mainBalance: 45000, refundBalance: 5000 },
-  { id: 2, username: 'shadow', email: 'shadow@gmail.com', subscribedShops: ['Alibaba', 'Costco', 'Amazon'], mainBalance: 22000, refundBalance: 3500 },
-  { id: 3, username: 'benoit', email: 'benoit@gmail.com', subscribedShops: ['Temu'], mainBalance: 80000, refundBalance: 10000 }
-])
-
-const filteredUsers = computed(() => {
-  if (!search.value.trim()) return users.value
-  const keyword = search.value.toLowerCase()
-  return users.value.filter((user) =>
-    user.username.toLowerCase().includes(keyword) ||
-    user.email.toLowerCase().includes(keyword) ||
-    user.subscribedShops.some((shop) => shop.toLowerCase().includes(keyword))
-  )
-})
-
-const clearSearch = () => { search.value = '' }
-</script>
 
 <style scoped>
 .list-user-page { padding: 16px; }
@@ -98,7 +132,7 @@ const clearSearch = () => { search.value = '' }
 .clear-btn {
   position: absolute;
   right: 14px;
-  top: 50%;
+  top: 65%;
   transform: translateY(-50%);
   width: 26px;
   height: 26px;

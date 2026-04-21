@@ -342,7 +342,7 @@ const closeModal = () => {
 }
 
 .avatar-mini {
-  width: 40px;
+  width: 43px;
   height: 32px;
   border-radius: 7px;
   background: linear-gradient(135deg,
