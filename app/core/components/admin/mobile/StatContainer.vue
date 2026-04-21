@@ -210,7 +210,6 @@ onMounted(() => {
   scrollbar-width: none;
 }
 
-/* 🔥 AJOUT MINIMAL */
 .block-indicators {
   display: flex;
   justify-content: center;
@@ -230,7 +229,7 @@ onMounted(() => {
 .block-indicators span.active {
   width: 20px;
   border-radius: 10px;
-  background: #22c55e;
+  background: #fa4903;
 }
 
 .fade {
