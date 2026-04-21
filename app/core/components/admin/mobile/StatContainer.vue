@@ -496,6 +496,7 @@ onMounted(() => {
 }
 
 .user-stat-icon {
+  margin-top: 5px;
   width: 56px;
   height: 56px;
   border-radius: 28px;
