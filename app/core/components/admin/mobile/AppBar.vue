@@ -49,7 +49,7 @@ onMounted(fetchPending)
 
     <div class="actions-group">
       <button class="action-btn" @click="handleLogout">
-        <i class="fi fi-rr-user-logout"></i>
+        <i class="fi fi-rr-exit"></i>
       </button>
 
      <button class="action-btn relative">
@@ -57,7 +57,7 @@ onMounted(fetchPending)
 
   <span
     v-if="pendingCount > 0"
-    class="notification-badge"
+    class="notification-dot"
   >
     {{ pendingCount > 99 ? '99+' : pendingCount }}
   </span>
