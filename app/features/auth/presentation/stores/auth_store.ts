@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { UserModel } from '../../data/models/user_model' 
+import { ref, computed } from 'vue'
+import { UserModel } from '../../data/models/user_model'
 import type { User } from '../../domain/entities/user'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -10,7 +11,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value)
   const userRole = computed(() => user.value?.role)
-  onMounted(() => {
+
+  const initUser = () => {
     const savedUser = localStorage.getItem('smart_order_user')
     if (savedUser) {
       try {
@@ -20,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('smart_order_user')
       }
     }
-  })
+  }
 
   function setUser(userData: User | null) {
     if (userData) {
@@ -30,6 +32,18 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       localStorage.removeItem('smart_order_user')
     }
+  }
+
+  function updateUser(updatedData: Partial<User>) {
+    if (!user.value) return
+
+    const updatedUser = {
+      ...user.value,
+      ...updatedData
+    }
+
+    user.value = new UserModel(updatedUser)
+    localStorage.setItem('smart_order_user', JSON.stringify(updatedUser))
   }
 
   function logout() {
@@ -44,7 +58,9 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isAuthenticated,
     userRole,
+    initUser,
     setUser,
+    updateUser, 
     logout
   }
 })

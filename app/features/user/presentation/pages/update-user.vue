@@ -9,8 +9,8 @@ import { AppImage } from '@/core/constants/app_images'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useToast } from '@/core/utils/useToast'
 
-import { UpdateProfileUseCase } from '../../application/usecases/update_profile_usecase'
-import { UpdateProfileRepositoryImpl } from '../../data/repositories/update_profile_repository_impl'
+import { UpdateProfileUseCase } from '../../application/usecases/update_user_usecase'
+import { UpdateProfileRepositoryImpl } from '../../data/repositories/update_user_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
 const { showToast } = useToast()
@@ -23,9 +23,6 @@ const updateProfileUseCase = new UpdateProfileUseCase(repository)
 
 const isLoading = ref(false)
 
-/**
- * Email d'origine toujours synchronisé avec le store
- */
 const originalEmail = computed(
   () => user.value?.email?.trim().toLowerCase() || ''
 )
@@ -36,9 +33,6 @@ const form = ref({
   phoneNumber: ''
 })
 
-/**
- * Sync automatique quand user arrive après hydration
- */
 watch(
   user,
   (newUser) => {
@@ -54,13 +48,15 @@ watch(
 )
 
 const handleUpdateProfile = async () => {
+  if (!user.value) return
+
   isLoading.value = true
 
   const normalizedFormEmail = form.value.email.trim().toLowerCase()
   const hasEmailChanged = normalizedFormEmail !== originalEmail.value
 
   const param = {
-    userId: user.value?.id || '',
+    userId: user.value.id,
     userName: form.value.userName,
     phoneNumber: form.value.phoneNumber,
     email: form.value.email,
@@ -93,14 +89,22 @@ const handleUpdateProfile = async () => {
         })
         isLoading.value = false
       }, 1500)
-    } else {
-      showToast('Profil mis à jour avec succès !', 'fi-rr-check', 'success')
 
-      setTimeout(() => {
-        router.back()
-        isLoading.value = false
-      }, 1500)
+      return
     }
+    authStore.updateUser({
+      username: form.value.userName,
+      phoneNumber: form.value.phoneNumber,
+      email: form.value.email
+    })
+
+    showToast('Profil mis à jour avec succès !', 'fi-rr-check', 'success')
+
+    setTimeout(() => {
+      router.back()
+      isLoading.value = false
+    }, 1500)
+
   } catch (error) {
     isLoading.value = false
     showToast(

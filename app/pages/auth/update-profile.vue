@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UpdateProfilePage from '../../features/auth/presentation/pages/update-profile.vue'
+import UpdateProfilePage from '../../features/user/presentation/pages/update-user.vue'
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 import type { Failure } from '@/core/errors/failure'
-import type { UpdateProfileParam } from '../../application/params/update_profile_params'
+import type { UpdateProfileParam } from '../../application/params/update_user_params'
 
 export interface UpdateProfileRepository {
 

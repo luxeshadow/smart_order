@@ -1,13 +1,9 @@
 import type { UseCase } from '@/core/usecase/usecase'
-import type { UpdateProfileRepository } from '../../domain/repository/update_profile_repository'
-import type { UpdateProfileParam } from '../params/update_profile_params'
+import type { UpdateProfileRepository } from '../../domain/repository/update_user_repository'
+import type { UpdateProfileParam } from '../params/update_user_params'
 import { Failure, AuthFailure } from '@/core/errors/failure'
-import { UpdateProfileValidator } from '../../presentation/validators/update_profile_validator'
+import { UpdateProfileValidator } from '../../../auth/presentation/validators/update_profile_validator'
 
-/**
- * UseCase pour la mise à jour des informations de profil utilisateur.
- * Utilise uniquement le repository dédié aux profils.
- */
 export class UpdateProfileUseCase implements UseCase<void, UpdateProfileParam> {
   private repository: UpdateProfileRepository
 

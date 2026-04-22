@@ -28,8 +28,6 @@ export class UserDetailModel implements UserDetail {
       role: data.role,
       mainBalance: Number(data.main_balance || 0),
       refundBalance: Number(data.refund_balance || 0),
-      // Si Supabase renvoie un tableau, on le prend. 
-      // Sinon, on transforme la valeur unique en tableau ou tableau vide.
       levelNames: Array.isArray(data.level_names) 
         ? data.level_names 
         : data.level_names ? [data.level_names] : []

@@ -1,5 +1,5 @@
 import { AuthException, DatabaseException } from '@/core/errors/exception'
-import type { UpdateProfileParam } from '../../application/params/update_profile_params'
+import type { UpdateProfileParam } from '../../application/params/update_user_params'
 
 export class UpdateProfileRemoteDatasource {
   constructor(private supabase: any) {}

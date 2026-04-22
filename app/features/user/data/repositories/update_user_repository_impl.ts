@@ -1,8 +1,8 @@
-import { UpdateProfileRemoteDatasource } from '../datasources/update_profile_remote_datasource' 
+import { UpdateProfileRemoteDatasource } from '../datasources/update_user_remote_datasource' 
 import { AuthException, DatabaseException } from '@/core/errors/exception'
 import { AuthFailure, DatabaseFailure } from '@/core/errors/failure'
-import type { UpdateProfileRepository } from '../../domain/repository/update_profile_repository'
-import type { UpdateProfileParam } from '../../application/params/update_profile_params'
+import type { UpdateProfileRepository } from '../../domain/repository/update_user_repository'
+import type { UpdateProfileParam } from '../../application/params/update_user_params'
 import { useApi } from '@/core/constants/supabase_client'
 
 export class UpdateProfileRepositoryImpl implements UpdateProfileRepository {
