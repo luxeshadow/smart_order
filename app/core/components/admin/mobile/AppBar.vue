@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { useToast } from '@/core/utils/useToast'
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+import { countPendingWithdrawals } from '@/core/utils/countPendingWithdrawals'
 
+const authStore = useAuthStore()
 const userId = ref("81449240")
-const hasNotifications = ref(true)
+const pendingCount = ref(0)
+
 const { showToast } = useToast()
 
 const formattedUserId = computed(() => {
-  return userId.value.length > 6 
-    ? `${userId.value.slice(0, 6)}**${userId.value.slice(-2)}` 
+  return userId.value.length > 6
+    ? `${userId.value.slice(0, 6)}**${userId.value.slice(-2)}`
     : userId.value
 })
 
@@ -18,6 +22,17 @@ const copyId = async () => {
   await navigator.clipboard.writeText(userId.value)
   showToast("ID copié !", "fi-rr-check", "success")
 }
+
+const handleLogout = () => {
+  authStore.logout()
+}
+
+// 🔥 fetch count
+const fetchPending = async () => {
+  pendingCount.value = await countPendingWithdrawals()
+}
+
+onMounted(fetchPending)
 </script>
 
 <template>
@@ -33,14 +48,20 @@ const copyId = async () => {
     </div>
 
     <div class="actions-group">
-      <button class="action-btn" @click="">
-        <i class="fi fi-rr-document-signed"></i>
+      <button class="action-btn" @click="handleLogout">
+        <i class="fi fi-rr-user-logout"></i>
       </button>
 
-      <button class="action-btn relative" @click="">
-        <i class="fi fi-rr-bell"></i>
-        <span v-if="hasNotifications" class="notification-dot"></span>
-      </button>
+     <button class="action-btn relative">
+  <i class="fi fi-rr-bell"></i>
+
+  <span
+    v-if="pendingCount > 0"
+    class="notification-badge"
+  >
+    {{ pendingCount > 99 ? '99+' : pendingCount }}
+  </span>
+</button>
     </div>
   </nav>
 </template>
@@ -84,13 +105,15 @@ const copyId = async () => {
 .avatar-img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Important pour ne pas écraser l'image */
+  object-fit: cover;
+  /* Important pour ne pas écraser l'image */
   display: block;
 }
 
 .user-id {
   margin-left: 8px;
-  font-size: 13px; /* Légèrement réduit pour le mobile */
+  font-size: 13px;
+  /* Légèrement réduit pour le mobile */
   font-weight: 700;
   color: v-bind('AppColor.tertiary.base');
 }
@@ -99,7 +122,8 @@ const copyId = async () => {
   background: none;
   border: none;
   margin-left: 6px;
-  color: v-bind('AppColor.primary.base'); /* Mis en couleur primaire pour plus de visibilité */
+  color: v-bind('AppColor.primary.base');
+  /* Mis en couleur primaire pour plus de visibilité */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -118,7 +142,8 @@ const copyId = async () => {
   align-items: center;
   justify-content: center;
   background-color: v-bind('AppColor.surface.pure');
-  border-radius: 14px; /* Carré arrondi plus moderne que le rond parfait */
+  border-radius: 14px;
+  /* Carré arrondi plus moderne que le rond parfait */
   border: 1px solid v-bind('AppColor.surface.bone');
   color: v-bind('AppColor.tertiary.base');
   cursor: pointer;
@@ -132,13 +157,20 @@ const copyId = async () => {
 
 .notification-dot {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 10px;
-  height: 10px;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   background-color: v-bind('AppColor.primary.base');
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 2px solid v-bind('AppColor.surface.pure');
-  border-radius: 50%;
 }
 
 .relative {
