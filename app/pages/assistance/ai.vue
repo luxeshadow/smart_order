@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { askGemini } from '@/services/gemini/gemini';
+import { askGemini } from '~/services/ai/gemini/gemini';
 import { AppColor } from '@/core/constants/app_colors';
 
 const router = useRouter();

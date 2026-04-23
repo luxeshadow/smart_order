@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { AppColor } from '@/core/constants/app_colors'
+import { useRouter } from 'vue-router'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
 import Input from '@/core/components/client/mobile/Input.vue'
@@ -9,7 +9,10 @@ import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { WalletRepositoryImpl } from '../../data/repositories/wallet_repository_impl'
 import { CreateWalletUseCase } from '../../application/usecases/create_wallet_usecase'
 import { Failure } from '@/core/errors/failure'
+import { getSmsService } from '@/services/sms/sms'
 
+// 🔥 init services
+const smsService = getSmsService()
 const router = useRouter()
 const { showToast } = useToast()
 const authStore = useAuthStore()
@@ -17,6 +20,7 @@ const authStore = useAuthStore()
 const walletRepository = new WalletRepositoryImpl()
 const walletUseCase = new CreateWalletUseCase(walletRepository)
 
+// 🔥 state
 const form = ref({
   phoneNumber: '',
   withdrawPassword: ''
@@ -24,12 +28,14 @@ const form = ref({
 
 const isLoading = ref(false)
 
+// 🔥 UI data
 const availableMethods = [
   { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
   { id: 'flooz', image: AppImage.Flooz, label: 'Moov' },
   { id: 'ria', image: AppImage.Ria, label: 'Ria' }
 ]
 
+// 🚀 ACTION
 const handleUpdateWallet = async () => {
   if (!authStore.user?.id) {
     showToast('Session expirée', 'fi-rr-lock', 'error', '#ff4757')
@@ -49,6 +55,20 @@ const handleUpdateWallet = async () => {
       throw new Error(result.message)
     }
 
+    try {
+      const smsSent = await smsService.sendSms(
+        form.value.phoneNumber,
+        `SmartOrder : Votre portefeuille est configuré avec succès.
+Pour retirer, transférez d'abord vos gains vers le solde principal depuis votre profil.`
+      )
+
+      if (!smsSent) {
+        console.warn('SMS non envoyé')
+      }
+    } catch (smsError) {
+      console.warn('Erreur SMS:', smsError)
+    }
+
     showToast(
       'Portefeuille configuré avec succès !',
       'fi-rr-check',
@@ -56,7 +76,6 @@ const handleUpdateWallet = async () => {
       '#2ecc71'
     )
 
-    // Petit délai pour laisser le temps de lire le toast
     setTimeout(() => {
       router.back()
     }, 1500)

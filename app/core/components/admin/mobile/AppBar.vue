@@ -152,11 +152,10 @@ onMounted(fetchPending)
   background-color: v-bind('AppColor.surface.smoke');
 }
 
-/* 🔥 Style du badge de notification corrigé */
 .notification-badge {
   position: absolute;
-  top: -4px;      /* Légèrement au-dessus du bouton */
-  right: -2px;    /* Légèrement à l'extérieur */
+  top: -4px;    
+  right: -2px;  
   width: 12px;
   height: 18px;
   padding: 0 4px;
