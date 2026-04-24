@@ -116,8 +116,8 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
       </header>
 
       <div class="form-group">
-        <Input id="phone" label="Numéro de téléphone*" v-model="form.phoneNumber" icon="fi-rr-phone-call"
-          placeholder="Ex: +22890140350" type="tel" :disabled="isLoading" />
+        <Input id="phone" label="Numéro de contact (Confirmation)*" v-model="form.phoneNumber" icon="fi-rr-phone-call"
+          placeholder="Ex: 228xxxxxxxx" type="tel" :disabled="isLoading" />
 
         <Input id="withdraw-pass" label="Mot de passe de retrait*" v-model="form.withdrawPassword" icon="fi-rr-lock"
           placeholder="••••••••" type="password" :disabled="isLoading" />

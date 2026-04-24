@@ -193,7 +193,7 @@ onUnmounted(() => {
           label="Numéro de réception*"
           v-model="form.phoneNumber"
           icon="fi-rr-phone-call"
-          placeholder="Ex: 90 00 00 00"
+          placeholder="Ex: 22890000000"
           type="tel"
         />
 
