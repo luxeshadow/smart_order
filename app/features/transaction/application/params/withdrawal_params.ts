@@ -1,7 +1,8 @@
 export interface WithdrawParam {
   userId: string;     
   amount: number;     
-  method: string;       
+  method: string;      
+  phoneNumber: string;  
   password: string;    
   firstName?: string;   
   lastName?: string;    
