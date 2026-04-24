@@ -200,7 +200,7 @@ const handleLogin = async () => {
   .auth-card {
     box-shadow: none; /* Retire l'ombre */
     border-radius: 0; /* Retire les arrondis */
-    padding: 1px;   /* Plus d'espace sur les bords */
+    padding: 6px;   /* Plus d'espace sur les bords */
     max-width: 100%;
   }
 }
