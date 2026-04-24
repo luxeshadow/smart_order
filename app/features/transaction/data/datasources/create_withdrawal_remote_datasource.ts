@@ -12,7 +12,6 @@ export class WithdrawalRemoteDatasource {
           p_user_id: param.userId,
           p_amount: param.amount,
           p_method: param.method,
-          p_phone: param.phoneNumber,
           p_password: param.password,
           p_first_name: param.firstName || null,
           p_last_name: param.lastName || null

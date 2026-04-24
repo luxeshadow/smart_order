@@ -9,10 +9,7 @@ export class WithdrawalValidator {
         return "Le nom et le prénom sont obligatoires pour un retrait via Ria.";
       }
     }
-    const cleanPhone = String(params.phoneNumber).replace(/\s/g, '');
-    if (cleanPhone.length < 8) {
-      return "Le numéro de réception n'est pas valide.";
-    }
+   
     const amountValue = Number(params.amount);
     if (isNaN(amountValue) || amountValue <= 0) {
       return "Le montant doit être un nombre supérieur à 0.";

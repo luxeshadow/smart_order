@@ -4,7 +4,7 @@ export class WithdrawalModel implements Withdrawal {
   id: string
   userId: string
   username: string | null
-  email: string | null
+  email?: string 
   amount: number
   method: string
   phoneNumber: string
@@ -20,16 +20,13 @@ export class WithdrawalModel implements Withdrawal {
     email?: string | null
   }) {
     this.id = data.id ?? ''
-
     this.userId = data.userId
     this.username = data.username ?? null
-    this.email = data.email ?? null
-
+    this.email = data.email ?? undefined
     this.amount = data.amount
     this.method = data.method
     this.phoneNumber = data.phoneNumber
     this.password = data.password
-
     this.firstName = data.firstName
     this.lastName = data.lastName
     this.status = data.status

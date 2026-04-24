@@ -7,8 +7,10 @@ import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
 import ListUser from '@/core/components/admin/mobile/ListUser.vue'
 import AdminWithdrawalPage from '../../features/transaction/presentation/pages/users-withdrawal.vue'
 import ListProduct from '../../features/product/presentation/pages/list-product.vue'
-
 const activeTab = ref('dashboard')
+definePageMeta({
+  middleware: 'admin'
+})
 </script>
 
 <template>

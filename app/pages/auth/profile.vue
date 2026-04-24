@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ProfilePage from '../../features/auth/presentation/pages/profile.vue'
+import ProfilePage from '../../features/user/presentation/pages/profile-user.vue'
 </script>
 
 <template>

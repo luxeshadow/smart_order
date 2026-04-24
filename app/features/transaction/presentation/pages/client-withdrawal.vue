@@ -17,7 +17,6 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form = ref({
-  phoneNumber: '',
   amount: '',
   method: 'tmoney',
   firstName: '',
@@ -69,7 +68,6 @@ const handleWithdraw = async () => {
 
     const result = await withdrawalUseCase.execute({
       userId: authStore.user?.id || '', 
-      phoneNumber: form.value.phoneNumber,
       amount: Number(form.value.amount),
       method: form.value.method,
       password: form.value.password,
@@ -187,15 +185,6 @@ onUnmounted(() => {
             placeholder="Votre prénom"
           />
         </template>
-
-        <Input
-          id="phone"
-          label="Numéro de réception*"
-          v-model="form.phoneNumber"
-          icon="fi-rr-phone-call"
-          placeholder="Ex: 90 00 00 00"
-          type="tel"
-        />
 
         <Input
           id="amount"

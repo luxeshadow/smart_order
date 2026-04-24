@@ -1,11 +1,11 @@
-import { DatabaseException } from '@/core/errors/exception'
+import { WalletModel } from '../models/wallet_model'
 import type { WalletConfigParam } from '../../application/params/wallet_params'
 
 export class WalletRemoteDatasource {
   constructor(private supabase: any) {}
 
-  async createWallet(param: WalletConfigParam): Promise<void> {
-    const { error } = await this.supabase
+  async createWallet(param: WalletConfigParam): Promise<WalletModel> {
+    const { data, error } = await this.supabase
       .from('wallets')
       .upsert(
         {
@@ -15,9 +15,13 @@ export class WalletRemoteDatasource {
         },
         { onConflict: 'user_id' }
       )
+      .select()
+      .single()
 
     if (error) {
-      throw new DatabaseException(error.message)
+      throw new Error(error.message)
     }
+
+    return WalletModel.fromSupabase(data)
   }
 }

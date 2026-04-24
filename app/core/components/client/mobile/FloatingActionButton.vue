@@ -1,64 +1,92 @@
 <script setup lang="ts">
-import { ref, onUnmounted, watch } from 'vue'
-import { storeToRefs } from "pinia";
+import { ref, onUnmounted, onMounted, watch } from 'vue'
+import { storeToRefs } from "pinia"
 import { useRoute, useRouter } from 'vue-router'
-import { AppColor } from '@/core/constants/app_colors'
 import { AppIcon } from '@/core/constants/app_icons'
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
-import AuthAlert from "./AuthAlert.vue"; // Assure-toi que le chemin est correct
+import AuthAlert from "./AuthAlert.vue"
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const { isAuthenticated } = storeToRefs(authStore)
 
+// 🔥 state
 const isOpen = ref(false)
 const showAlert = ref(false)
-let timer: any = null
+let timer: ReturnType<typeof setTimeout> | null = null
 
+// 🔥 toggle menu sécurisé
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
+
+  // sécurité : si on ferme → on nettoie
+  if (!isOpen.value) {
+    showAlert.value = false
+  }
 }
 
-// Actions du menu
+// 🔥 actions
 const actions = [
   { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/history-transaction' },
-  { id: 'Vente',    name: 'Vente',    icon: AppIcon.box,   route: '/order/my-order' },
-  { id: 'Parametre', name: 'Parametre', icon: AppIcon.user,  route: '/auth/profile' },
+  { id: 'Vente', name: 'Vente', icon: AppIcon.box, route: '/order/my-order' },
+  { id: 'Parametre', name: 'Parametre', icon: AppIcon.user, route: '/auth/profile' },
 ]
 
-// FONCTION DE PROTECTION
+// 🔥 protection navigation
 const handleActionClick = (path: string) => {
-  // 1. Fermer le menu d'abord
+  // 🔴 fermeture FORCÉE (important)
   isOpen.value = false
+  showAlert.value = false
 
-  // 2. Vérifier l'auth
   if (!isAuthenticated.value) {
     triggerAlert()
     return
   }
 
-  // 3. Rediriger si connecté
   router.push(path)
 }
 
+// 🔥 alert contrôlée
 const triggerAlert = () => {
   if (timer) clearTimeout(timer)
+
   showAlert.value = true
+
   timer = setTimeout(() => {
     showAlert.value = false
   }, 5000)
 }
 
-// Nettoyage si on change de page ou démonte le composant
-watch(() => route.path, () => {
-  showAlert.value = false
+// 🔥 CRITIQUE : reset quand route change
+watch(() => route.fullPath, () => {
   isOpen.value = false
-  if (timer) clearTimeout(timer)
+  showAlert.value = false
+
+  if (timer) {
+    clearTimeout(timer)
+    timer = null
+  }
 })
 
+// 🔥 CRITIQUE : reset quand auth change (login/logout)
+watch(isAuthenticated, () => {
+  isOpen.value = false
+  showAlert.value = false
+})
+
+// 🔥 sécurité au montage
+onMounted(() => {
+  isOpen.value = false
+  showAlert.value = false
+})
+
+// 🔥 nettoyage
 onUnmounted(() => {
-  if (timer) clearTimeout(timer)
+  if (timer) {
+    clearTimeout(timer)
+    timer = null
+  }
 })
 </script>
 

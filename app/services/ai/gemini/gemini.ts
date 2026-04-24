@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const askGemini = async (prompt: string) => {
   const config = useRuntimeConfig();
-  const apiKey = config.public.geminiApiKey;
+  const apiKey = config.geminiApiKey;
 
   if (!apiKey) {
     throw new Error("Clé API Gemini manquante.");
@@ -43,18 +43,18 @@ TON STYLE DE RÉPONSE :
 
   try {
     // Note : Utilise "gemini-1.5-flash" qui est le modèle stable actuel
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash" 
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash"
     });
-    
+
     const result = await model.generateContent(finalPrompt);
     const response = await result.response;
     const text = response.text();
-    
+
     return text;
   } catch (error: any) {
     console.error("Erreur détaillée Gemini:", error);
-    // En cas d'erreur de l'IA, on redirige aussi vers le support par sécurité
+    
     return "Désolé, je rencontre une petite difficulté technique. Veuillez contacter notre support sur WhatsApp pour une assistance immédiate : https://wa.me/22891110074";
   }
 };
