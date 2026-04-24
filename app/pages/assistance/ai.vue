@@ -15,7 +15,7 @@ interface Message {
 }
 
 const messages = ref<Message[]>([
-  { role: 'ai', text: 'Bonjour ! Je suis votre assistant Benoit. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd\'hui ?' }
+  { role: 'ai', text: 'Bonjour ! Je suis votre assistant Rodrigue. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd\'hui ?' }
 ]);
 
 const scrollToBottom = async () => {
