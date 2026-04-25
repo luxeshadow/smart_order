@@ -11,9 +11,11 @@ export class AppImage {
   static readonly Money = '/assets/images/logo/wallet.png'
 
   //Gifs
-
   static readonly Profile = '/assets/videos/gif/profile.gif'
   static readonly EmptyBox = '/assets/videos/gif/empty_box.gif'
+   static readonly Money_Ringtone = '/assets/audios/ringtone/money.mpeg'
+
+  //Audios
 
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'

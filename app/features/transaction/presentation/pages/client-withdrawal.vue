@@ -15,7 +15,12 @@ import { useAuthStore } from '../../../auth/presentation/stores/auth_store'
 const { showToast } = useToast()
 const router = useRouter()
 const authStore = useAuthStore()
-
+const playMoneySound = () => {
+  const audio = new Audio(AppImage.Money_Ringtone)
+  audio.play().catch(() => {
+    console.warn('Lecture audio bloquée')
+  })
+}
 const form = ref({
   phoneNumber: '',
   amount: '',
@@ -81,6 +86,7 @@ const handleWithdraw = async () => {
       showToast(result.message, "fi-rr-shield-exclamation", "error")
     } else {
       showToast("Demande de retrait envoyée avec succès !", "fi-rr-check", "success")
+      playMoneySound()
       
       setTimeout(() => {
         router.push('/home')
