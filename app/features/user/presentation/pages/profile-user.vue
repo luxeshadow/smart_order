@@ -49,6 +49,7 @@ const fetchBalance = async () => {
 }
 
 const handleTransferRefund = async () => {
+  vibrate()
   if (!user.value?.id || isTransferring.value) return
   
   if (refundBalance.value <= 0) {
@@ -78,6 +79,11 @@ onMounted(() => {
 
 const handleLogout = () => {
   authStore.logout()
+}
+const vibrate = () => {
+  if (navigator.vibrate) {
+    navigator.vibrate(150) // vibration courte
+  }
 }
 </script>
 
