@@ -453,7 +453,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   background: #f1f2f6;
   background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
   background-size: 20px 20px; /* Petit effet de sécurité en fond */
-  padding: 8px 15px;
+  padding: 8px 10px;
   border-radius: 12px;
   border: 2px solid #dfe6e9;
   user-select: none;
@@ -472,6 +472,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
 }
 
 .refresh-btn {
+
   width: 38px;
   height: 38px;
   background: white;
@@ -484,7 +485,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
-  margin-left: -3px;
+
 }
 
 
