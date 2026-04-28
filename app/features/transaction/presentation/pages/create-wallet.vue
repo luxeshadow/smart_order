@@ -484,6 +484,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
+  margin-left: -3px;
 }
 
 
