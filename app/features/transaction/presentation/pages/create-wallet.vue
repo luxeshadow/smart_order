@@ -452,7 +452,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   justify-content: space-between;
   background: #f1f2f6;
   background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
-  background-size: 20px 20px; /* Petit effet de sécurité en fond */
+  background-size: 20px 20px;
   padding: 8px 10px;
   border-radius: 12px;
   border: 2px solid #dfe6e9;
