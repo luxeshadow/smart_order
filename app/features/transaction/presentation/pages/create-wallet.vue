@@ -438,4 +438,88 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
     aspect-ratio: 21 / 9;
   }
 }
+/* 🔥 CAPTCHA */
+
+.captcha-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.captcha-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.captcha-box {
+  width: 100%;
+  min-height: 70px;
+  background: linear-gradient(135deg, #f8f9fa, #eef2f3);
+  border: 2px dashed #dfe6e9;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.captcha-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(0,0,0,0.03) 50%,
+      transparent 100%
+    );
+  pointer-events: none;
+}
+
+.captcha-text {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #2d3436;
+  font-family: monospace;
+  user-select: none;
+  transform: rotate(-3deg);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-shadow:
+    2px 2px 0 rgba(0,0,0,0.05),
+    -1px -1px 0 rgba(255,255,255,0.6);
+}
+
+.refresh-btn {
+  width: 45px;
+  height: 45px;
+  border: none;
+  border-radius: 14px;
+  background: white;
+  color: #2d3436;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+  transform: rotate(90deg);
+}
+
+.refresh-btn:active {
+  transform: scale(0.92);
+}
+
+
 </style>
