@@ -13,21 +13,62 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!user.value)
   const userRole = computed(() => user.value?.role)
 
-  const initUser = () => {
+  const initUser = async () => {
 
-    if (import.meta.server) return
+  if (import.meta.server) return
 
-    const savedUser = localStorage.getItem('smart_order_user')
+  const supabase = useApi()
 
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser)
-        user.value = new UserModel(parsed)
-      } catch (e) {
-        localStorage.removeItem('smart_order_user')
-      }
+  try {
+
+    // 🔥 Vérifie session Supabase
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
+
+    // ❌ pas connecté
+    if (!session?.user) {
+
+      user.value = null
+
+      localStorage.removeItem('smart_order_user')
+
+      return
     }
+
+    // 🔥 récupérer vrai user depuis table users
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+
+    if (error || !data) {
+
+      user.value = null
+
+      localStorage.removeItem('smart_order_user')
+
+      return
+    }
+
+    // 🔥 store
+    user.value = new UserModel(data)
+
+    localStorage.setItem(
+      'smart_order_user',
+      JSON.stringify(data)
+    )
+
+  } catch (e) {
+
+    console.error(e)
+
+    user.value = null
+
+    localStorage.removeItem('smart_order_user')
   }
+}
 
   function setUser(userData: User | null) {
 

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { AppImage } from '@/core/constants/app_images'
+import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
+
+const authStore = useAuthStore()
+
+await authStore.initUser()
 
 const isDesktop = ref(false)
 
