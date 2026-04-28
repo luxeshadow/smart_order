@@ -438,18 +438,6 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
     aspect-ratio: 21 / 9;
   }
 }
-/* 🔥 STYLE DU CAPTCHA */
-
-.captcha-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: #fdfdfd;
-  padding: 15px;
-  border-radius: 18px;
-  border: 1px dashed #e0e0e0;
-  margin-top: 5px;
-}
 
 .captcha-label {
   font-size: 13px;
@@ -466,7 +454,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   background: #f1f2f6;
   background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
   background-size: 20px 20px; /* Petit effet de sécurité en fond */
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 12px;
   border: 2px solid #dfe6e9;
   user-select: none; /* Empêche de copier-coller le texte directement */
@@ -498,11 +486,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   transition: all 0.3s ease;
 }
 
-.refresh-btn:hover {
-  background-color: #ffa500;
-  color: white;
-  transform: rotate(90deg); /* Petit effet sympa au survol */
-}
+
 
 .refresh-btn i {
   font-size: 18px;
