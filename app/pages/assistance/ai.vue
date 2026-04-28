@@ -84,7 +84,7 @@ onMounted(() => {
           
           <div v-if="isLoading" class="message-bubble ai">
             <div class="bubble-content timer-hint">
-              Benoit réfléchit...
+              Roger réfléchit...
             </div>
           </div>
         </div>

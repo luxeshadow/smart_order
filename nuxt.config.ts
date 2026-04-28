@@ -13,8 +13,8 @@ export default defineNuxtConfig({
     textbeltApiKey: process.env.TEXTBELT_API_KEY,
     kingsmsApiKey: process.env.KING_SMS_API_KEY,
     kingsmsClientId: process.env.KING_SMS_CLIENT_ID,
-    geminiApiKey: process.env.VITE_GEMINI_KEY,
-    geminiProjectId: process.env.VITE_GEMINI_PROJECT_ID,
+    geminiApiKey: process.env.GEMINI_KEY,
+    geminiProjectId: process.env.GEMINI_PROJECT_ID,
     
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
