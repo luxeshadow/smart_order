@@ -438,88 +438,79 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
     aspect-ratio: 21 / 9;
   }
 }
-/* 🔥 CAPTCHA */
+/* 🔥 STYLE DU CAPTCHA */
 
 .captcha-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 8px;
+  background: #fdfdfd;
+  padding: 15px;
+  border-radius: 18px;
+  border: 1px dashed #e0e0e0;
+  margin-top: 5px;
 }
 
 .captcha-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #2d3436;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .captcha-box {
-  width: 100%;
-  min-height: 70px;
-  background: linear-gradient(135deg, #f8f9fa, #eef2f3);
-  border: 2px dashed #dfe6e9;
-  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 18px;
-  overflow: hidden;
-  position: relative;
-}
-
-.captcha-box::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(
-      120deg,
-      transparent 0%,
-      rgba(0,0,0,0.03) 50%,
-      transparent 100%
-    );
-  pointer-events: none;
+  background: #f1f2f6;
+  background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
+  background-size: 20px 20px; /* Petit effet de sécurité en fond */
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 2px solid #dfe6e9;
+  user-select: none; /* Empêche de copier-coller le texte directement */
 }
 
 .captcha-text {
-  font-size: 30px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 24px;
   font-weight: 900;
+  font-style: italic;
   letter-spacing: 6px;
   color: #2d3436;
-  font-family: monospace;
-  user-select: none;
-  transform: rotate(-3deg);
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-  text-shadow:
-    2px 2px 0 rgba(0,0,0,0.05),
-    -1px -1px 0 rgba(255,255,255,0.6);
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8);
+  filter: blur(0.3px); /* Rend la lecture par les bots plus difficile */
 }
 
 .refresh-btn {
-  width: 45px;
-  height: 45px;
-  border: none;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
   background: white;
-  color: #2d3436;
-  font-size: 18px;
-  cursor: pointer;
+  border: 1px solid #dfe6e9;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s ease;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-  flex-shrink: 0;
+  color: #ffa500; /* Ta couleur orange */
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
 }
 
 .refresh-btn:hover {
-  transform: rotate(90deg);
+  background-color: #ffa500;
+  color: white;
+  transform: rotate(90deg); /* Petit effet sympa au survol */
 }
 
-.refresh-btn:active {
-  transform: scale(0.92);
+.refresh-btn i {
+  font-size: 18px;
 }
 
+/* On ajuste l'espacement de l'input captcha sous la box */
+.captcha-section :deep(.input-container) {
+  margin-top: 5px;
+}
 
 </style>
