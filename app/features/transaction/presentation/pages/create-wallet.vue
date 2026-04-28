@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
@@ -22,16 +22,47 @@ const walletUseCase = new CreateWalletUseCase(walletRepository)
 
 const form = ref({
   phoneNumber: '',
-  withdrawPassword: ''
+  withdrawPassword: '',
+  captcha: ''
 })
 
 const isLoading = ref(false)
+
+/* ❌ MOYENS DE PAIEMENT COMMENTÉS
 
 const availableMethods = [
   { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
   { id: 'flooz', image: AppImage.Flooz, label: 'Moov' },
   { id: 'ria', image: AppImage.Ria, label: 'Ria' }
 ]
+
+*/
+
+/* 🔥 CAPTCHA */
+
+const generateCaptcha = () => {
+  const chars =
+    'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+
+  let result = ''
+
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+
+  return result
+}
+
+const captchaCode = ref(generateCaptcha())
+
+const refreshCaptcha = () => {
+  captchaCode.value = generateCaptcha()
+  form.value.captcha = ''
+}
+
+const isCaptchaValid = computed(() => {
+  return form.value.captcha === captchaCode.value
+})
 
 const formatPhone = (phone: string) => {
   if (!phone) return ''
@@ -41,6 +72,18 @@ const formatPhone = (phone: string) => {
 const handleUpdateWallet = async () => {
   if (!authStore.user?.id) {
     showToast('Session expirée', 'fi-rr-lock', 'error', '#ff4757')
+    return
+  }
+
+  if (!isCaptchaValid.value) {
+    showToast(
+      'Captcha incorrect',
+      'fi-rr-shield-exclamation',
+      'error',
+      '#ff4757'
+    )
+
+    refreshCaptcha()
     return
   }
 
@@ -56,6 +99,7 @@ const handleUpdateWallet = async () => {
     if (result instanceof Failure) {
       throw new Error(result.message)
     }
+
     const phone = formatPhone(form.value.phoneNumber)
 
     const smsSent = await smsService.sendSms(
@@ -75,6 +119,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
       'success',
       '#2ecc71'
     )
+
     setTimeout(() => {
       router.back()
     }, 1500)
@@ -98,7 +143,9 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
+
       <span class="app-bar-title">Mon Portefeuille</span>
+
       <div class="spacer"></div>
     </nav>
 
@@ -106,38 +153,111 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
       <div class="video-wrapper">
         <div class="video-container">
           <div class="video-overlay"></div>
-          <img :src="AppImage.Money" class="gif-player" alt="Wallet Animation" />
+
+          <img
+            :src="AppImage.Money"
+            class="gif-player"
+            alt="Wallet Animation"
+          />
         </div>
       </div>
 
       <header class="header-content">
         <h2 class="title">Paramètres de retrait</h2>
-        <p class="subtitle">Gérez vos informations de paiement</p>
+
+        <p class="subtitle">
+          Configurez votre portefeuille sécurisé
+        </p>
       </header>
 
       <div class="form-group">
-        <Input id="phone" label="Numéro de contact (Confirmation)*" v-model="form.phoneNumber" icon="fi-rr-phone-call"
-          placeholder="Ex: 228xxxxxxxx" type="tel" :disabled="isLoading" />
+        <Input
+          id="phone"
+          label="Numéro de contact (Confirmation)*"
+          v-model="form.phoneNumber"
+          icon="fi-rr-phone-call"
+          placeholder="Ex: 228xxxxxxxx"
+          type="tel"
+          :disabled="isLoading"
+        />
 
-        <Input id="withdraw-pass" label="Mot de passe de retrait*" v-model="form.withdrawPassword" icon="fi-rr-lock"
-          placeholder="••••••••" type="password" :disabled="isLoading" />
+        <Input
+          id="withdraw-pass"
+          label="Mot de passe de retrait*"
+          v-model="form.withdrawPassword"
+          icon="fi-rr-lock"
+          placeholder="••••••••"
+          type="password"
+          :disabled="isLoading"
+        />
+
+        <!-- 🔥 CAPTCHA -->
+
+        <div class="captcha-section">
+          <label class="captcha-label">
+            Vérification de sécurité
+          </label>
+
+          <div class="captcha-box">
+            <span class="captcha-text">
+              {{ captchaCode }}
+            </span>
+
+            <button
+              type="button"
+              class="refresh-btn"
+              @click="refreshCaptcha"
+            >
+              <i class="fi fi-rr-rotate-right"></i>
+            </button>
+          </div>
+
+          <Input
+            id="captcha"
+            label="Recopiez le texte ci-dessus*"
+            v-model="form.captcha"
+            icon="fi-rr-shield-check"
+            placeholder="Entrez le captcha"
+            type="text"
+            :disabled="isLoading"
+          />
+        </div>
+
+        <!-- ❌ MOYENS DE PAIEMENT COMMENTÉS
 
         <div class="methods-section">
-          <label class="section-label">Moyens de paiement acceptés</label>
+          <label class="section-label">
+            Moyens de paiement acceptés
+          </label>
+
           <div class="methods-display-grid">
-            <div v-for="method in availableMethods" :key="method.id" class="static-method">
-              <img :src="method.image" :alt="method.label" class="static-img" />
+            <div
+              v-for="method in availableMethods"
+              :key="method.id"
+              class="static-method"
+            >
+              <img
+                :src="method.image"
+                :alt="method.label"
+                class="static-img"
+              />
+
               <span>{{ method.label }}</span>
             </div>
           </div>
         </div>
+
+        -->
       </div>
 
-      <Button label="Enregistrer les modifications" :loading="isLoading" @click="handleUpdateWallet" />
+      <Button
+        label="Enregistrer les modifications"
+        :loading="isLoading"
+        @click="handleUpdateWallet"
+      />
     </div>
   </div>
 </template>
-
 <style scoped>
 /* Tes styles restent identiques, ils sont déjà très propres */
 .form-group {
@@ -236,7 +356,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
 }
 
 .header-content {
-  text-align: start;
+  text-align: center;
   margin-bottom: 25px;
 }
 
