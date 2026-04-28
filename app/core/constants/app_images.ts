@@ -9,6 +9,7 @@ export class AppImage {
   static readonly Fliyer_2 = '/assets/images/logo/fliyer_2.png'
   static readonly Ria = '/assets/images/logo/ria.png'
   static readonly Money = '/assets/images/logo/wallet.png'
+  static readonly Error_Divice = '/assets/images/logo/error-divice.png'
 
   //Gifs
   static readonly Profile = '/assets/videos/gif/profile.gif'

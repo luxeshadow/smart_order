@@ -1,15 +1,16 @@
-export default defineNuxtRouteMiddleware(async (to) => {
+import { useAuthStore } from "@/features/auth/presentation/stores/auth_store";
+
+export default defineNuxtRouteMiddleware((to) => {
+
   if (!to.path.startsWith('/transaction')) return
 
-  const supabase = useApi()
+  const authStore = useAuthStore()
 
-  const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    return navigateTo('/auth/login')
+  if (!authStore.user) {
+    authStore.initUser()
   }
 
+  if (!authStore.user) {
+    return navigateTo('/auth/login')
+  }
 })

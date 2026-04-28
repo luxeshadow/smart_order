@@ -191,9 +191,8 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
           :disabled="isLoading"
         />
 
-        <!-- 🔥 CAPTCHA -->
 
-        <div class="captcha-section">
+        
           <label class="captcha-label">
             Vérification de sécurité
           </label>
@@ -221,7 +220,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
             type="text"
             :disabled="isLoading"
           />
-        </div>
+   
 
         <!-- ❌ MOYENS DE PAIEMENT COMMENTÉS
 
@@ -325,7 +324,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
 }
 
 .video-wrapper {
-  padding: 0 0 10px 0;
+  padding: 0 0 5px 0;
 }
 
 .video-container {
@@ -443,7 +442,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   font-size: 13px;
   font-weight: 700;
   color: #2d3436;
-  text-transform: uppercase;
+  margin-bottom: 1px;
   letter-spacing: 0.5px;
 }
 
@@ -454,10 +453,11 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   background: #f1f2f6;
   background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
   background-size: 20px 20px; /* Petit effet de sécurité en fond */
-  padding: 10px 18px;
+  padding: 8px 15px;
   border-radius: 12px;
   border: 2px solid #dfe6e9;
-  user-select: none; /* Empêche de copier-coller le texte directement */
+  user-select: none;
+  margin-bottom: 12px;
 }
 
 .captcha-text {
@@ -480,7 +480,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffa500; /* Ta couleur orange */
+  color: #6e6e6e; /* Ta couleur orange */
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
@@ -490,6 +490,7 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
 
 .refresh-btn i {
   font-size: 18px;
+  margin-top: 5px;
 }
 
 /* On ajuste l'espacement de l'input captcha sous la box */
