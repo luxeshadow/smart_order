@@ -42,7 +42,7 @@ TON STYLE DE RÉPONSE :
   const finalPrompt = `${systemInstructions}\n\nQuestion utilisateur : ${prompt}`;
 
   try {
-    // Note : Utilise "gemini-1.5-flash" qui est le modèle stable actuel
+  
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash"
     });
