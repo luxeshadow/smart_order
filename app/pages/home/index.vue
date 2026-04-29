@@ -13,6 +13,7 @@ import Footer  from '@/core/components/client/mobile/Footer.vue'
 
 <template>
   <div class="app-layout">
+  <PwaInstallButton />
     <AppBar />
     <LoopVideo/>
     <StatCard />
@@ -21,7 +22,6 @@ import Footer  from '@/core/components/client/mobile/Footer.vue'
     <Shop />
     <Footer />
     <NuxtRouteAnnouncer />
-    <PwaInstallButton />
     <FloatingActionButton />
   </div>
 </template>
