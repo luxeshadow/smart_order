@@ -7,6 +7,7 @@ import TransactionActionButton from '@/core/components/client/mobile/Transaction
 import AccountMetricsCard from '@/core/components/client/mobile/AccountMetricsCard.vue'
 import LoopVideo from '@/core/components/client/mobile/LoopVideo.vue'
 import Shop from '@/core/components/client/mobile/Shop.vue'
+import PwaInstallButton from '@/core/components/client/mobile/PwaInstallButton.vue'
 import Footer  from '@/core/components/client/mobile/Footer.vue'
 </script>
 
@@ -20,6 +21,7 @@ import Footer  from '@/core/components/client/mobile/Footer.vue'
     <Shop />
     <Footer />
     <NuxtRouteAnnouncer />
+    <PwaInstallButton />
     <FloatingActionButton />
   </div>
 </template>
