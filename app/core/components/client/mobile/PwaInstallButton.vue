@@ -1,86 +1,98 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
+import { useToast } from '@/core/utils/useToast'
+
+const { showToast } = useToast()
 
 const deferredPrompt = ref<any>(null)
 
 const showInstallButton = ref(false)
 
+const isIos = ref(false)
+
+const isInStandaloneMode = ref(false)
+
 onMounted(() => {
 
   console.log('PWA Install Component Mounted')
 
-  console.log('Display mode standalone :', window.matchMedia('(display-mode: standalone)').matches)
+  isIos.value = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
 
+  isInStandaloneMode.value =
+    ('standalone' in window.navigator) &&
+    ((window.navigator as any).standalone)
+
+  console.log('isIos :', isIos.value)
+
+  console.log('standalone :', isInStandaloneMode.value)
+
+  // ANDROID
   window.addEventListener('beforeinstallprompt', (e: any) => {
 
-    console.log('beforeinstallprompt event triggered')
+    console.log('beforeinstallprompt triggered')
 
     e.preventDefault()
 
     deferredPrompt.value = e
 
     showInstallButton.value = true
-
-    console.log('Install button visible :', showInstallButton.value)
   })
+
+  // IPHONE
+  if (isIos.value && !isInStandaloneMode.value) {
+
+    console.log('iPhone detected -> show manual install button')
+
+    showInstallButton.value = true
+  }
 
   window.addEventListener('appinstalled', () => {
 
-    console.log('PWA installed successfully')
+    console.log('PWA installed')
 
     showInstallButton.value = false
 
     deferredPrompt.value = null
   })
-
-  if ('serviceWorker' in navigator) {
-
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-
-      console.log('Service Workers :', registrations)
-
-    }).catch((err) => {
-
-      console.error('Service Worker Error :', err)
-
-    })
-  } else {
-
-    console.log('Service Worker not supported')
-  }
 })
 
 const installPwa = async () => {
 
-  console.log('Install button clicked')
+  // ANDROID
+  if (deferredPrompt.value) {
 
-  if (!deferredPrompt.value) {
+    deferredPrompt.value.prompt()
 
-    console.log('No deferredPrompt available')
+    const choiceResult = await deferredPrompt.value.userChoice
+
+    console.log(choiceResult)
+
+    if (choiceResult.outcome === 'accepted') {
+
+      showInstallButton.value = false
+
+      showToast(
+        "Application installée avec succès",
+        "fi-rr-check",
+        "success"
+      )
+    }
+
+    deferredPrompt.value = null
 
     return
   }
 
-  deferredPrompt.value.prompt()
+  // IPHONE
+  if (isIos.value) {
 
-  console.log('Prompt shown')
-
-  const choiceResult = await deferredPrompt.value.userChoice
-
-  console.log('User choice :', choiceResult)
-
-  if (choiceResult.outcome === 'accepted') {
-
-    console.log('User accepted install')
-
-    showInstallButton.value = false
-  } else {
-
-    console.log('User dismissed install')
+  showToast(
+  "iPhone : appuyez sur le bouton partager puis ajoutez l'application à l’écran d’accueil",
+  "fi-rr-mobile-button",
+  "normal"
+)
   }
-
-  deferredPrompt.value = null
 }
 </script>
 

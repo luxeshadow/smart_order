@@ -3,6 +3,7 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { useToast } from '@/core/utils/useToast'
+
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { countPendingWithdrawals } from '@/core/utils/countPendingWithdrawals'
 
