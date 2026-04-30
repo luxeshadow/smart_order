@@ -19,13 +19,30 @@ onMounted(() => {
 
   isIos.value = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
 
-  isInStandaloneMode.value =
-    ('standalone' in window.navigator) &&
-    ((window.navigator as any).standalone)
+  const checkStandalone = () => {
 
-  console.log('isIos :', isIos.value)
+    isInStandaloneMode.value =
+      ('standalone' in window.navigator) &&
+      ((window.navigator as any).standalone)
 
-  console.log('standalone :', isInStandaloneMode.value)
+    console.log('standalone :', isInStandaloneMode.value)
+
+    // SI INSTALLÉ → CACHE LE BOUTON
+    if (isInStandaloneMode.value) {
+
+      showInstallButton.value = false
+
+      return
+    }
+
+    // IPHONE NON INSTALLÉ
+    if (isIos.value) {
+
+      showInstallButton.value = true
+    }
+  }
+
+  checkStandalone()
 
   // ANDROID
   window.addEventListener('beforeinstallprompt', (e: any) => {
@@ -39,14 +56,7 @@ onMounted(() => {
     showInstallButton.value = true
   })
 
-  // IPHONE
-  if (isIos.value && !isInStandaloneMode.value) {
-
-    console.log('iPhone detected -> show manual install button')
-
-    showInstallButton.value = true
-  }
-
+  // ANDROID INSTALLÉ
   window.addEventListener('appinstalled', () => {
 
     console.log('PWA installed')
@@ -55,6 +65,9 @@ onMounted(() => {
 
     deferredPrompt.value = null
   })
+
+  // IOS → RECHECK AU RETOUR SUR L’APP
+  window.addEventListener('focus', checkStandalone)
 })
 
 const installPwa = async () => {
