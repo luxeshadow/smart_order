@@ -446,13 +446,13 @@ onUnmounted(() => {
   }
 
   .action-icon-wrapper {
-    width: 52px;
+    width: 48px;
 
-    height: 52px;
+    height: 48px;
 
     border-radius: 16px;
 
-    font-size: 20px;
+    font-size: 18px;
   }
 }
 </style>
