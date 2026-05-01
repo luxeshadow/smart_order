@@ -11,31 +11,27 @@ const route = useRoute()
 const authStore = useAuthStore()
 const { isAuthenticated } = storeToRefs(authStore)
 
-// 🔥 state
+
 const isOpen = ref(false)
 const showAlert = ref(false)
 let timer: ReturnType<typeof setTimeout> | null = null
 
-// 🔥 toggle menu sécurisé
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
 
-  // sécurité : si on ferme → on nettoie
   if (!isOpen.value) {
     showAlert.value = false
   }
 }
 
-// 🔥 actions
 const actions = [
   { id: 'Transact', name: 'Transact', icon: AppIcon.order, route: '/transaction/history-transaction' },
   { id: 'Vente', name: 'Vente', icon: AppIcon.box, route: '/order/my-order' },
   { id: 'Parametre', name: 'Parametre', icon: AppIcon.user, route: '/auth/profile' },
 ]
 
-// 🔥 protection navigation
 const handleActionClick = (path: string) => {
-  // 🔴 fermeture FORCÉE (important)
+
   isOpen.value = false
   showAlert.value = false
 
@@ -47,7 +43,6 @@ const handleActionClick = (path: string) => {
   router.push(path)
 }
 
-// 🔥 alert contrôlée
 const triggerAlert = () => {
   if (timer) clearTimeout(timer)
 
@@ -58,7 +53,6 @@ const triggerAlert = () => {
   }, 5000)
 }
 
-// 🔥 CRITIQUE : reset quand route change
 watch(() => route.fullPath, () => {
   isOpen.value = false
   showAlert.value = false
@@ -69,19 +63,16 @@ watch(() => route.fullPath, () => {
   }
 })
 
-// 🔥 CRITIQUE : reset quand auth change (login/logout)
 watch(isAuthenticated, () => {
   isOpen.value = false
   showAlert.value = false
 })
 
-// 🔥 sécurité au montage
 onMounted(() => {
   isOpen.value = false
   showAlert.value = false
 })
 
-// 🔥 nettoyage
 onUnmounted(() => {
   if (timer) {
     clearTimeout(timer)
@@ -139,7 +130,6 @@ onUnmounted(() => {
   transform: scale(0.9);
 }
 
-/* Le reste de ton CSS est parfait */
 .fab-container {
   position: fixed;
   bottom: 30px;
@@ -152,7 +142,7 @@ onUnmounted(() => {
 
 .fab-backdrop {
   position: fixed;
-  top: 0; /* Changé à 0 pour couvrir toute l'alerte si besoin */
+  top: 0; 
   left: 0;
   width: 100vw;
   height: 100vh;

@@ -1,6 +1,6 @@
 <!-- pages/index.vue -->
 <script setup lang="ts">
-import FloatingActionButton from '@/core/components/client/mobile/FloatingActionButton.vue'
+import FloatingActionButton_V1 from '@/core/components/client/mobile/FloatingActionButton_V1.vue'
 import AppBar from '@/core/components/client/mobile/AppBar.vue'
 import StatCard from '@/core/components/client/mobile/StatCard.vue'
 import TransactionActionButton from '@/core/components/client/mobile/TransactionActionButton.vue'
@@ -22,7 +22,7 @@ import Footer  from '@/core/components/client/mobile/Footer.vue'
     <Shop />
     <Footer />
     <NuxtRouteAnnouncer />
-    <FloatingActionButton />
+    <FloatingActionButton_V1 />
   </div>
 </template>
 

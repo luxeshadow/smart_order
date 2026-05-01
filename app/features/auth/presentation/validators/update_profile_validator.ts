@@ -12,13 +12,11 @@ export class UpdateProfileValidator {
       return "L'adresse email est obligatoire.";
     }
 
-    // 2. Format du nom d'utilisateur (Alphanumérique, min 3)
-    const userRegex = /^[a-zA-Z0-9_]{3,}$/; // J'ai ajouté l'underscore au cas où
+    const userRegex = /^[a-zA-Z0-9_]{3,}$/; 
     if (!userRegex.test(params.userName)) {
       return "Le nom d'utilisateur doit contenir au moins 3 caractères alphanumériques.";
     }
 
-    // 3. Format du téléphone
     const phoneRegex = /^\+?[0-9]{8,15}$/; 
     if (!phoneRegex.test(params.phoneNumber.replace(/\s/g, ''))) {
       return "Le numéro de téléphone n'est pas valide.";

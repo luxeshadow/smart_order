@@ -46,11 +46,8 @@ onMounted(() => {
 
     </div>
 
-    <!-- ✅ Mobile -->
-
     <template v-else>
       <NuxtPwaManifest />
-
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
