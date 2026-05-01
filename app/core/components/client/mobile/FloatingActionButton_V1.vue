@@ -239,8 +239,22 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 600px) {
-  .fab-container { right: 16px; bottom: 16px; }
-  .main-fab { width: 58px; height: 58px; border-radius: 18px; }
-  .action-icon-wrapper { width: 48px; height: 48px; border-radius: 14px; }
+
+  .fab-container {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .main-fab {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+  }
+
+  .action-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
 }
 </style>

@@ -85,15 +85,13 @@ onUnmounted(() => {
   <div class="fab-container">
     <AuthAlert :show="showAlert" @close="showAlert = false" />
 
-    <!-- Backdrop avec transition Fade et Blur -->
     <Transition name="fade">
       <div v-if="isOpen" class="fab-backdrop" @click="toggleMenu"></div>
     </Transition>
 
     <div class="fab-orbit-menu" :class="{ 'is-open': isOpen }">
-      <div v-for="(action, index) in actions" :key="action.id" class="orbit-item">
-        <!-- Bouton avec effet Glass -->
-        <div @click="handleActionClick(action.route)" class="action-btn-glass">
+      <div v-for="action in actions" :key="action.id" class="orbit-item">
+        <div @click="handleActionClick(action.route)" class="action-btn">
           <i :class="action.icon" class="action-icon"></i>
           <span class="action-label">{{ action.name }}</span>
         </div>
@@ -111,38 +109,32 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* --- EFFET GLASSMORPHISM SUR TES BOUTONS --- */
-.action-btn-glass {
-  cursor: pointer;
-  width: 62px; 
-  height: 62px;
-  /* Fond semi-transparent + flou de vitre */
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  
+/* Garde ton CSS identique, assure-toi juste que .action-btn a un cursor: pointer */
+.action-btn {
+  cursor: pointer; /* Ajouté pour le feedback visuel */
+  width: 60px; 
+  height: 60px;
+  background-color: v-bind('AppColor.surface.pure');
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  
-  /* Bordure fine pour l'effet reflet */
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
 }
 
-.action-btn-glass:active {
+.action-btn:active {
   transform: scale(0.9);
-  background: rgba(255, 255, 255, 0.9);
 }
 
 .fab-container {
   position: fixed;
   bottom: 30px;
   right: 15px;
-  z-index: 3000;
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,10 +142,13 @@ onUnmounted(() => {
 
 .fab-backdrop {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  top: 0; 
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 10;
-  backdrop-filter: blur(3px); /* Ajoute un léger flou au reste de l'app */
+  backdrop-filter: blur(2px);
 }
 
 .fab-trigger {
@@ -174,7 +169,7 @@ onUnmounted(() => {
 
 .fab-trigger.is-active {
   transform: rotate(45deg);
-  background-color: #2d3436; /* Optionnel : changement de couleur quand ouvert */
+  border-radius: 18px;
 }
 
 .fab-orbit-menu {
@@ -200,15 +195,12 @@ onUnmounted(() => {
   transition: all 0.4s ease-out;
 }
 
-/* Tes coordonnées d'orbite sont préservées ici */
 .fab-orbit-menu.is-open .orbit-item:nth-child(1) { transform: translate(0px, -95px); }
 .fab-orbit-menu.is-open .orbit-item:nth-child(2) { transform: translate(-70px, -70px); }
 .fab-orbit-menu.is-open .orbit-item:nth-child(3) { transform: translate(-95px, 0px); }
 
 .action-icon { font-size: 18px; color: v-bind('AppColor.primary.base'); margin-bottom: 2px; }
-.action-label { font-size: 9px; font-weight: 800; color: #1e272e; }
-
-/* Animation Fade pour le fond */
+.action-label { font-size: 9px; font-weight: 800; color: #333; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
