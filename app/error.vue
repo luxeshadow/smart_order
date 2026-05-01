@@ -7,7 +7,7 @@ defineProps({
 })
 
 const handleError = () => clearError({
-  redirect: '/'
+  redirect: '/home'
 })
 </script>
 
