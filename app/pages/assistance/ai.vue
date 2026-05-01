@@ -1,134 +1,223 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { askGemini } from '~/services/ai/gemini/gemini';
-import { AppColor } from '@/core/constants/app_colors';
+import { ref, nextTick, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { askGemini } from '~/services/ai/gemini/gemini'
+import { AppColor } from '@/core/constants/app_colors'
 
-const router = useRouter();
-const userInput = ref('');
-const isLoading = ref(false);
-const chatContainer = ref<HTMLElement | null>(null);
+const router = useRouter()
+
+const userInput = ref('')
+const isLoading = ref(false)
+
+const chatContainer = ref<HTMLElement | null>(null)
 
 interface Message {
-  role: 'user' | 'ai';
-  text: string;
+  role: 'user' | 'ai'
+  text: string
 }
 
 const messages = ref<Message[]>([
-  { role: 'ai', text: 'Bonjour ! Je suis votre assistant Roger. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd\'hui ?' }
-]);
+  {
+    role: 'ai',
+    text: 'Bonjour ! Je suis votre assistant Roger. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd\'hui ?'
+  }
+])
 
 const scrollToBottom = async () => {
-  await nextTick();
+
+  await nextTick()
+
   if (chatContainer.value) {
+
     chatContainer.value.scrollTo({
       top: chatContainer.value.scrollHeight,
       behavior: 'smooth'
-    });
+    })
   }
-};
+}
 
 const sendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value) return;
 
-  const userText = userInput.value;
-  messages.value.push({ role: 'user', text: userText });
-  userInput.value = '';
-  isLoading.value = true;
-  
-  await scrollToBottom();
+  if (!userInput.value.trim() || isLoading.value) return
+
+  const userText = userInput.value
+
+  messages.value.push({
+    role: 'user',
+    text: userText
+  })
+
+  userInput.value = ''
+
+  isLoading.value = true
+
+  await scrollToBottom()
 
   try {
-    const aiResponse = await askGemini(userText);
-    messages.value.push({ role: 'ai', text: aiResponse });
+
+    const aiResponse = await askGemini(userText)
+
+    messages.value.push({
+      role: 'ai',
+      text: aiResponse
+    })
+
   } catch (error) {
-    messages.value.push({ role: 'ai', text: "Désolé, j'ai une petite panne de circuit. Réessayez ?" });
+
+    messages.value.push({
+      role: 'ai',
+      text: "Désolé, j'ai une petite panne de circuit. Réessayez ?"
+    })
+
   } finally {
-    isLoading.value = false;
-    await scrollToBottom();
+
+    isLoading.value = false
+
+    await scrollToBottom()
   }
-};
+}
 
 onMounted(() => {
-  scrollToBottom();
-});
+
+  scrollToBottom()
+})
 </script>
 
 <template>
   <div class="ia-page">
+
+    <!-- HEADER -->
     <header class="app-bar">
-      <button class="back-btn" @click="router.back()">
+
+      <button
+        class="back-btn"
+        @click="router.back()"
+      >
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-      <span class="app-bar-title">Assistant</span>
+
+      <span class="app-bar-title">
+        Assistant
+      </span>
+
       <div class="spacer"></div>
+
     </header>
 
-    <main class="chat-wrapper" ref="chatContainer">
+    <!-- CHAT -->
+    <main
+      class="chat-wrapper"
+      ref="chatContainer"
+    >
+
       <div class="chat-content">
+
         <div class="header-content">
-           <div class="logo-container">
-             <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
-           </div>
-           <p class="subtitle">Expert en gestion de niveaux et profits</p>
+
+          <div class="logo-container">
+
+            <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
+
+          </div>
+
+          <p class="subtitle">
+            Expert en gestion de niveaux et profits
+          </p>
+
         </div>
 
         <div class="messages-list">
+
           <TransitionGroup name="fade-slide">
-            <div v-for="(msg, index) in messages" :key="index" :class="['message-bubble', msg.role]">
+
+            <div
+              v-for="(msg, index) in messages"
+              :key="index"
+              :class="['message-bubble', msg.role]"
+            >
+
               <div class="bubble-content">
+
                 {{ msg.text }}
+
               </div>
+
             </div>
+
           </TransitionGroup>
-          
-          <div v-if="isLoading" class="message-bubble ai">
+
+          <div
+            v-if="isLoading"
+            class="message-bubble ai"
+          >
+
             <div class="bubble-content timer-hint">
+
               Roger écrit...
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     </main>
 
+    <!-- INPUT -->
     <footer class="input-area">
+
       <div class="input-wrapper">
-        <input 
-          v-model="userInput" 
-          type="text" 
-          placeholder="Écrivez ici..." 
+
+        <input
+          v-model="userInput"
+          type="text"
+          placeholder="Écrivez ici..."
           @keyup.enter="sendMessage"
         />
-        <button class="send-btn" :disabled="isLoading || !userInput.trim()" @click="sendMessage">
+
+        <button
+          class="send-btn"
+          :disabled="isLoading || !userInput.trim()"
+          @click="sendMessage"
+        >
+
           <i class="fi fi-rr-paper-plane"></i>
+
         </button>
+
       </div>
+
     </footer>
+
   </div>
 </template>
 
 <style scoped>
 .ia-page {
-  background: #f8f9fa;
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
 
   height: 100dvh;
 
   overflow: hidden;
+
+  background: #f8f9fa;
+
+  display: flex;
+
+  flex-direction: column;
 }
 
 /* HEADER */
 .app-bar {
-  position: fixed;
-
-  top: 0;
-
-  left: 0;
-
-  right: 0;
-
-  z-index: 1000;
-
   height: 65px;
+
+  min-height: 65px;
 
   background: white;
 
@@ -140,11 +229,9 @@ onMounted(() => {
 
   border-bottom: 1px solid #f1f1f1;
 
-  transform: translateZ(0);
+  flex-shrink: 0;
 
-  -webkit-transform: translateZ(0);
-
-  backface-visibility: hidden;
+  z-index: 10;
 }
 
 .back-btn {
@@ -163,6 +250,8 @@ onMounted(() => {
   justify-content: center;
 
   align-items: center;
+
+  flex-shrink: 0;
 }
 
 .app-bar-title {
@@ -181,15 +270,7 @@ onMounted(() => {
 
 /* CHAT */
 .chat-wrapper {
-  position: fixed;
-
-  top: 65px;
-
-  left: 0;
-
-  right: 0;
-
-  bottom: 82px;
+  flex: 1;
 
   overflow-y: auto;
 
@@ -197,7 +278,9 @@ onMounted(() => {
 
   padding: 16px;
 
-  transform: translateZ(0);
+  padding-top: 20px;
+
+  min-height: 0;
 }
 
 .chat-content {
@@ -294,16 +377,6 @@ onMounted(() => {
 
 /* INPUT */
 .input-area {
-  position: fixed;
-
-  left: 0;
-
-  right: 0;
-
-  bottom: 0;
-
-  z-index: 1000;
-
   background: white;
 
   border-top: 1px solid #eee;
@@ -313,11 +386,7 @@ onMounted(() => {
     16px
     calc(env(safe-area-inset-bottom) + 12px);
 
-  transform: translateZ(0);
-
-  -webkit-transform: translateZ(0);
-
-  backface-visibility: hidden;
+  flex-shrink: 0;
 }
 
 .input-wrapper {
@@ -372,6 +441,8 @@ input:focus {
   justify-content: center;
 
   align-items: center;
+
+  flex-shrink: 0;
 }
 
 .send-btn:disabled {
@@ -390,7 +461,9 @@ input:focus {
 }
 
 @keyframes fadePulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.5;
   }
 
@@ -416,6 +489,8 @@ input:focus {
   .chat-wrapper {
 
     padding: 12px;
+
+    padding-top: 16px;
   }
 
   .bubble-content {
@@ -423,6 +498,12 @@ input:focus {
     max-width: 88%;
 
     font-size: 13px;
+  }
+
+  .input-area {
+
+    padding-bottom:
+      calc(env(safe-area-inset-bottom) + 10px);
   }
 }
 </style>
