@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, onMounted, watch } from 'vue'
+import { ref, onUnmounted, watch } from 'vue'
 import { storeToRefs } from "pinia"
 import { useRoute, useRouter } from 'vue-router'
 import { AppIcon } from '@/core/constants/app_icons'
@@ -9,59 +9,112 @@ import AuthAlert from "./AuthAlert.vue"
 
 const router = useRouter()
 const route = useRoute()
+
 const authStore = useAuthStore()
 const { isAuthenticated } = storeToRefs(authStore)
 
 const isOpen = ref(false)
 const showAlert = ref(false)
+
 let timer: ReturnType<typeof setTimeout> | null = null
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
-  if (!isOpen.value) showAlert.value = false
+
+  if (!isOpen.value) {
+    showAlert.value = false
+  }
 }
 
 const actions = [
-  { id: 'vente', name: 'Vente', icon: AppIcon.box, route: '/order/my-order', color: '#6c5ce7' },
-  { id: 'historique', name: 'Historique', icon: AppIcon.order, route: '/transaction/history-transaction', color: '#00b894' },
-  { id: 'parametre', name: 'Profil', icon: AppIcon.user, route: '/auth/profile', color: '#0984e3' }
+  {
+    id: 'vente',
+    name: 'Vente',
+    icon: AppIcon.box,
+    route: '/order/my-order'
+  },
+  {
+    id: 'historique',
+    name: 'Historique',
+    icon: AppIcon.order,
+    route: '/transaction/history-transaction'
+  },
+  {
+    id: 'parametre',
+    name: 'Profil',
+    icon: AppIcon.user,
+    route: '/auth/profile'
+  }
 ]
 
 const handleActionClick = (path: string) => {
+
   isOpen.value = false
   showAlert.value = false
+
   if (!isAuthenticated.value) {
+
     triggerAlert()
+
     return
   }
+
   router.push(path)
 }
 
 const triggerAlert = () => {
+
   if (timer) clearTimeout(timer)
+
   showAlert.value = true
-  timer = setTimeout(() => { showAlert.value = false }, 5000)
+
+  timer = setTimeout(() => {
+
+    showAlert.value = false
+
+  }, 5000)
 }
 
-// Nettoyage automatique
-watch(() => route.fullPath, () => { isOpen.value = false; showAlert.value = false })
-onUnmounted(() => { if (timer) clearTimeout(timer) })
+// RESET ROUTE
+watch(() => route.fullPath, () => {
+
+  isOpen.value = false
+  showAlert.value = false
+})
+
+onUnmounted(() => {
+
+  if (timer) clearTimeout(timer)
+})
 </script>
 
 <template>
   <div class="fab-wrapper">
-    <AuthAlert :show="showAlert" @close="showAlert = false" />
 
-    <!-- Backdrop avec flou élégant -->
+    <AuthAlert
+      :show="showAlert"
+      @close="showAlert = false"
+    />
+
+    <!-- OVERLAY -->
     <Transition name="fade">
-      <div v-if="isOpen" class="fab-overlay" @click="toggleMenu" />
+      <div
+        v-if="isOpen"
+        class="fab-overlay"
+        @click="toggleMenu"
+      />
     </Transition>
 
-    <div class="fab-container" :class="{ 'is-open': isOpen }">
-      
-      <!-- Menu des actions -->
+    <div
+      class="fab-container"
+      :class="{ 'is-open': isOpen }"
+    >
+
+      <!-- ACTIONS -->
       <div class="actions-stack">
+
         <TransitionGroup name="pop">
+
           <div
             v-if="isOpen"
             v-for="(action, index) in actions"
@@ -70,26 +123,48 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
             :style="{ '--delay': index }"
             @click="handleActionClick(action.route)"
           >
-            <span class="action-label">{{ action.name }}</span>
-            <div class="action-icon-wrapper" :style="{ backgroundColor: action.color }">
+
+            <span class="action-label">
+              {{ action.name }}
+            </span>
+
+            <div class="action-icon-wrapper">
+
               <i :class="action.icon"></i>
+
             </div>
+
           </div>
+
         </TransitionGroup>
+
       </div>
 
-      <!-- Bouton Principal (Trigger) -->
-      <button 
-        class="main-fab" 
+      <!-- MAIN BUTTON -->
+      <button
+        class="main-fab"
         @click="toggleMenu"
         :aria-label="isOpen ? 'Fermer' : 'Ouvrir'"
       >
+
         <div class="icon-box">
-          <i :class="AppIcon.add" class="icon-plus"></i>
-          <i :class="AppIcon.cross" class="icon-close"></i>
+
+          <i
+            :class="AppIcon.add"
+            class="icon-plus"
+          ></i>
+
+          <i
+            :class="AppIcon.cross"
+            class="icon-close"
+          ></i>
+
         </div>
+
       </button>
+
     </div>
+
   </div>
 </template>
 
@@ -119,22 +194,28 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   align-items: flex-end;
 }
 
-/* --- MAIN BUTTON --- */
+/* MAIN FAB */
 .main-fab {
   width: 82px;
   height: 82px;
   border-radius: 26px;
+
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.base'),
     v-bind('AppColor.primary.dark')
   );
+
   border: none;
   color: white;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   cursor: pointer;
+
+ 
 
   transition:
     transform 0.35s ease,
@@ -178,6 +259,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 }
 
 .is-open .main-fab {
+
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.dark'),
@@ -187,7 +269,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   transform: translateY(-5px) rotate(45deg);
 }
 
-/* --- ACTIONS --- */
+/* ACTIONS */
 .actions-stack {
   display: flex;
   flex-direction: column;
@@ -200,7 +282,9 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   display: flex;
   align-items: center;
   gap: 12px;
+
   cursor: pointer;
+
   transition: transform 0.2s ease;
 }
 
@@ -210,21 +294,26 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 
 .action-label {
   background: white;
+
   padding: 8px 14px;
+
   border-radius: 12px;
+
   font-size: 13px;
   font-weight: 800;
+
   color: v-bind('AppColor.primary.dark');
+
+  border: 1px solid v-bind('AppColor.primary.light');
 
   box-shadow:
     0 8px 20px rgba(0,0,0,0.08);
-
-  border: 1px solid v-bind('AppColor.primary.light');
 }
 
 .action-icon-wrapper {
   width: 58px;
   height: 58px;
+
   border-radius: 18px;
 
   background: linear-gradient(
@@ -238,13 +327,14 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   justify-content: center;
 
   color: white;
+
   font-size: 22px;
 
   box-shadow:
     0 10px 20px rgba(255, 94, 0, 0.25);
 }
 
-/* --- POP ANIMATION --- */
+/* POP */
 .pop-enter-active {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition-delay: calc(var(--delay) * 0.08s);
@@ -261,7 +351,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   transform: scale(0.4) translateY(40px);
 }
 
-/* --- FADE --- */
+/* FADE */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -272,7 +362,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   opacity: 0;
 }
 
-/* --- MOBILE --- */
+/* MOBILE */
 @media (max-width: 600px) {
 
   .fab-container {
@@ -301,25 +391,6 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
     height: 52px;
     border-radius: 16px;
     font-size: 20px;
-  }
-}
-@media (max-width: 600px) {
-
-  .fab-container {
-    right: 16px;
-    bottom: 16px;
-  }
-
-  .main-fab {
-    width: 70px;
-    height: 70px;
-    border-radius: 20px;
-  }
-
-  .action-icon-wrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
   }
 }
 </style>
