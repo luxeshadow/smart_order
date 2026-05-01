@@ -150,7 +150,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 .icon-plus, .icon-close {
   position: absolute;
   inset: 0;
-  font-size: 26px;
+  font-size: 24px;
   transition: all 0.4s ease;
 }
 
