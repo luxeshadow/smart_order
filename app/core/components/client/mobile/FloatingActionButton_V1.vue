@@ -42,7 +42,7 @@ const actions = [
   },
   {
     id: 'parametre',
-    name: 'Profil',
+    name: 'Parametre',
     icon: AppIcon.user,
     route: '/auth/profile'
   }
