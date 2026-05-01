@@ -431,7 +431,7 @@ onUnmounted(() => {
 
     height: 65px;
 
-    border-radius: 24px;
+    border-radius: 16px;
   }
 
   .icon-box {
