@@ -9,326 +9,238 @@ import AuthAlert from "./AuthAlert.vue"
 
 const router = useRouter()
 const route = useRoute()
-
 const authStore = useAuthStore()
-
 const { isAuthenticated } = storeToRefs(authStore)
 
 const isOpen = ref(false)
-
 const showAlert = ref(false)
-
 let timer: ReturnType<typeof setTimeout> | null = null
 
 const toggleMenu = () => {
-
   isOpen.value = !isOpen.value
-
-  if (!isOpen.value) {
-
-    showAlert.value = false
-  }
+  if (!isOpen.value) showAlert.value = false
 }
 
 const actions = [
-  {
-    id: 'vente',
-    name: 'Vente',
-    icon: AppIcon.box,
-    route: '/order/my-order'
-  },
-  {
-    id: 'historique',
-    name: 'Historique',
-    icon: AppIcon.order,
-    route: '/transaction/history-transaction'
-  },
-  {
-    id: 'parametre',
-    name: 'Paramètre',
-    icon: AppIcon.user,
-    route: '/auth/profile'
-  }
+  { id: 'vente', name: 'Vente', icon: AppIcon.box, route: '/order/my-order', color: '#6c5ce7' },
+  { id: 'historique', name: 'Historique', icon: AppIcon.order, route: '/transaction/history-transaction', color: '#00b894' },
+  { id: 'parametre', name: 'Profil', icon: AppIcon.user, route: '/auth/profile', color: '#0984e3' }
 ]
 
 const handleActionClick = (path: string) => {
-
   isOpen.value = false
-
   showAlert.value = false
-
   if (!isAuthenticated.value) {
-
     triggerAlert()
-
     return
   }
-
   router.push(path)
 }
 
 const triggerAlert = () => {
-
-  if (timer) {
-
-    clearTimeout(timer)
-  }
-
+  if (timer) clearTimeout(timer)
   showAlert.value = true
-
-  timer = setTimeout(() => {
-
-    showAlert.value = false
-
-  }, 5000)
+  timer = setTimeout(() => { showAlert.value = false }, 5000)
 }
 
-watch(() => route.fullPath, () => {
-
-  isOpen.value = false
-
-  showAlert.value = false
-
-  if (timer) {
-
-    clearTimeout(timer)
-
-    timer = null
-  }
-})
-
-watch(isAuthenticated, () => {
-
-  isOpen.value = false
-
-  showAlert.value = false
-})
-
-onMounted(() => {
-
-  isOpen.value = false
-
-  showAlert.value = false
-})
-
-onUnmounted(() => {
-
-  if (timer) {
-
-    clearTimeout(timer)
-
-    timer = null
-  }
-})
+// Nettoyage automatique
+watch(() => route.fullPath, () => { isOpen.value = false; showAlert.value = false })
+onUnmounted(() => { if (timer) clearTimeout(timer) })
 </script>
 
 <template>
-  <div class="fab-container">
+  <div class="fab-wrapper">
+    <AuthAlert :show="showAlert" @close="showAlert = false" />
 
-    <AuthAlert
-      :show="showAlert"
-      @close="showAlert = false"
-    />
-
+    <!-- Backdrop avec flou élégant -->
     <Transition name="fade">
-      <div
-        v-if="isOpen"
-        class="fab-backdrop"
-        @click="toggleMenu"
-      />
+      <div v-if="isOpen" class="fab-overlay" @click="toggleMenu" />
     </Transition>
 
-    <Transition name="slide-up">
-      <div
-        v-if="isOpen"
-        class="fab-menu-line"
-      >
-
-        <div
-          v-for="action in actions"
-          :key="action.id"
-          class="menu-item"
-          @click="handleActionClick(action.route)"
-        >
-          <div class="menu-btn">
-            <i :class="action.icon"></i>
+    <div class="fab-container" :class="{ 'is-open': isOpen }">
+      
+      <!-- Menu des actions -->
+      <div class="actions-stack">
+        <TransitionGroup name="pop">
+          <div
+            v-if="isOpen"
+            v-for="(action, index) in actions"
+            :key="action.id"
+            class="action-item"
+            :style="{ '--delay': index }"
+            @click="handleActionClick(action.route)"
+          >
+            <span class="action-label">{{ action.name }}</span>
+            <div class="action-icon-wrapper" :style="{ backgroundColor: action.color }">
+              <i :class="action.icon"></i>
+            </div>
           </div>
-
-          <span class="menu-label">
-            {{ action.name }}
-          </span>
-        </div>
-
+        </TransitionGroup>
       </div>
-    </Transition>
 
-    <button
-      class="fab-trigger"
-      :class="{ active: isOpen }"
-      @click="toggleMenu"
-    >
-      <i
-        :class="isOpen ? AppIcon.cross : AppIcon.add"
-        class="trigger-icon"
-      ></i>
-    </button>
-
+      <!-- Bouton Principal (Trigger) -->
+      <button 
+        class="main-fab" 
+        @click="toggleMenu"
+        :aria-label="isOpen ? 'Fermer' : 'Ouvrir'"
+      >
+        <div class="icon-box">
+          <i :class="AppIcon.add" class="icon-plus"></i>
+          <i :class="AppIcon.cross" class="icon-close"></i>
+        </div>
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.fab-container {
+.fab-wrapper {
   position: fixed;
-  right: 16px;
-  bottom: 24px;
+  inset: 0;
+  pointer-events: none; /* Laisse passer les clics quand fermé */
   z-index: 3000;
 }
 
-.fab-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(3px);
-  z-index: 10;
-}
-
-.fab-trigger {
-  position: relative;
-  z-index: 30;
-
-  width: 68px;
-  height: 68px;
-
-  border: none;
-  border-radius: 22px;
-
-  background: v-bind('AppColor.primary.base');
-
-  color: white;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  box-shadow:
-    0 12px 30px rgba(0,0,0,0.22),
-    0 2px 10px rgba(0,0,0,0.12);
-
-  transition: all 0.25s ease;
-
-  cursor: pointer;
-}
-
-.fab-trigger.active {
-  transform: rotate(45deg);
-}
-
-.trigger-icon {
-  font-size: 24px;
-}
-
-.fab-menu-line {
+.fab-overlay {
   position: absolute;
-  right: 0;
-  bottom: 88px;
-
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  z-index: 20;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
-.menu-item {
+.fab-container {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-
-  cursor: pointer;
+  align-items: flex-end;
 }
 
-.menu-btn {
-  width: 62px;
-  height: 62px;
-
+/* --- LE BOUTON PRINCIPAL --- */
+.main-fab {
+  width: 65px;
+  height: 65px;
   border-radius: 20px;
-
-  background: white;
-
+  background: v-bind('AppColor.primary.base');
+  border: none;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border: 1px solid rgba(0,0,0,0.05);
-
-  box-shadow:
-    0 10px 25px rgba(0,0,0,0.10),
-    0 2px 10px rgba(0,0,0,0.05);
-
-  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px v-bind('AppColor.primary.base + "66"'), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 100;
 }
 
-.menu-btn:active {
-  transform: scale(0.92);
+.main-fab:active {
+  transform: scale(0.9);
 }
 
-.menu-btn i {
-  font-size: 22px;
-  color: v-bind('AppColor.primary.base');
+.icon-box {
+  position: relative;
+  width: 24px;
+  height: 24px;
 }
 
-.menu-label {
-  font-size: 11px;
+.icon-plus, .icon-close {
+  position: absolute;
+  inset: 0;
+  font-size: 24px;
+  transition: all 0.4s ease;
+}
+
+.icon-close {
+  transform: scale(0) rotate(-90deg);
+  opacity: 0;
+}
+
+.is-open .icon-plus {
+  transform: scale(0) rotate(90deg);
+  opacity: 0;
+}
+
+.is-open .icon-close {
+  transform: scale(1) rotate(0);
+  opacity: 1;
+}
+
+.is-open .main-fab {
+  background: #2d3436; /* Changement de couleur à l'ouverture */
+  transform: translateY(-5px);
+}
+
+/* --- LES ACTIONS --- */
+.actions-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.action-item:active {
+  transform: scale(0.95);
+}
+
+.action-label {
+  background: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 700;
   color: #2d3436;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  opacity: 0.95;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
+.action-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-.fade-enter-from,
-.fade-leave-to {
+/* --- ANIMATIONS POP --- */
+.pop-enter-active {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition-delay: calc(var(--delay) * 0.08s);
+}
+
+.pop-leave-active {
+  transition: all 0.2s ease;
+  transition-delay: calc((2 - var(--delay)) * 0.05s);
+}
+
+.pop-enter-from, .pop-leave-to {
   opacity: 0;
+  transform: scale(0.4) translateY(40px);
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.25s ease;
-}
-
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(15px);
-}
+/* --- FADE --- */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 600px) {
-
-  .fab-menu-line {
-    gap: 10px;
-  }
-
-  .menu-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-  }
-
-  .menu-btn i {
-    font-size: 20px;
-  }
-
-  .menu-label {
-    font-size: 10px;
-  }
-
-  .fab-trigger {
-    width: 64px;
-    height: 64px;
-  }
+  .fab-container { right: 16px; bottom: 16px; }
+  .main-fab { width: 58px; height: 58px; border-radius: 18px; }
+  .action-icon-wrapper { width: 48px; height: 48px; border-radius: 14px; }
 }
 </style>
-
