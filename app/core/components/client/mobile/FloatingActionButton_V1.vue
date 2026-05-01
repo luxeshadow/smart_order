@@ -427,9 +427,9 @@ onUnmounted(() => {
   }
 
   .main-fab {
-    width: 76px;
+    width: 65px;
 
-    height: 76px;
+    height: 65px;
 
     border-radius: 24px;
   }
@@ -442,7 +442,7 @@ onUnmounted(() => {
 
   .icon-plus,
   .icon-close {
-    font-size: 30px;
+    font-size: 25px;
   }
 
   .action-icon-wrapper {
