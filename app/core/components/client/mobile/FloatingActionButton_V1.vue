@@ -106,9 +106,7 @@ onUnmounted(() => {
       />
     </Transition>
 
-    <div
-      class="fab-container"
-    >
+    <div class="fab-container">
 
       <!-- ACTIONS -->
       <TransitionGroup
@@ -171,33 +169,48 @@ onUnmounted(() => {
 <style scoped>
 .fab-wrapper {
   position: fixed;
-  inset: 0;
-  pointer-events: none;
+
+  right: 16px;
+
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+
   z-index: 3000;
+
+  pointer-events: none;
 }
 
+/* OVERLAY */
 .fab-overlay {
   position: fixed;
+
   inset: 0;
+
   background: rgba(0, 0, 0, 0.28);
+
   backdrop-filter: blur(4px);
+
   pointer-events: auto;
 }
 
+/* CONTAINER */
 .fab-container {
-  position: fixed;
-  right: 20px;
-  bottom: 24px;
+  position: relative;
+
   display: flex;
+
   flex-direction: column;
+
   align-items: flex-end;
+
   pointer-events: none;
 }
 
-/* MAIN BUTTON */
+/* MAIN FAB */
 .main-fab {
   width: 82px;
+
   height: 82px;
+
   border-radius: 26px;
 
   background: linear-gradient(
@@ -207,17 +220,18 @@ onUnmounted(() => {
   );
 
   border: none;
+
   color: white;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   cursor: pointer;
 
   pointer-events: auto;
-
-
 
   transition:
     background 0.25s ease,
@@ -225,7 +239,11 @@ onUnmounted(() => {
 
   z-index: 100;
 
-  will-change: auto;
+  -webkit-tap-highlight-color: transparent;
+
+  backface-visibility: hidden;
+
+  transform: translateZ(0);
 }
 
 .main-fab:active {
@@ -234,19 +252,24 @@ onUnmounted(() => {
 
 .icon-box {
   position: relative;
+
   width: 34px;
+
   height: 34px;
 }
 
 .icon-plus,
 .icon-close {
   position: absolute;
+
   inset: 0;
 
   font-size: 34px;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   transition:
@@ -256,16 +279,19 @@ onUnmounted(() => {
 
 .icon-close {
   opacity: 0;
+
   transform: rotate(-90deg) scale(0.5);
 }
 
 .main-fab.is-open .icon-plus {
   opacity: 0;
+
   transform: rotate(90deg) scale(0.5);
 }
 
 .main-fab.is-open .icon-close {
   opacity: 1;
+
   transform: rotate(0deg) scale(1);
 }
 
@@ -280,8 +306,11 @@ onUnmounted(() => {
 /* ACTIONS */
 .actions-stack {
   display: flex;
+
   flex-direction: column;
+
   align-items: flex-end;
+
   gap: 16px;
 
   margin-bottom: 18px;
@@ -291,12 +320,18 @@ onUnmounted(() => {
 
 .action-item {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
 
   cursor: pointer;
 
   pointer-events: auto;
+
+  backface-visibility: hidden;
+
+  transform: translateZ(0);
 }
 
 .action-item:active {
@@ -311,6 +346,7 @@ onUnmounted(() => {
   border-radius: 12px;
 
   font-size: 13px;
+
   font-weight: 800;
 
   color: v-bind('AppColor.primary.dark');
@@ -323,6 +359,7 @@ onUnmounted(() => {
 
 .action-icon-wrapper {
   width: 58px;
+
   height: 58px;
 
   border-radius: 18px;
@@ -334,7 +371,9 @@ onUnmounted(() => {
   );
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   color: white;
@@ -363,6 +402,7 @@ onUnmounted(() => {
 .pop-enter-from,
 .pop-leave-to {
   opacity: 0;
+
   transform: translateY(12px) scale(0.92);
 }
 
@@ -380,19 +420,23 @@ onUnmounted(() => {
 /* MOBILE */
 @media (max-width: 600px) {
 
-  .fab-container {
+  .fab-wrapper {
     right: 16px;
-    bottom: 16px;
+
+    bottom: calc(env(safe-area-inset-bottom) + 16px);
   }
 
   .main-fab {
     width: 76px;
+
     height: 76px;
+
     border-radius: 24px;
   }
 
   .icon-box {
     width: 30px;
+
     height: 30px;
   }
 
@@ -403,8 +447,11 @@ onUnmounted(() => {
 
   .action-icon-wrapper {
     width: 52px;
+
     height: 52px;
+
     border-radius: 16px;
+
     font-size: 20px;
   }
 }
