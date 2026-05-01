@@ -47,9 +47,9 @@ const isIos = computed(() => {
 
     <NuxtRouteAnnouncer />
 
-    <FloatingActionButton_V1 v-if="isIos" />
+    <FloatingActionButton v-if="isIos" />
 
-    <FloatingActionButton v-else />
+    <FloatingActionButton_V1 v-else />
 
   </div>
 </template>

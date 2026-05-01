@@ -97,15 +97,15 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 .fab-wrapper {
   position: fixed;
   inset: 0;
-  pointer-events: none; /* Laisse passer les clics quand fermé */
+  pointer-events: none;
   z-index: 3000;
 }
 
 .fab-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
   pointer-events: auto;
 }
 
@@ -119,39 +119,51 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   align-items: flex-end;
 }
 
-/* --- LE BOUTON PRINCIPAL --- */
+/* --- MAIN BUTTON --- */
 .main-fab {
-  width: 70px;
-  height: 70px;
-  border-radius: 20px;
-  background: v-bind('AppColor.primary.base');
+  width: 82px;
+  height: 82px;
+  border-radius: 26px;
+  background: linear-gradient(
+    135deg,
+    v-bind('AppColor.primary.base'),
+    v-bind('AppColor.primary.dark')
+  );
   border: none;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 25px -5px v-bind('AppColor.primary.base + "66"'), 
-              0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  box-shadow:
+    0 20px 35px rgba(255, 94, 0, 0.28),
+    0 8px 18px rgba(230, 81, 0, 0.18);
+
+  transition:
+    transform 0.35s ease,
+    border-radius 0.35s ease,
+    background 0.35s ease;
+
   z-index: 100;
 }
 
 .main-fab:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
 }
 
 .icon-box {
   position: relative;
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
 }
 
-.icon-plus, .icon-close {
+.icon-plus,
+.icon-close {
   position: absolute;
   inset: 0;
-  font-size: 24px;
-  transition: all 0.4s ease;
+  font-size: 34px;
+  transition: all 0.35s ease;
 }
 
 .icon-close {
@@ -170,17 +182,22 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 }
 
 .is-open .main-fab {
-  background: #2d3436; /* Changement de couleur à l'ouverture */
-  transform: translateY(-5px);
+  background: linear-gradient(
+    135deg,
+    v-bind('AppColor.primary.dark'),
+    #1f1f1f
+  );
+
+  transform: translateY(-5px) rotate(45deg);
 }
 
-/* --- LES ACTIONS --- */
+/* --- ACTIONS --- */
 .actions-stack {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .action-item {
@@ -197,28 +214,41 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 
 .action-label {
   background: white;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
   font-size: 13px;
-  font-weight: 700;
-  color: #2d3436;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  opacity: 0.95;
+  font-weight: 800;
+  color: v-bind('AppColor.primary.dark');
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.08);
+
+  border: 1px solid v-bind('AppColor.primary.light');
 }
 
 .action-icon-wrapper {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+
+  background: linear-gradient(
+    135deg,
+    v-bind('AppColor.primary.base'),
+    v-bind('AppColor.primary.dark')
+  );
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   color: white;
-  font-size: 20px;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  font-size: 22px;
+
+  box-shadow:
+    0 10px 20px rgba(255, 94, 0, 0.25);
 }
 
-/* --- ANIMATIONS POP --- */
+/* --- POP ANIMATION --- */
 .pop-enter-active {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition-delay: calc(var(--delay) * 0.08s);
@@ -229,15 +259,54 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   transition-delay: calc((2 - var(--delay)) * 0.05s);
 }
 
-.pop-enter-from, .pop-leave-to {
+.pop-enter-from,
+.pop-leave-to {
   opacity: 0;
   transform: scale(0.4) translateY(40px);
 }
 
 /* --- FADE --- */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
 
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* --- MOBILE --- */
+@media (max-width: 600px) {
+
+  .fab-container {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .main-fab {
+    width: 74px;
+    height: 74px;
+    border-radius: 22px;
+  }
+
+  .icon-box {
+    width: 30px;
+    height: 30px;
+  }
+
+  .icon-plus,
+  .icon-close {
+    font-size: 30px;
+  }
+
+  .action-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    font-size: 20px;
+  }
+}
 @media (max-width: 600px) {
 
   .fab-container {
