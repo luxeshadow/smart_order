@@ -1,4 +1,3 @@
-```vue
 <script setup lang="ts">
 import { ref, onUnmounted, onMounted, watch } from 'vue'
 import { storeToRefs } from "pinia"
@@ -332,4 +331,4 @@ onUnmounted(() => {
   }
 }
 </style>
-```
+
