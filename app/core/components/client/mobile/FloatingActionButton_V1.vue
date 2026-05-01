@@ -143,8 +143,8 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 
 .icon-box {
   position: relative;
-  width: 24px;
-  height: 24px;
+  width: 27px;
+  height: 27px;
 }
 
 .icon-plus, .icon-close {
