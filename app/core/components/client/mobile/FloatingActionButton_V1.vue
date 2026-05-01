@@ -136,10 +136,6 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   justify-content: center;
   cursor: pointer;
 
-  box-shadow:
-    0 20px 35px rgba(255, 94, 0, 0.28),
-    0 8px 18px rgba(230, 81, 0, 0.18);
-
   transition:
     transform 0.35s ease,
     border-radius 0.35s ease,
