@@ -121,8 +121,8 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 
 /* --- LE BOUTON PRINCIPAL --- */
 .main-fab {
-  width: 65px;
-  height: 65px;
+  width: 70px;
+  height: 70px;
   border-radius: 20px;
   background: v-bind('AppColor.primary.base');
   border: none;
