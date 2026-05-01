@@ -1,6 +1,10 @@
 <!-- pages/index.vue -->
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import FloatingActionButton_V1 from '@/core/components/client/mobile/FloatingActionButton_V1.vue'
+import FloatingActionButton from '@/core/components/client/mobile/FloatingActionButton.vue'
+
 import AppBar from '@/core/components/client/mobile/AppBar.vue'
 import StatCard from '@/core/components/client/mobile/StatCard.vue'
 import TransactionActionButton from '@/core/components/client/mobile/TransactionActionButton.vue'
@@ -8,21 +12,45 @@ import AccountMetricsCard from '@/core/components/client/mobile/AccountMetricsCa
 import LoopVideo from '@/core/components/client/mobile/LoopVideo.vue'
 import Shop from '@/core/components/client/mobile/Shop.vue'
 import PwaInstallButton from '@/core/components/client/mobile/PwaInstallButton.vue'
-import Footer  from '@/core/components/client/mobile/Footer.vue'
+import Footer from '@/core/components/client/mobile/Footer.vue'
+
+const isIos = computed(() => {
+
+  if (import.meta.client) {
+
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+  }
+
+  return false
+})
+
 </script>
 
 <template>
   <div class="app-layout">
-  <PwaInstallButton />
+
+    <PwaInstallButton />
+
     <AppBar />
-    <LoopVideo/>
+
+    <LoopVideo />
+
     <StatCard />
+
     <TransactionActionButton />
+
     <AccountMetricsCard />
+
     <Shop />
+
     <Footer />
+
     <NuxtRouteAnnouncer />
-    <FloatingActionButton_V1 />
+
+    <FloatingActionButton_V1 v-if="isIos" />
+
+    <FloatingActionButton v-else />
+
   </div>
 </template>
 
@@ -39,7 +67,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, button, span {
+h1,
+h2,
+h3,
+button,
+span {
   font-family: 'Inter', sans-serif;
 }
 </style>
