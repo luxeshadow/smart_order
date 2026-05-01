@@ -19,6 +19,7 @@ const showAlert = ref(false)
 let timer: ReturnType<typeof setTimeout> | null = null
 
 const toggleMenu = () => {
+
   isOpen.value = !isOpen.value
 
   if (!isOpen.value) {
@@ -107,42 +108,41 @@ onUnmounted(() => {
 
     <div
       class="fab-container"
-      :class="{ 'is-open': isOpen }"
     >
 
       <!-- ACTIONS -->
-      <div class="actions-stack">
+      <TransitionGroup
+        name="pop"
+        tag="div"
+        class="actions-stack"
+      >
 
-        <TransitionGroup name="pop">
+        <div
+          v-for="(action, index) in isOpen ? actions : []"
+          :key="action.id"
+          class="action-item"
+          :style="{ '--delay': index }"
+          @click="handleActionClick(action.route)"
+        >
 
-          <div
-            v-if="isOpen"
-            v-for="(action, index) in actions"
-            :key="action.id"
-            class="action-item"
-            :style="{ '--delay': index }"
-            @click="handleActionClick(action.route)"
-          >
+          <span class="action-label">
+            {{ action.name }}
+          </span>
 
-            <span class="action-label">
-              {{ action.name }}
-            </span>
+          <div class="action-icon-wrapper">
 
-            <div class="action-icon-wrapper">
-
-              <i :class="action.icon"></i>
-
-            </div>
+            <i :class="action.icon"></i>
 
           </div>
 
-        </TransitionGroup>
+        </div>
 
-      </div>
+      </TransitionGroup>
 
       <!-- MAIN BUTTON -->
       <button
         class="main-fab"
+        :class="{ 'is-open': isOpen }"
         @click="toggleMenu"
         :aria-label="isOpen ? 'Fermer' : 'Ouvrir'"
       >
@@ -177,24 +177,24 @@ onUnmounted(() => {
 }
 
 .fab-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
   pointer-events: auto;
 }
 
 .fab-container {
-  position: absolute;
+  position: fixed;
   right: 20px;
   bottom: 24px;
-  pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  pointer-events: none;
 }
 
-/* MAIN FAB */
+/* MAIN BUTTON */
 .main-fab {
   width: 82px;
   height: 82px;
@@ -215,18 +215,21 @@ onUnmounted(() => {
 
   cursor: pointer;
 
- 
+  pointer-events: auto;
+
+
 
   transition:
-    transform 0.35s ease,
-    border-radius 0.35s ease,
-    background 0.35s ease;
+    background 0.25s ease,
+    border-radius 0.25s ease;
 
   z-index: 100;
+
+  will-change: auto;
 }
 
 .main-fab:active {
-  transform: scale(0.92);
+  transform: scale(0.96);
 }
 
 .icon-box {
@@ -239,34 +242,39 @@ onUnmounted(() => {
 .icon-close {
   position: absolute;
   inset: 0;
+
   font-size: 34px;
-  transition: all 0.35s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .icon-close {
-  transform: scale(0) rotate(-90deg);
   opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
 }
 
-.is-open .icon-plus {
-  transform: scale(0) rotate(90deg);
+.main-fab.is-open .icon-plus {
   opacity: 0;
+  transform: rotate(90deg) scale(0.5);
 }
 
-.is-open .icon-close {
-  transform: scale(1) rotate(0);
+.main-fab.is-open .icon-close {
   opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
-.is-open .main-fab {
-
+.main-fab.is-open {
   background: linear-gradient(
     135deg,
     v-bind('AppColor.primary.dark'),
-    #1f1f1f
+    #2d2d2d
   );
-
-  transform: translateY(-5px) rotate(45deg);
 }
 
 /* ACTIONS */
@@ -275,7 +283,10 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: flex-end;
   gap: 16px;
-  margin-bottom: 22px;
+
+  margin-bottom: 18px;
+
+  pointer-events: none;
 }
 
 .action-item {
@@ -285,11 +296,11 @@ onUnmounted(() => {
 
   cursor: pointer;
 
-  transition: transform 0.2s ease;
+  pointer-events: auto;
 }
 
 .action-item:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .action-label {
@@ -307,7 +318,7 @@ onUnmounted(() => {
   border: 1px solid v-bind('AppColor.primary.light');
 
   box-shadow:
-    0 8px 20px rgba(0,0,0,0.08);
+    0 10px 25px rgba(0,0,0,0.08);
 }
 
 .action-icon-wrapper {
@@ -331,30 +342,34 @@ onUnmounted(() => {
   font-size: 22px;
 
   box-shadow:
-    0 10px 20px rgba(255, 94, 0, 0.25);
+    0 10px 24px rgba(255, 94, 0, 0.24);
 }
 
 /* POP */
 .pop-enter-active {
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition-delay: calc(var(--delay) * 0.08s);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+
+  transition-delay: calc(var(--delay) * 0.05s);
 }
 
 .pop-leave-active {
-  transition: all 0.2s ease;
-  transition-delay: calc((2 - var(--delay)) * 0.05s);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .pop-enter-from,
 .pop-leave-to {
   opacity: 0;
-  transform: scale(0.4) translateY(40px);
+  transform: translateY(12px) scale(0.92);
 }
 
 /* FADE */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .fade-enter-from,
@@ -371,9 +386,9 @@ onUnmounted(() => {
   }
 
   .main-fab {
-    width: 74px;
-    height: 74px;
-    border-radius: 22px;
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
   }
 
   .icon-box {
