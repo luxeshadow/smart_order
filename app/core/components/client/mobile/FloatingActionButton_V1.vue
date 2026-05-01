@@ -246,9 +246,9 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   }
 
   .main-fab {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
   }
 
   .action-icon-wrapper {
