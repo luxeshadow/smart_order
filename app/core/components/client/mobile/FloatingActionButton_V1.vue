@@ -427,11 +427,11 @@ onUnmounted(() => {
   }
 
   .main-fab {
-    width: 65px;
+    width: 70px;
 
-    height: 65px;
+    height: 70px;
 
-    border-radius: 18px;
+    border-radius: 19px;
   }
 
   .icon-box {
