@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { askGemini } from '~/services/ai/gemini/gemini';
 import { AppColor } from '@/core/constants/app_colors';
@@ -8,7 +8,6 @@ const router = useRouter();
 const userInput = ref('');
 const isLoading = ref(false);
 const chatContainer = ref<HTMLElement | null>(null);
-const isKeyboardVisible = ref(false);
 
 interface Message {
   role: 'user' | 'ai';
@@ -50,54 +49,20 @@ const sendMessage = async () => {
   }
 };
 
-// Détecter l'ouverture/fermeture du clavier
-let originalHeight = 0;
-
-const detectKeyboard = () => {
-  const currentHeight = window.visualViewport?.height || window.innerHeight;
-  const diff = originalHeight - currentHeight;
-  isKeyboardVisible.value = diff > 150;
-  
-  // Scroller en bas quand le clavier s'ouvre
-  if (isKeyboardVisible.value) {
-    setTimeout(() => scrollToBottom(), 100);
-  }
-};
-
 onMounted(() => {
   scrollToBottom();
-  originalHeight = window.visualViewport?.height || window.innerHeight;
-  
-  // Détecter l'ouverture du clavier
-  window.visualViewport?.addEventListener('resize', detectKeyboard);
-  
-  // Alternative : écouter le focus sur l'input
-  const input = document.querySelector('input');
-  if (input) {
-    input.addEventListener('focus', () => {
-      isKeyboardVisible.value = true;
-      setTimeout(() => scrollToBottom(), 100);
-    });
-    input.addEventListener('blur', () => {
-      isKeyboardVisible.value = false;
-    });
-  }
-});
-
-onBeforeUnmount(() => {
-  window.visualViewport?.removeEventListener('resize', detectKeyboard);
 });
 </script>
 
 <template>
   <div class="ia-page">
-    <nav class="app-bar" :class="{ 'keyboard-visible': isKeyboardVisible }">
+    <header class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
       <span class="app-bar-title">Assistant</span>
       <div class="spacer"></div>
-    </nav>
+    </header>
 
     <main class="chat-wrapper" ref="chatContainer">
       <div class="chat-content">
@@ -146,18 +111,16 @@ onBeforeUnmount(() => {
 .ia-page {
   background: #f8f9fa;
   height: 100vh;
-  height: 100dvh; /* Vue dynamique pour mobile */
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
 }
 
-/* HEADER FIXE - Plus robuste */
+/* HEADER FIXE */
 .app-bar {
   position: sticky;
   top: 0;
-  z-index: 1000; /* Z-index plus élevé */
+  z-index: 100;
   height: 65px;
   background: white;
   display: flex;
@@ -165,12 +128,6 @@ onBeforeUnmount(() => {
   padding: 0 15px;
   border-bottom: 1px solid #f1f1f1;
   flex-shrink: 0;
-  transition: box-shadow 0.2s ease;
-}
-
-/* Ombre quand clavier ouvert pour mieux voir l'app bar */
-.app-bar.keyboard-visible {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .back-btn {
@@ -182,13 +139,6 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
-  transition: transform 0.1s ease;
-  flex-shrink: 0;
-}
-
-.back-btn:active {
-  transform: scale(0.95);
 }
 
 .app-bar-title {
@@ -200,7 +150,6 @@ onBeforeUnmount(() => {
 
 .spacer {
   width: 45px;
-  flex-shrink: 0;
 }
 
 /* ZONE CHAT */
@@ -282,11 +231,11 @@ onBeforeUnmount(() => {
   border-bottom-left-radius: 4px;
 }
 
-/* FOOTER INPUT */
+/* FOOTER INPUT FIXE EN BAS */
 .input-area {
   position: sticky;
   bottom: 0;
-  z-index: 1000;
+  z-index: 100;
   background: white;
   border-top: 1px solid #eee;
   padding: 12px 16px 18px;
@@ -309,7 +258,6 @@ input {
   outline: none;
   font-size: 16px;
   background: #f9f9f9;
-  transition: all 0.2s ease;
 }
 
 input:focus {
@@ -327,20 +275,11 @@ input:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
-  transition: transform 0.1s ease, opacity 0.2s ease;
-  flex-shrink: 0;
-}
-
-.send-btn:active {
-  transform: scale(0.95);
 }
 
 .send-btn:disabled {
   opacity: 0.6;
   background: #bdc3c7;
-  transform: none;
-  cursor: not-allowed;
 }
 
 /* LOADING */
@@ -382,15 +321,7 @@ input:focus {
   }
 
   .input-area {
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
-  }
-}
-
-/* Support iOS */
-@supports (padding: max(0px)) {
-  .app-bar {
-    padding-left: max(15px, env(safe-area-inset-left));
-    padding-right: max(15px, env(safe-area-inset-right));
+    padding-bottom: 12px;
   }
 }
 </style>
