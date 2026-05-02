@@ -19,7 +19,7 @@ interface Message {
 const messages = ref<Message[]>([
   {
     role: 'ai',
-    text: 'Bonjour ! Je suis votre assistant Roger. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd\'hui ?'
+    text: 'Bonjour ! Je suis votre assistant Roger. Comment puis-je vous aider avec vos niveaux ou vos gains aujourd’hui ?'
   }
 ])
 
@@ -29,10 +29,8 @@ const scrollToBottom = async () => {
 
   if (chatContainer.value) {
 
-    chatContainer.value.scrollTo({
-      top: chatContainer.value.scrollHeight,
-      behavior: 'smooth'
-    })
+    chatContainer.value.scrollTop =
+      chatContainer.value.scrollHeight
   }
 }
 
@@ -62,7 +60,7 @@ const sendMessage = async () => {
       text: aiResponse
     })
 
-  } catch (error) {
+  } catch {
 
     messages.value.push({
       role: 'ai',
@@ -78,7 +76,6 @@ const sendMessage = async () => {
 }
 
 onMounted(() => {
-
   scrollToBottom()
 })
 </script>
@@ -86,7 +83,7 @@ onMounted(() => {
 <template>
   <div class="ia-page">
 
-    <!-- HEADER -->
+    <!-- APP BAR -->
     <header class="app-bar">
 
       <button
@@ -106,19 +103,15 @@ onMounted(() => {
 
     <!-- CHAT -->
     <main
-      class="chat-wrapper"
       ref="chatContainer"
+      class="chat-wrapper"
     >
 
       <div class="chat-content">
 
         <div class="header-content">
 
-          <div class="logo-container">
-
-            <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
-
-          </div>
+          <i class="fi fi-rr-ai-assistant ai-main-icon"></i>
 
           <p class="subtitle">
             Expert en gestion de niveaux et profits
@@ -137,9 +130,7 @@ onMounted(() => {
             >
 
               <div class="bubble-content">
-
                 {{ msg.text }}
-
               </div>
 
             </div>
@@ -152,9 +143,7 @@ onMounted(() => {
           >
 
             <div class="bubble-content timer-hint">
-
               Roger écrit...
-
             </div>
 
           </div>
@@ -182,9 +171,7 @@ onMounted(() => {
           :disabled="isLoading || !userInput.trim()"
           @click="sendMessage"
         >
-
           <i class="fi fi-rr-paper-plane"></i>
-
         </button>
 
       </div>
@@ -196,28 +183,24 @@ onMounted(() => {
 
 <style scoped>
 .ia-page {
-  position: fixed;
 
-  inset: 0;
-
-  width: 100%;
-
-  height: 100dvh;
-
-  overflow: hidden;
-
-  background: #f8f9fa;
+  height: 100svh;
 
   display: flex;
 
   flex-direction: column;
+
+  overflow: hidden;
+
+  background: #f8f9fa;
 }
 
-/* HEADER */
+/* APP BAR */
 .app-bar {
+
   height: 65px;
 
-  min-height: 65px;
+  flex-shrink: 0;
 
   background: white;
 
@@ -229,12 +212,11 @@ onMounted(() => {
 
   border-bottom: 1px solid #f1f1f1;
 
-  flex-shrink: 0;
-
-  z-index: 10;
+  z-index: 20;
 }
 
 .back-btn {
+
   width: 45px;
 
   height: 45px;
@@ -250,18 +232,17 @@ onMounted(() => {
   justify-content: center;
 
   align-items: center;
-
-  flex-shrink: 0;
 }
 
 .app-bar-title {
+
   flex: 1;
 
   text-align: center;
 
-  font-weight: 700;
-
   font-size: 17px;
+
+  font-weight: 700;
 }
 
 .spacer {
@@ -270,6 +251,7 @@ onMounted(() => {
 
 /* CHAT */
 .chat-wrapper {
+
   flex: 1;
 
   overflow-y: auto;
@@ -277,49 +259,46 @@ onMounted(() => {
   -webkit-overflow-scrolling: touch;
 
   padding: 16px;
-
-  padding-top: 20px;
-
-  min-height: 0;
 }
 
 .chat-content {
+
   width: 100%;
 
   max-width: 500px;
 
   margin: 0 auto;
 
-  display: flex;
-
-  flex-direction: column;
-
   min-height: 100%;
 }
 
 /* HEADER IA */
 .header-content {
+
   text-align: center;
 
   margin-bottom: 24px;
 }
 
 .ai-main-icon {
+
   font-size: 42px;
 
   color: v-bind('AppColor.primary.base');
 }
 
 .subtitle {
+
+  margin-top: 8px;
+
   font-size: 13px;
 
   color: #95a5a6;
-
-  margin-top: 8px;
 }
 
 /* MESSAGES */
 .messages-list {
+
   display: flex;
 
   flex-direction: column;
@@ -330,6 +309,7 @@ onMounted(() => {
 }
 
 .message-bubble {
+
   display: flex;
 
   width: 100%;
@@ -344,6 +324,7 @@ onMounted(() => {
 }
 
 .bubble-content {
+
   max-width: 82%;
 
   padding: 13px 16px;
@@ -358,6 +339,7 @@ onMounted(() => {
 }
 
 .user .bubble-content {
+
   background: v-bind('AppColor.primary.base');
 
   color: white;
@@ -366,6 +348,7 @@ onMounted(() => {
 }
 
 .ai .bubble-content {
+
   background: white;
 
   color: #2d3436;
@@ -377,6 +360,9 @@ onMounted(() => {
 
 /* INPUT */
 .input-area {
+
+  flex-shrink: 0;
+
   background: white;
 
   border-top: 1px solid #eee;
@@ -385,11 +371,10 @@ onMounted(() => {
     12px
     16px
     calc(env(safe-area-inset-bottom) + 12px);
-
-  flex-shrink: 0;
 }
 
 .input-wrapper {
+
   max-width: 500px;
 
   margin: 0 auto;
@@ -400,6 +385,7 @@ onMounted(() => {
 }
 
 input {
+
   flex: 1;
 
   height: 52px;
@@ -418,12 +404,14 @@ input {
 }
 
 input:focus {
+
   border-color: v-bind('AppColor.primary.base');
 
   background: white;
 }
 
 .send-btn {
+
   width: 52px;
 
   height: 52px;
@@ -438,14 +426,13 @@ input:focus {
 
   display: flex;
 
-  justify-content: center;
-
   align-items: center;
 
-  flex-shrink: 0;
+  justify-content: center;
 }
 
 .send-btn:disabled {
+
   opacity: 0.6;
 
   background: #bdc3c7;
@@ -453,6 +440,7 @@ input:focus {
 
 /* LOADING */
 .timer-hint {
+
   font-size: 13px;
 
   color: #95a5a6;
@@ -462,8 +450,7 @@ input:focus {
 
 @keyframes fadePulse {
 
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.5;
   }
 
@@ -472,12 +459,13 @@ input:focus {
   }
 }
 
-/* ANIMATION */
+/* ANIMATIONS */
 .fade-slide-enter-active {
   transition: all 0.25s ease;
 }
 
 .fade-slide-enter-from {
+
   opacity: 0;
 
   transform: translateY(10px);
@@ -487,10 +475,7 @@ input:focus {
 @media (max-width: 600px) {
 
   .chat-wrapper {
-
     padding: 12px;
-
-    padding-top: 16px;
   }
 
   .bubble-content {
@@ -498,12 +483,6 @@ input:focus {
     max-width: 88%;
 
     font-size: 13px;
-  }
-
-  .input-area {
-
-    padding-bottom:
-      calc(env(safe-area-inset-bottom) + 10px);
   }
 }
 </style>
