@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { askGemini } from '~/services/ai/gemini/gemini';
 import { AppColor } from '@/core/constants/app_colors';
@@ -8,6 +8,7 @@ const router = useRouter();
 const userInput = ref('');
 const isLoading = ref(false);
 const chatContainer = ref<HTMLElement | null>(null);
+const isKeyboardVisible = ref(false);
 
 interface Message {
   role: 'user' | 'ai';
@@ -49,14 +50,48 @@ const sendMessage = async () => {
   }
 };
 
+// Détecter l'ouverture/fermeture du clavier
+let originalHeight = 0;
+
+const detectKeyboard = () => {
+  const currentHeight = window.visualViewport?.height || window.innerHeight;
+  const diff = originalHeight - currentHeight;
+  isKeyboardVisible.value = diff > 150;
+  
+  // Scroller en bas quand le clavier s'ouvre
+  if (isKeyboardVisible.value) {
+    setTimeout(() => scrollToBottom(), 100);
+  }
+};
+
 onMounted(() => {
   scrollToBottom();
+  originalHeight = window.visualViewport?.height || window.innerHeight;
+  
+  // Détecter l'ouverture du clavier
+  window.visualViewport?.addEventListener('resize', detectKeyboard);
+  
+  // Alternative : écouter le focus sur l'input
+  const input = document.querySelector('input');
+  if (input) {
+    input.addEventListener('focus', () => {
+      isKeyboardVisible.value = true;
+      setTimeout(() => scrollToBottom(), 100);
+    });
+    input.addEventListener('blur', () => {
+      isKeyboardVisible.value = false;
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  window.visualViewport?.removeEventListener('resize', detectKeyboard);
 });
 </script>
 
 <template>
   <div class="ia-page">
-    <nav class="app-bar">
+    <nav class="app-bar" :class="{ 'keyboard-visible': isKeyboardVisible }">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
@@ -111,16 +146,18 @@ onMounted(() => {
 .ia-page {
   background: #f8f9fa;
   height: 100vh;
+  height: 100dvh; /* Vue dynamique pour mobile */
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
-/* HEADER FIXE */
+/* HEADER FIXE - Plus robuste */
 .app-bar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000; /* Z-index plus élevé */
   height: 65px;
   background: white;
   display: flex;
@@ -128,6 +165,12 @@ onMounted(() => {
   padding: 0 15px;
   border-bottom: 1px solid #f1f1f1;
   flex-shrink: 0;
+  transition: box-shadow 0.2s ease;
+}
+
+/* Ombre quand clavier ouvert pour mieux voir l'app bar */
+.app-bar.keyboard-visible {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .back-btn {
@@ -139,6 +182,13 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.back-btn:active {
+  transform: scale(0.95);
 }
 
 .app-bar-title {
@@ -150,6 +200,7 @@ onMounted(() => {
 
 .spacer {
   width: 45px;
+  flex-shrink: 0;
 }
 
 /* ZONE CHAT */
@@ -231,11 +282,11 @@ onMounted(() => {
   border-bottom-left-radius: 4px;
 }
 
-/* FOOTER INPUT FIXE EN BAS */
+/* FOOTER INPUT */
 .input-area {
   position: sticky;
   bottom: 0;
-  z-index: 100;
+  z-index: 1000;
   background: white;
   border-top: 1px solid #eee;
   padding: 12px 16px 18px;
@@ -258,6 +309,7 @@ input {
   outline: none;
   font-size: 16px;
   background: #f9f9f9;
+  transition: all 0.2s ease;
 }
 
 input:focus {
@@ -275,11 +327,20 @@ input:focus {
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.send-btn:active {
+  transform: scale(0.95);
 }
 
 .send-btn:disabled {
   opacity: 0.6;
   background: #bdc3c7;
+  transform: none;
+  cursor: not-allowed;
 }
 
 /* LOADING */
@@ -321,7 +382,15 @@ input:focus {
   }
 
   .input-area {
-    padding-bottom: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Support iOS */
+@supports (padding: max(0px)) {
+  .app-bar {
+    padding-left: max(15px, env(safe-area-inset-left));
+    padding-right: max(15px, env(safe-area-inset-right));
   }
 }
 </style>
