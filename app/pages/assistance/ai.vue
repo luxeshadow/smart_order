@@ -56,13 +56,13 @@ onMounted(() => {
 
 <template>
   <div class="ia-page">
-    <header class="app-bar">
+    <nav class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
       <span class="app-bar-title">Assistant</span>
       <div class="spacer"></div>
-    </header>
+    </nav>
 
     <main class="chat-wrapper" ref="chatContainer">
       <div class="chat-content">
@@ -110,65 +110,67 @@ onMounted(() => {
 <style scoped>
 .ia-page {
   background: #f8f9fa;
-  /* Utilise dvh pour s'adapter dynamiquement au clavier */
-  height: 100dvh; 
+  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
 }
 
-/* HEADER FIXE (Plus besoin de sticky si le parent est un flex 100dvh) */
+/* HEADER FIXE */
 .app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   height: 65px;
   background: white;
   display: flex;
   align-items: center;
   padding: 0 15px;
   border-bottom: 1px solid #f1f1f1;
-  /* Empêche le header de s'écraser */
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
-/* ZONE CHAT (C'est elle qui défile, pas la page) */
+.back-btn {
+  width: 45px;
+  height: 45px;
+  border: 1px solid #eee;
+  background: #f8f9fa;
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.spacer {
+  width: 45px;
+}
+
+/* ZONE CHAT */
 .chat-wrapper {
-  flex: 1; /* Prend tout l'espace restant */
+  flex: 1;
   overflow-y: auto;
   padding: 16px;
+  padding-top: 20px;
   -webkit-overflow-scrolling: touch;
 }
 
-/* FOOTER INPUT FIXE EN BAS */
-.input-area {
-  background: white;
-  border-top: 1px solid #eee;
-  padding: 12px 16px 18px;
-  /* Empêche le footer de remonter de façon instable */
-  flex-shrink: 0; 
-}
-
-/* --- LE RESTE DE TON CSS NE CHANGE PAS --- */
-
-.back-btn {
-  width: 45px; height: 45px;
-  border: 1px solid #eee; background: #f8f9fa;
-  border-radius: 14px; display: flex;
-  justify-content: center; align-items: center;
-}
-
-.app-bar-title { flex: 1; text-align: center; font-weight: 700; font-size: 17px; }
-.spacer { width: 45px; }
-
 .chat-content {
-  width: 100%; max-width: 500px;
-  margin: 0 auto; display: flex;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
   flex-direction: column;
-  /* Important pour que le contenu ne flotte pas */
-  justify-content: flex-end; 
   min-height: 100%;
 }
 
-
+/* HEADER IA */
 .header-content {
   text-align: center;
   margin-bottom: 24px;
