@@ -28,23 +28,24 @@ const toggleMenu = () => {
 }
 
 const actions = [
+
   {
-    id: 'vente',
-    name: 'Vente',
-    icon: AppIcon.box,
-    route: '/order/my-order'
+    id: 'parametre',
+    name: 'Parametre',
+    icon: AppIcon.user,
+    route: '/auth/profile'
   },
-  {
+   {
     id: 'historique',
     name: 'Historique',
     icon: AppIcon.order,
     route: '/transaction/history-transaction'
   },
   {
-    id: 'parametre',
-    name: 'Parametre',
-    icon: AppIcon.user,
-    route: '/auth/profile'
+    id: 'vente',
+    name: 'Vente',
+    icon: AppIcon.box,
+    route: '/order/my-order'
   }
 ]
 
