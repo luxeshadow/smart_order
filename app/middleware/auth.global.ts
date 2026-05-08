@@ -28,7 +28,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       }
 
       // sinon retour login
-      return navigateTo('/auth/login')
+      return navigateTo('/home')
     }
 
     // RECUP ROLE
