@@ -6,32 +6,36 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const supabase = useApi()
 
   try {
-
     const {
       data: { user: authUser },
       error: authError
     } = await supabase.auth.getUser()
 
-    // ROUTES AUTH
+    // Pages auth
     const authPages = [
       '/auth/login',
       '/auth/register',
       '/auth/forgot-password'
     ]
 
-    // UTILISATEUR NON CONNECTÉ
+    // Non connecté
     if (authError || !authUser) {
 
-      // accès autorisé aux pages auth
+      // accès libre aux pages auth
       if (authPages.includes(to.path)) {
         return
       }
 
-      // sinon retour login
+      // dashboard => login
+      if (to.path.startsWith('/dashboard')) {
+        return navigateTo('/auth/login')
+      }
+
+      // autres pages protégées => home
       return navigateTo('/home')
     }
 
-    // RECUP ROLE
+    // Récupération role
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
       .select('role')
@@ -44,6 +48,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const role = dbUser.role
 
+    // Empêcher accès aux pages auth si déjà connecté
     if (authPages.includes(to.path)) {
 
       if (role === 'admin') {
@@ -53,7 +58,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo('/home')
     }
 
-  
+    // Protection dashboard
     if (to.path.startsWith('/dashboard')) {
 
       if (role !== 'admin') {
@@ -62,6 +67,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
   } catch (error) {
+
+    if (to.path.startsWith('/dashboard')) {
+      return navigateTo('/auth/login')
+    }
 
     return navigateTo('/home')
   }

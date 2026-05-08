@@ -36,7 +36,6 @@ export const useAuthStore = defineStore('auth', () => {
       return
     }
 
-    // 🔥 récupérer vrai user depuis table users
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -52,7 +51,6 @@ export const useAuthStore = defineStore('auth', () => {
       return
     }
 
-    // 🔥 store
     user.value = new UserModel(data)
 
     localStorage.setItem(
@@ -124,7 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('smart_order_user')
     }
 
-    navigateTo('/auth/login')
+    navigateTo('/home')
   }
 
   return {
