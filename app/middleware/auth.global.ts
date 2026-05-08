@@ -63,6 +63,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   } catch (error) {
 
-    return navigateTo('/auth/login')
+    return navigateTo('/home')
   }
 })

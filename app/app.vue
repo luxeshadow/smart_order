@@ -24,8 +24,6 @@ onMounted(() => {
 <template>
   <div>
 
-    <!-- 🔥 Blocage PC -->
-
     <div v-if="isDesktop" class="desktop-block">
 
       <div class="desktop-card">
