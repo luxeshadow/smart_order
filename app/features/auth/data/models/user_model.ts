@@ -1,4 +1,4 @@
-import type { User} from '../../domain/entities/user'
+import type { User } from '../../domain/entities/user'
 
 export class UserModel implements User {
   id: string
@@ -8,6 +8,8 @@ export class UserModel implements User {
   role: string
   token?: string
 
+  referredBy?: string | null
+
   constructor(data: User) {
     this.id = data.id
     this.username = data.username
@@ -15,22 +17,26 @@ export class UserModel implements User {
     this.phoneNumber = data.phoneNumber
     this.role = data.role
     this.token = data.token
+
+    this.referredBy = data.referredBy
   }
 
- static fromSupabase(
-  data: any,
-  token?: string,
-  authEmail?: string
-): UserModel {
-  return new UserModel({
-    id: data.id,
-    username: data.username,
-    email: authEmail || '',
-    phoneNumber: data.phone_number,
-    role: data.role,
-    token
-  })
-}
+  static fromSupabase(
+    data: any,
+    token?: string,
+    authEmail?: string
+  ): UserModel {
+    return new UserModel({
+      id: data.id,
+      username: data.username,
+      email: authEmail || '',
+      phoneNumber: data.phone_number,
+      role: data.role,
+      token,
+
+      referredBy: data.referred_by
+    })
+  }
 
   toSupabase(): any {
     return {
@@ -38,6 +44,8 @@ export class UserModel implements User {
       username: this.username,
       phone_number: this.phoneNumber,
       role: this.role,
+
+      referred_by: this.referredBy
     }
   }
 }

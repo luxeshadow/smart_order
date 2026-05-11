@@ -1,10 +1,17 @@
 import { UserModel } from '../models/user_model'
-import {AuthException,DatabaseException,UserAlreadyExistsException} from '@/core/errors/exception'
+import { AuthException, DatabaseException, UserAlreadyExistsException } from '@/core/errors/exception'
 import type { RegisterPayload } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
-  constructor(private supabase: any) {}
-
+  constructor(private supabase: any) { }
+  
+  async findParentByCode(code: string) {
+    return await this.supabase
+      .from('users')
+      .select('id, parent_link')
+      .eq('parent_link', code)
+      .single()
+  }
   async register(param: RegisterPayload): Promise<UserModel> {
     const { data: existingUser, error: checkError } = await this.supabase
       .from('users')
@@ -53,7 +60,7 @@ export class RegisterRemoteDatasource {
     if (insertError || !data) {
       throw new DatabaseException(
         insertError?.message ||
-          'Erreur lors de la création du profil utilisateur.'
+        'Erreur lors de la création du profil utilisateur.'
       )
     }
 

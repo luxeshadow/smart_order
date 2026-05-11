@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue' 
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
-import { AppImage } from "@/core/constants/app_images" 
+import { AppImage } from "@/core/constants/app_images"
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 import Footer from '@/core/components/client/mobile/Footer.vue'
+import { getMyLinkShared } from '@/core/utils/getMyLinkShared'
 
 import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'
@@ -21,12 +22,13 @@ const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
 
 const { showToast } = useToast()
-const { triggerConfetti } = useConfetti() 
+const { triggerConfetti } = useConfetti()
 
 const { user } = storeToRefs(authStore)
 const { mainBalance, dailyEarnings, refundBalance } = storeToRefs(transactionStore)
 
 const isTransferring = ref(false)
+const myReferralLink = ref('')
 
 const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
@@ -47,26 +49,35 @@ const fetchBalance = async () => {
     transactionStore.updateAllBalances(result)
   }
 }
+const loadMyReferralLink = async () => {
+  if (!user.value?.id) return
+
+  const link = await getMyLinkShared(user.value.id)
+
+  if (link) {
+    myReferralLink.value = link
+  }
+}
 
 const handleTransferRefund = async () => {
   vibrate()
   if (!user.value?.id || isTransferring.value) return
-  
+
   if (refundBalance.value <= 0) {
     showToast("Votre solde de remboursement est vide !", "fi-rr-info", "error")
     return
   }
 
   isTransferring.value = true
-  
+
   const result = await refundUseCase.execute({ userId: user.value.id })
 
   if (result instanceof Failure) {
-    showToast(result.message, "fi-rr-info","error")
+    showToast(result.message, "fi-rr-info", "error")
   } else {
     triggerConfetti();
-    
-    showToast("Transfert effectué avec succès !","fi-rr-check","success")
+
+    showToast("Transfert effectué avec succès !", "fi-rr-check", "success")
     await fetchBalance()
   }
 
@@ -75,7 +86,47 @@ const handleTransferRefund = async () => {
 
 onMounted(() => {
   fetchBalance()
+  loadMyReferralLink()
 })
+const handleShareReferral = async () => {
+  vibrate()
+
+  if (!myReferralLink.value) {
+    showToast(
+      "Lien indisponible",
+      "fi-rr-info",
+      "error"
+    )
+    return
+  }
+
+  try {
+
+    if (navigator.share) {
+
+      await navigator.share({
+        title: 'Invitation',
+        text: 'Rejoins la plateforme avec mon lien de parrainage',
+        url: myReferralLink.value
+      })
+
+    } else {
+
+      await navigator.clipboard.writeText(
+        myReferralLink.value
+      )
+
+      showToast(
+        "Lien copié",
+        "fi-rr-check",
+        "success"
+      )
+    }
+
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 const handleLogout = () => {
   authStore.logout()
@@ -104,19 +155,15 @@ const vibrate = () => {
       <div class="hero-content">
         <div class="user-profile-row">
           <div class="avatar-container">
-             <img :src="AppImage.Profile" alt="Avatar" class="avatar-img"/>
+            <img :src="AppImage.Profile" alt="Avatar" class="avatar-img" />
           </div>
           <div class="user-info">
             <span class="welcome-text">Bienvenue,</span>
             <h1 class="user-name">{{ user?.username || 'Utilisateur' }}</h1>
           </div>
-          
-          <button 
-            class="settings-btn" 
-            @click="handleTransferRefund" 
-            :disabled="isTransferring"
-            :class="{ 'btn-loading': isTransferring }"
-          >
+
+          <button class="settings-btn" @click="handleTransferRefund" :disabled="isTransferring"
+            :class="{ 'btn-loading': isTransferring }">
             <i v-if="!isTransferring" class="fi fi-rr-money-transfer-coin-arrow"></i>
             <div v-else class="mini-spinner"></div>
           </button>
@@ -143,7 +190,7 @@ const vibrate = () => {
         </div>
       </div>
     </div>
-    
+
     <div class="menu-section">
       <div class="menu-item" @click="router.push('/auth/update-profile')">
         <div class="menu-icon"><i class="fi fi-rr-user"></i></div>
@@ -154,12 +201,21 @@ const vibrate = () => {
       <div class="menu-item" @click="router.push('/assistance/ai')">
         <div class="menu-icon"> <i class="fi fi-rr-user-headset"></i></div>
         <span>Assistance</span>
-       <i class="fi fi-rr-angle-small-right arrow"></i>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
-      
+
       <div class="menu-item" @click="router.push('/transaction/history-transaction')">
         <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
         <span>Historique des flux</span>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
+      </div>
+      <div class="menu-item" @click="handleShareReferral">
+        <div class="menu-icon">
+          <i class="fi fi-rr-share"></i>
+        </div>
+
+        <span>Partager mon lien</span>
+
         <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
 
@@ -176,31 +232,49 @@ const vibrate = () => {
 <style scoped>
 /* Ajoute ces styles pour le bouton de transfert */
 .settings-btn {
-  margin-left: auto; width: 44px; height: 44px;
-  background: rgba(255,255,255,0.2);
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 14px; color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  color: #fff;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s ease;
 }
 
-.settings-btn:active { transform: scale(0.9); }
-.settings-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.settings-btn:active {
+  transform: scale(0.9);
+}
+
+.settings-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
 .mini-spinner {
-  width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top: 2px solid #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 .profile-page {
   padding: 15px;
@@ -211,7 +285,9 @@ const vibrate = () => {
 
 .app-bar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 65px;
   background: white;
   display: flex;
@@ -222,20 +298,27 @@ const vibrate = () => {
 }
 
 .back-btn {
-  width: 45px; height: 45px;
+  width: 45px;
+  height: 45px;
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-bar-title {
-  flex: 1; text-align: center;
-  font-weight: 800; font-size: 17px;
+  flex: 1;
+  text-align: center;
+  font-weight: 800;
+  font-size: 17px;
   color: #111;
 }
 
-.spacer { width: 45px; }
+.spacer {
+  width: 45px;
+}
 
 .hero-wallet {
   position: relative;
@@ -249,15 +332,21 @@ const vibrate = () => {
 
 .hero-bg {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: 0;
 }
 
 .hero-overlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.85) 100%);
   z-index: 1;
 }
 
@@ -270,10 +359,10 @@ const vibrate = () => {
   justify-content: space-between;
 }
 
-.user-profile-row { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
+.user-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .user-info {
@@ -282,28 +371,62 @@ const vibrate = () => {
   justify-content: center;
 }
 
-.avatar-img { 
-  width: 50px; 
-  height: 50px; 
-  border-radius: 15px; 
-  border: 2px solid rgba(255,255,255,0.4);
+.avatar-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   display: block;
 }
 
-.welcome-text { font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; line-height: 1; margin-bottom: 4px;}
-.user-name { font-size: 18px; color: #fff; font-weight: 900; margin: 0; line-height: 1; }
-
-.settings-btn {
-  margin-left: auto; width: 40px; height: 40px;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px; color: #fff;
+.welcome-text {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
-.balance-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; }
-.amount { font-size: 36px; font-weight: 900; color: #fff; margin: 0; }
-.currency { font-size: 14px; color: #fff; font-weight: 800; margin-left: 5px; }
+.user-name {
+  font-size: 18px;
+  color: #fff;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1;
+}
+
+.settings-btn {
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+}
+
+.balance-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+.amount {
+  font-size: 36px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+}
+
+.currency {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 800;
+  margin-left: 5px;
+}
 
 .glass-balances {
   background: rgba(255, 255, 255, 0.1);
@@ -316,28 +439,86 @@ const vibrate = () => {
   justify-content: space-between;
 }
 
-.glass-item { display: flex; flex-direction: column; flex: 1; }
-.glass-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; margin-bottom: 2px; }
-.glass-amount { font-size: 14px; font-weight: 900; color: #fff; }
-.glass-amount small { font-size: 9px; opacity: 0.7; }
-.glass-divider { width: 1px; height: 25px; background: rgba(255,255,255,0.1); margin: 0 15px; }
+.glass-item {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
-.menu-section { display: flex; flex-direction: column; gap: 10px; }
+.glass-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.glass-amount {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.glass-amount small {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.glass-divider {
+  width: 1px;
+  height: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 15px;
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .menu-item {
-  display: flex; align-items: center; padding: 16px;
-  background: #fbfbfb; border-radius: 20px; border: 1px solid #f5f5f5;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #fbfbfb;
+  border-radius: 20px;
+  border: 1px solid #f5f5f5;
 }
+
 .menu-icon {
-  width: 40px; height: 40px; background: white;
-  border-radius: 12px; display: flex; align-items: center;
-  justify-content: center; margin-right: 15px;
-  color: v-bind('AppColor.primary.base'); border: 1px solid #f0f0f0;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: v-bind('AppColor.primary.base');
+  border: 1px solid #f0f0f0;
 }
-.menu-item span { flex: 1; font-weight: 700; font-size: 14px; color: #444; }
 
-.menu-item.logout { margin-top: 5px; background: #fff5f5; border-color: #ffe0e0; }
-.menu-item.logout .menu-icon { background: #ff4757; color: white; border: none; }
-.menu-item.logout span { color: #ff4757; }
+.menu-item span {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  color: #444;
+}
+
+.menu-item.logout {
+  margin-top: 5px;
+  background: #fff5f5;
+  border-color: #ffe0e0;
+}
+
+.menu-item.logout .menu-icon {
+  background: #ff4757;
+  color: white;
+  border: none;
+}
+
+.menu-item.logout span {
+  color: #ff4757;
+}
 </style>
-
-   

@@ -5,4 +5,5 @@ export interface User {
   phoneNumber: string
   role: string
   token?: string
+  referredBy?: string | null
 }

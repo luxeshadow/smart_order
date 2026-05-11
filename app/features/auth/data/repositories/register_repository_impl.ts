@@ -15,7 +15,9 @@ export class RegisterRepositoryImpl implements RegisterRepository {
     
     this.datasource = new RegisterRemoteDatasource(supabase)
   }
-
+async findParentByCode(code: string) {
+  return await this.datasource.findParentByCode(code)
+}
   async register(param: RegisterPayload): Promise<User | AuthFailure | DatabaseFailure> {
     try {
       const user = await this.datasource.register(param)

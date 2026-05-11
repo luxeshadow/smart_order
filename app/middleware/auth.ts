@@ -21,21 +21,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // Non connecté
     if (authError || !authUser) {
 
-      // accès libre aux pages auth
       if (authPages.includes(to.path)) {
         return
       }
 
-      // dashboard => login
       if (to.path.startsWith('/dashboard')) {
         return navigateTo('/auth/login')
       }
 
-      // autres pages protégées => home
       return navigateTo('/home')
     }
 
-    // Récupération role
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
       .select('role')
@@ -48,7 +44,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const role = dbUser.role
 
-    // Empêcher accès aux pages auth si déjà connecté
     if (authPages.includes(to.path)) {
 
       if (role === 'admin') {
@@ -58,7 +53,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo('/home')
     }
 
-    // Protection dashboard
     if (to.path.startsWith('/dashboard')) {
 
       if (role !== 'admin') {
