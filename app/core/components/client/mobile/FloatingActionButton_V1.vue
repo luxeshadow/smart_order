@@ -177,8 +177,6 @@ onUnmounted(() => {
   bottom: calc(env(safe-area-inset-bottom) + 16px);
 
   z-index: 3000;
-
-  pointer-events: none;
 }
 
 /* OVERLAY */

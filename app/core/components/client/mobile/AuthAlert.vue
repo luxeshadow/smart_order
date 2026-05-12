@@ -51,6 +51,9 @@ const handleNavigation = (path: string) => {
   display: flex;
   justify-content: center;
 }
+.auth-alert-container {
+  pointer-events: auto;
+}
 
 .alert-content {
   background: white;
