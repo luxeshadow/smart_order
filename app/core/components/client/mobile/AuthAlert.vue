@@ -47,7 +47,7 @@ const handleNavigation = (path: string) => {
   top: 20px;
   left: 20px;
   right: 20px;
-  z-index: 9999;
+  z-index: 99999;
   display: flex;
   justify-content: center;
 }

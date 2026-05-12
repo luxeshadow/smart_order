@@ -66,18 +66,19 @@ const handleActionClick = (path: string) => {
 
 const triggerAlert = () => {
 
-  if (timer) clearTimeout(timer)
+  isOpen.value = false
+
+  if (timer) {
+    clearTimeout(timer)
+  }
 
   showAlert.value = true
 
   timer = setTimeout(() => {
-
     showAlert.value = false
-
   }, 5000)
 }
 
-// RESET ROUTE
 watch(() => route.fullPath, () => {
 
   isOpen.value = false
