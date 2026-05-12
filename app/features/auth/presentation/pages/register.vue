@@ -35,11 +35,15 @@ const errorMessage = ref<string | null>(null)
 
 const referredBy = ref<string | null>(null)
 
-const loadReferral = async () => {
 
+const loadReferral = async () => {
   const referralCode = route.query.ref as string | undefined
 
   console.log('REF CODE =>', referralCode)
+
+  if (!referralCode) return
+
+  referredBy.value = referralCode
 }
 
 onMounted(() => {
