@@ -40,28 +40,6 @@ const loadReferral = async () => {
   const referralCode = route.query.ref as string | undefined
 
   console.log('REF CODE =>', referralCode)
-
-  if (!referralCode) return
-
-  const { data, error } =
-    await repository.findParentByCode(referralCode)
-
-  console.log('PARENT DATA =>', data)
-  console.log('PARENT ERROR =>', error)
-
-  if (error) {
-    return
-  }
-
-  if (data?.id) {
-
-    referredBy.value = data.id
-
-    console.log(
-      'REFERRED BY UUID =>',
-      referredBy.value
-    )
-  }
 }
 
 onMounted(() => {

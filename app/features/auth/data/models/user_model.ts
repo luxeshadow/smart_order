@@ -44,7 +44,6 @@ export class UserModel implements User {
       username: this.username,
       phone_number: this.phoneNumber,
       role: this.role,
-
       referred_by: this.referredBy
     }
   }

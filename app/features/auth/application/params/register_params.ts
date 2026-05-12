@@ -3,7 +3,7 @@ export interface RegisterParam {
   email: string
   phoneNumber: string
   password: string
-   referredBy?: string | null
+  referredBy?: string | null
 }
 
 export interface RegisterPayload extends RegisterParam {

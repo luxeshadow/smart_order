@@ -4,14 +4,7 @@ import type { RegisterPayload } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
   constructor(private supabase: any) { }
-  
-  async findParentByCode(code: string) {
-    return await this.supabase
-      .from('users')
-      .select('id, parent_link')
-      .eq('parent_link', code)
-      .single()
-  }
+
   async register(param: RegisterPayload): Promise<UserModel> {
     const { data: existingUser, error: checkError } = await this.supabase
       .from('users')
@@ -48,7 +41,8 @@ export class RegisterRemoteDatasource {
       username: param.userName,
       email: param.email,
       phoneNumber: param.phoneNumber,
-      role: param.role
+      role: param.role,
+      referredBy: param.referredBy
     })
 
     const { data, error: insertError } = await this.supabase
