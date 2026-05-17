@@ -9,7 +9,7 @@ import AdminWithdrawalPage from '../../features/transaction/presentation/pages/u
 import ListProduct from '../../features/product/presentation/pages/list-product.vue'
 const activeTab = ref('dashboard')
 definePageMeta({
-  middleware: 'admin'
+  middleware: 'auth'
 })
 </script>
 
