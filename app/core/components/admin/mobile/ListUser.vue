@@ -12,6 +12,9 @@ const search = ref('')
 const users = ref<UserDetail[]>([])
 const loading = ref(false)
 
+// Gestion des cartes dépliées pour voir les enfants (contient les IDs des users ouverts)
+const expandedUsers = ref<Record<string, boolean>>({})
+
 const repository = new UserDetailRepositoryImpl()
 const useCase = new GetUsersDetailUseCase(repository)
 
@@ -30,6 +33,11 @@ const fetchUsers = async () => {
   }
 
   loading.value = false
+}
+
+// 🔥 Basculer l'affichage des enfants
+const toggleChildren = (userId: string) => {
+  expandedUsers.value[userId] = !expandedUsers.value[userId]
 }
 
 // 🔥 init
@@ -68,7 +76,7 @@ const clearSearch = () => {
     </div>
 
     <!-- 🔥 loading -->
-    <div v-if="loading">Chargement...</div>
+    <div v-if="loading" class="loading-state">Chargement...</div>
 
     <!-- 🔥 users -->
     <div v-else class="users-grid">
@@ -117,17 +125,76 @@ const clearSearch = () => {
           </div>
         </div>
 
+        <!-- 🔥 Section enfants/filleuls -->
+        <div class="children-section">
+          <button 
+            class="toggle-children-btn" 
+            :class="{ active: expandedUsers[user.id] }"
+            @click="toggleChildren(user.id)"
+          >
+            <span>
+              <i class="fi fi-rr-users-alt icon"></i> 
+              Filleuls ({{ user.childrenDetails?.length || 0 }})
+            </span>
+            <i class="fi" :class="expandedUsers[user.id] ? 'fi-rr-angle-small-up' : 'fi-rr-angle-small-down'"></i>
+          </button>
+
+          <!-- Liste dépliable -->
+          <div v-if="expandedUsers[user.id]" class="children-dropdown">
+            <div 
+              v-if="!user.childrenDetails || user.childrenDetails.length === 0" 
+              class="empty-children"
+            >
+              Aucun utilisateur parrainé.
+            </div>
+            
+            <div v-else class="children-list">
+              <div 
+                v-for="child in user.childrenDetails" 
+                :key="child.id" 
+                class="child-item"
+              >
+                <div class="child-info">
+                  <span class="child-name">{{ child.username }}</span>
+                  <span class="child-phone">{{ child.phoneNumber || 'Pas de numéro' }}</span>
+                </div>
+
+                <div class="child-right">
+                  <!-- Badges des niveaux de l'enfant -->
+                  <div class="child-levels">
+                    <span 
+                      v-for="lvl in child.activeLevels" 
+                      :key="lvl" 
+                      class="child-level-badge"
+                    >
+                      {{ lvl }}
+                    </span>
+                  </div>
+                  <span class="child-balance">
+                    {{ Number(child.mainBalance || 0).toLocaleString() }} <small>XOF</small>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </template>
 
-
-
 <style scoped>
 .list-user-page { padding: 16px; }
 .top-bar { margin-bottom: 16px; }
 .search-box { position: relative; }
+
+.loading-state {
+  text-align: center;
+  padding: 32px;
+  color: v-bind('AppColor.tertiary.soft');
+  font-size: 14px;
+}
 
 .clear-btn {
   position: absolute;
@@ -210,4 +277,113 @@ const clearSearch = () => {
 .amount-row { display: flex; align-items: baseline; gap: 4px; }
 .amount { font-size: 14px; font-weight: 800; color: v-bind('AppColor.tertiary.charcoal'); }
 .unit { font-size: 9px; font-weight: 600; color: v-bind('AppColor.primary.base'); }
+
+/* 🔥 Styles de la section des enfants */
+.children-section {
+  margin-top: 14px;
+  border-top: 1px dashed v-bind('AppColor.surface.bone');
+  padding-top: 12px;
+}
+
+.toggle-children-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: v-bind('AppColor.surface.off');
+  border: none;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: v-bind('AppColor.tertiary.base');
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-children-btn.active {
+  background: v-bind('AppColor.surface.smoke');
+}
+
+.toggle-children-btn .icon {
+  margin-right: 6px;
+  color: v-bind('AppColor.primary.base');
+}
+
+.children-dropdown {
+  margin-top: 8px;
+  padding: 4px;
+}
+
+.empty-children {
+  font-size: 11px;
+  color: v-bind('AppColor.tertiary.soft');
+  text-align: center;
+  padding: 12px 0;
+  font-style: italic;
+}
+
+.children-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.child-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #FAFAFA;
+  border-radius: 10px;
+  border: 1px solid v-bind('AppColor.surface.bone');
+}
+
+.child-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.child-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: v-bind('AppColor.tertiary.base');
+}
+
+.child-phone {
+  font-size: 10px;
+  color: v-bind('AppColor.tertiary.soft');
+}
+
+.child-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.child-balance {
+  font-size: 12px;
+  font-weight: 800;
+  color: v-bind('AppColor.tertiary.charcoal');
+}
+
+.child-balance small {
+  font-size: 8px;
+  color: v-bind('AppColor.primary.base');
+}
+
+.child-levels {
+  display: flex;
+  gap: 4px;
+}
+
+.child-level-badge {
+  font-size: 8px;
+  font-weight: 700;
+  background: v-bind('AppColor.primary.base');
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
 </style>

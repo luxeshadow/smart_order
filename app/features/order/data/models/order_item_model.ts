@@ -11,7 +11,8 @@ export class OrderItemModel implements OrderItem {
     public status: 'pending' | 'completed' | 'cancelled',
     public createdAt: string,
     public productName: string,
-    public productPhoto: string
+    public productPhoto: string,
+    
   ) {}
 
   static fromSupabase(map: any): OrderItemModel {

@@ -1,4 +1,11 @@
-// domain/entities/user_detail.ts
+export interface ChildDetail {
+  id: string
+  username: string
+  mainBalance: number
+  phoneNumber: string
+  activeLevels: string[]
+}
+
 export interface UserDetail {
   id: string
   username: string
@@ -6,5 +13,6 @@ export interface UserDetail {
   role: string
   mainBalance: number
   refundBalance: number
-  levelNames: string[] 
+  levelNames: string[]
+  childrenDetails: ChildDetail[] 
 }

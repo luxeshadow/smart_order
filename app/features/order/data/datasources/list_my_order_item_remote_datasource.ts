@@ -18,6 +18,7 @@ export class ListMyOrderItemRemoteDatasource {
           commission,
           status,
           created_at,
+          position_index,
           orders!inner (
             user_id
           ),
@@ -28,7 +29,9 @@ export class ListMyOrderItemRemoteDatasource {
         `)
         // Filtrage sur la colonne user_id de la table orders jointe
         .eq('orders.user_id', param.userId)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        // Tri par l'index aléatoire généré par PostgreSQL pour mélanger les Lucky Orders
+        .order('position_index', { ascending: true });
 
       if (error) throw new DatabaseException(error.message);
 
