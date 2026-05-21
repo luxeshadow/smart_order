@@ -27,10 +27,10 @@ export class ListMyOrderItemRemoteDatasource {
             photo_url
           )
         `)
-        // Filtrage sur la colonne user_id de la table orders jointe
+ 
         .eq('orders.user_id', param.userId)
         .eq('status', 'pending')
-        // Tri par l'index aléatoire généré par PostgreSQL pour mélanger les Lucky Orders
+      
         .order('position_index', { ascending: true });
 
       if (error) throw new DatabaseException(error.message);
