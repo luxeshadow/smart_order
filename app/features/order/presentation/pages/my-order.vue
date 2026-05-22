@@ -31,9 +31,7 @@ const listOrdersUseCase = new ListMyOrderItemUseCase(listRepository)
 const validateRepository = new ValidateMyOrderItemRepositoryImpl()
 const validateUseCase = new ValidateMyOrderItemUseCase(validateRepository)
 
-/**
- * Détecte si le lien de la photo est en réalité une vidéo
- */
+
 const isVideo = (path: string | undefined | null): boolean => {
     if (!path) return false
     const videoExtensions = ['.mp4', '.webm', '.mov', '.ogg', '.avi']
