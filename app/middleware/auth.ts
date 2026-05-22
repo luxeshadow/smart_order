@@ -55,14 +55,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // Si le token est valide mais que l'utilisateur n'existe pas ou plus en BDD
     if (dbError || !dbUser) {
-      // On force la déconnexion locale pour éviter une boucle infinie de redirections
+
       await supabase.auth.signOut()
       return navigateTo('/auth/login')
     }
 
     const role = dbUser.role
 
-    // Si déjà connecté et tente d'aller sur une page d'auth (Login/Register)
     if (authPages.includes(to.path)) {
       if (role === 'admin') {
         return navigateTo('/dashboard')
@@ -70,7 +69,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo('/home')
     }
 
-    // Protection stricte des routes Dashboard
     if (to.path.startsWith('/dashboard')) {
       if (role !== 'admin') {
         return navigateTo('/home')
