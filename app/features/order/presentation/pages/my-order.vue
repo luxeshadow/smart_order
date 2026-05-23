@@ -505,7 +505,7 @@ const categories = computed(() => [
 
 .info-icon {
     min-width: 38px;
-    margin-top: 8px;
+    
     width: 38px;
     height: 38px;
     border-radius: 12px;
