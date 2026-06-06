@@ -31,7 +31,7 @@ export class ListMyOrderItemRemoteDatasource {
         .eq('orders.user_id', param.userId)
         .eq('status', 'pending')
       
-        .order('position_index', { ascending: true });
+        .order('created_at', { ascending: true })
 
       if (error) throw new DatabaseException(error.message);
 

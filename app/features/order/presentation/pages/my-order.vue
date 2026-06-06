@@ -9,8 +9,6 @@ import { useToast } from '@/core/utils/useToast'
 // Stores
 import { useOrderStore } from '../stores/my_order_item_store'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
-
-// Clean Arch - UseCases & Repositories
 import { ListMyOrderItemUseCase } from '../../application/usecases/list_my_order_item_usecase'
 import { ListMyOrderItemRepositoryImpl } from '../../data/repositories/list_my_order_item_repository_impl'
 import { ValidateMyOrderItemUseCase } from '../../application/usecases/validate_my_order_item_usecase'
