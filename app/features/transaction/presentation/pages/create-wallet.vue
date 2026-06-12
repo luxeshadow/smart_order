@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
@@ -22,47 +22,11 @@ const walletUseCase = new CreateWalletUseCase(walletRepository)
 
 const form = ref({
   phoneNumber: '',
-  withdrawPassword: '',
-  captcha: ''
+  withdrawPassword: ''
 })
 
 const isLoading = ref(false)
-
-/* ❌ MOYENS DE PAIEMENT COMMENTÉS
-
-const availableMethods = [
-  { id: 'tmoney', image: AppImage.Yas, label: 'T-Money' },
-  { id: 'flooz', image: AppImage.Flooz, label: 'Moov' },
-  { id: 'ria', image: AppImage.Ria, label: 'Ria' }
-]
-
-*/
-
-/* 🔥 CAPTCHA */
-
-const generateCaptcha = () => {
-  const chars =
-    'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
-
-  let result = ''
-
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-
-  return result
-}
-
-const captchaCode = ref(generateCaptcha())
-
-const refreshCaptcha = () => {
-  captchaCode.value = generateCaptcha()
-  form.value.captcha = ''
-}
-
-const isCaptchaValid = computed(() => {
-  return form.value.captcha === captchaCode.value
-})
+const isCaptchaChecked = ref(false) // Gère le statut de validation du reCAPTCHA
 
 const formatPhone = (phone: string) => {
   if (!phone) return ''
@@ -75,15 +39,14 @@ const handleUpdateWallet = async () => {
     return
   }
 
-  if (!isCaptchaValid.value) {
+  // Vérification de la case à cocher reCAPTCHA
+  if (!isCaptchaChecked.value) {
     showToast(
-      'Captcha incorrect',
+      'Veuillez valider le reCAPTCHA',
       'fi-rr-shield-exclamation',
       'error',
       '#ff4757'
     )
-
-    refreshCaptcha()
     return
   }
 
@@ -191,62 +154,28 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
           :disabled="isLoading"
         />
 
-
-        
-          <label class="captcha-label">
-            Vérification de sécurité
-          </label>
-
-          <div class="captcha-box">
-            <span class="captcha-text">
-              {{ captchaCode }}
-            </span>
-
-            <button
-              type="button"
-              class="refresh-btn"
-              @click="refreshCaptcha"
-            >
-              <i class="fi fi-rr-rotate-right"></i>
-            </button>
-          </div>
-
-          <Input
-            id="captcha"
-            label="Recopiez le texte ci-dessus*"
-            v-model="form.captcha"
-            icon="fi-rr-shield-check"
-            placeholder="Entrez le captcha"
-            type="text"
-            :disabled="isLoading"
-          />
-   
-
-        <!-- ❌ MOYENS DE PAIEMENT COMMENTÉS
-
-        <div class="methods-section">
-          <label class="section-label">
-            Moyens de paiement acceptés
-          </label>
-
-          <div class="methods-display-grid">
-            <div
-              v-for="method in availableMethods"
-              :key="method.id"
-              class="static-method"
-            >
-              <img
-                :src="method.image"
-                :alt="method.label"
-                class="static-img"
-              />
-
-              <span>{{ method.label }}</span>
+        <div class="captcha-container">
+          <div class="captcha">
+            <div class="spinner">
+              <label>
+                <input 
+                  type="checkbox" 
+                  v-model="isCaptchaChecked" 
+                  :disabled="isLoading || isCaptchaChecked"
+                >
+                <span class="checkmark"><span>&nbsp;</span></span>
+              </label>
+            </div>
+            <div class="text">
+              Je ne suis pas un robot
+            </div>
+            <div class="logo">
+              <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA"/>
+              <p>reCAPTCHA</p>
+              <small>Confidentialité - Conditions</small>
             </div>
           </div>
         </div>
-
-        -->
       </div>
 
       <Button
@@ -257,8 +186,8 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
     </div>
   </div>
 </template>
+
 <style scoped>
-/* Tes styles restent identiques, ils sont déjà très propres */
 .form-group {
   opacity: v-bind("isLoading ? 0.7 : 1");
   pointer-events: v-bind("isLoading ? 'none' : 'auto'");
@@ -377,49 +306,6 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   margin-bottom: 25px;
 }
 
-/* Section Moyens de paiement statiques */
-.methods-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.section-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.methods-display-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.static-method {
-  background: #f8f9fa;
-  border: 1.5px solid #f1f1f1;
-  border-radius: 12px;
-  padding: 10px 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.static-img {
-  width: 30px;
-  height: 30px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.static-method span {
-  font-size: 11px;
-  font-weight: 700;
-  color: #7f8c8d;
-}
-
 @media (max-width: 600px) {
   .wallet-page {
     background-color: white;
@@ -438,66 +324,192 @@ Tu peux transférer tes gains vers ce solde depuis ton profil.`
   }
 }
 
-.captcha-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #2d3436;
-  margin-bottom: 1px;
-  letter-spacing: 0.5px;
-}
-
-.captcha-box {
+/* ==========================================
+   STYLE DU NOUVEAU GOOGLE reCAPTCHA DESIGN 
+============================================= */
+.captcha-container {
   display: flex;
-  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.captcha {
+  background-color: #f9f9f9;
+  border: 1px solid #d3d3d3;
+  border-radius: 3px;
+  color: #4c4a4b;
+  display: flex;
   justify-content: space-between;
-  background: #f1f2f6;
-  background-image: linear-gradient(45deg, #e9ecef 25%, transparent 25%, transparent 50%, #e9ecef 50%, #e9ecef 75%, transparent 75%, transparent);
-  background-size: 20px 20px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  border: 2px solid #dfe6e9;
-  user-select: none;
-  margin-bottom: 12px;
+  align-items: center;
+  width: 100%;
+  max-width: 304px; /* Taille exacte du widget officiel Google */
+  height: 74px;
+  padding: 0 10px 0 14px;
+  box-sizing: border-box;
+  box-shadow: 0 0 4px rgba(0,0,0,0.05);
 }
 
-.captcha-text {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 24px;
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: 6px;
-  color: #2d3436;
-  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8);
-  filter: blur(0.3px); /* Rend la lecture par les bots plus difficile */
+.text {
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'Roboto', sans-serif;
+  color: #2c2c2c;
+  flex-grow: 1;
+  margin-left: 14px;
 }
 
-.refresh-btn {
-
-  width: 38px;
-  height: 38px;
-  background: white;
-  border: 1px solid #dfe6e9;
-  border-radius: 10px;
+.spinner {
+  position: relative;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6e6e6e; /* Ta couleur orange */
+}
+
+input[type="checkbox"] { 
+  position: absolute; 
+  opacity: 0; 
+  z-index: -1; 
+}
+
+input[type="checkbox"]+.checkmark {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: #fff;
+  border: 2px solid #c1c1c1;
+  border-radius: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  transition: all 0.3s ease;
-
+  transition: border-color 0.2s ease;
 }
 
-
-
-.refresh-btn i {
-  font-size: 18px;
-  margin-top: 5px;
+input[type="checkbox"]+.checkmark:hover {
+  border-color: #b2b2b2;
 }
 
-/* On ajuste l'espacement de l'input captcha sous la box */
-.captcha-section :deep(.input-container) {
-  margin-top: 5px;
+input[type="checkbox"]+.checkmark span {
+  position: relative;
+  margin-top: -4px;
+  transform: rotate(45deg);
+  width: 5px;
+  height: 10px;
+  opacity: 0;
 }
 
+input[type="checkbox"]+.checkmark>span:after {
+  content: '';
+  position: absolute;
+  display: block;
+  height: 3px;
+  bottom: 0; left: 0;
+  background-color: #009b56;
+}
+
+input[type="checkbox"]+.checkmark>span:before {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 3px;
+  bottom: 0; right: 0;
+  background-color: #009b56;
+}
+
+input[type="checkbox"]:checked+.checkmark { 
+  animation: 2s spin forwards;
+}
+
+input[type="checkbox"]:checked+.checkmark>span { 
+  animation: 1s fadein 1.9s forwards;
+}
+
+input[type="checkbox"]:checked+.checkmark>span:after { 
+  animation: .3s bottomslide 2s forwards; 
+}
+
+input[type="checkbox"]:checked+.checkmark>span:before { 
+  animation: .5s rightslide 2.2s forwards; 
+}
+
+@keyframes fadein {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes bottomslide {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+
+@keyframes rightslide {
+  0% { height: 0; }
+  100% { height: 100%; }
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.logo img {
+  height: 32px;
+  width: 32px;
+}
+
+.logo p {
+  color: #555;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  margin: 2px 0 0px 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.logo small {
+  color: #9b9b9b;
+  margin: 0;
+  font-size: 8px;
+  font-family: 'Roboto', sans-serif;
+}
+
+@keyframes spin {
+  10% {
+    width: 0; height: 0;
+    border-width: 3px;
+  }
+  30% {
+    width: 0; height: 0;
+    border-radius: 50%;
+    border-width: 12px;
+    transform: rotate(0deg);
+    border-color: #c7daf5;
+  }
+  50% {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border-width: 3px;
+    border-color: #c7daf5;
+    border-right-color: #4a90e2;
+  }
+  70% {
+    border-width: 3px;
+    border-color: #c7daf5;
+    border-right-color: #4a90e2;
+  }
+  90% {
+    border-width: 3px;
+  }
+  100% {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    transform: rotate(720deg);
+    border-color: transparent;
+  }
+}
 </style>
