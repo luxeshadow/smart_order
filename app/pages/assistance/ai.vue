@@ -110,7 +110,7 @@ onMounted(() => {
 <style scoped>
 .ia-page {
   background: #f8f9fa;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -118,16 +118,17 @@ onMounted(() => {
 
 /* HEADER FIXE */
 .app-bar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   height: 65px;
   background: white;
   display: flex;
   align-items: center;
   padding: 0 15px;
   border-bottom: 1px solid #f1f1f1;
-  flex-shrink: 0;
 }
 
 .back-btn {
@@ -157,7 +158,8 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  padding-top: 20px;
+  padding-top: 85px;
+  padding-bottom: 90px;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -231,15 +233,17 @@ onMounted(() => {
   border-bottom-left-radius: 4px;
 }
 
-/* FOOTER INPUT FIXE EN BAS */
+/* FOOTER FIXE */
 .input-area {
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
-  z-index: 100;
+  z-index: 1000;
   background: white;
   border-top: 1px solid #eee;
-  padding: 12px 16px 18px;
-  flex-shrink: 0;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
 .input-wrapper {
@@ -290,9 +294,11 @@ input:focus {
 }
 
 @keyframes fadePulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 1;
   }
@@ -312,16 +318,13 @@ input:focus {
 @media (max-width: 600px) {
   .chat-wrapper {
     padding: 12px;
-    padding-top: 16px;
+    padding-top: 80px;
+    padding-bottom: 85px;
   }
 
   .bubble-content {
     max-width: 88%;
     font-size: 13px;
-  }
-
-  .input-area {
-    padding-bottom: 12px;
   }
 }
 </style>
