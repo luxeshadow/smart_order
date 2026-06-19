@@ -21,7 +21,8 @@
     "ogl": "^1.0.11",
     "three": "^0.183.2",
     "vue": "^3.5.30",
-    "vue-router": "^5.0.4"
+    "vue-router": "^5.0.4",
+    "vue-spin-the-wheel": "^2.2.5"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.0.2",
