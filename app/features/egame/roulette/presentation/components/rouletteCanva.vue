@@ -90,45 +90,40 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
+  // 🎯 Choix du gagnant
   const winningIndex = Math.floor(Math.random() * total)
+  const winningSlice = slices[winningIndex]
 
+  // Rotation de la roue
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   const targetRotation = winningIndex * sliceAngle
-
   currentRotation.value += extraTurns + targetRotation
 
-  // Résultat après animation
+  // === RÉSULTAT FIABLE ===
   setTimeout(async () => {
     isSpinning.value = false
 
-    const normalized = ((currentRotation.value % 360) + 360) % 360
-
-    // 🔧 Ajustement précis pour correspondre à l'aiguille + position des textes
-    const adjusted = (normalized + 15) % 360   // ← Ajustement important
-    let indexUnderPointer = Math.floor(adjusted / sliceAngle) % total
-
-    const item = slices[indexUnderPointer]
-
-    if (!item) {
-      msgText.value = "Erreur"
+    // ✅ Fix TypeScript
+    if (!winningSlice) {
+      msgText.value = "Erreur lors du tirage"
       msgColor.value = "#ef4444"
       return
     }
 
-    if (item.type === 'skull') {
+    if (winningSlice.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
       msgColor.value = "#ef4444"
       await fetchBalance()
       return
     }
 
-    const gains = Math.floor(betInput.value * item.mult)
+    const gains = Math.floor(betInput.value * winningSlice.mult)
     transactionStore.mainBalance = (mainBalance.value || 0) + gains
 
     triggerConfetti()
     showToast(`+${gains}`, "fi-rr-check", "success")
 
-    msgText.value = `🎉 ${item.label} → +${gains}`
+    msgText.value = `🎉 ${winningSlice.label} → +${gains}`
     msgColor.value = "#22c55e"
   }, 4300)
 }
@@ -158,15 +153,8 @@ onMounted(fetchBalance)
 
     <section class="wrapper" data-items="12">
       <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning" aria-label="Tourner la roue">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
+        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
+          SPIN
         </button>
       </div>
       
@@ -193,7 +181,6 @@ onMounted(fetchBalance)
 </template>
 
 <style scoped>
-/* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
 #roulette-root {
@@ -239,103 +226,76 @@ onMounted(fetchBalance)
   margin-left: 10px;
   outline: none;
 }
-.bet-container input:focus {
-  border-color: #ff5e00;
-}
 
 .wrapper {
-  --items: 12;
-  --slice-angle: calc(360deg / var(--items));
-  --start-angle: calc(var(--slice-angle) / 2);
-  --wheel-radius: min(38vw, 180px);
-  --wheel-size: calc(var(--wheel-radius) * 2);
-  --wheel-padding: 15%;
-  --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
-
   position: relative;
-  width: var(--wheel-size);
-  aspect-ratio: 1;
-  margin: auto;
+  width: 320px;
+  height: 320px;
+  margin: 30px auto;
 }
 
 .controls {
   position: absolute;
   z-index: 10;
-  inset: 0;
-  margin: auto;
-  width: 50px;
-  height: 50px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
   background: #04070f;
-  border: 3px solid #fff;
+  border: 4px solid #fff;
   border-radius: 50%;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
 }
 
 .controls button {
-  cursor: pointer;
-  background: transparent;
-  border: none;
   width: 100%;
   height: 100%;
+  background: transparent;
+  border: none;
   color: white;
-  display: grid;
-  place-items: center;
-}
-.controls button:hover:not(:disabled) { transform: scale(1.1); }
-.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.controls::before {
-  content: '';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 18px solid #ef4444;
-  z-index: 11;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.controls.ticking::before {
-  animation: marker-tick 400ms ease-in-out infinite alternate;
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  border: 6px solid #fff;
+  box-shadow: 0 0 25px rgba(0,0,0,0.7);
   background: repeating-conic-gradient(
-    from var(--start-angle),
-    #111827 0deg var(--slice-angle),
-    #1e293b var(--slice-angle) calc(var(--slice-angle)*2)
+    from 15deg,
+    #111827 0deg 30deg,
+    #1e293b 30deg 60deg
   );
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .slice-item {
   position: absolute;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  offset-path: circle(var(--item-radius) at 50% 50%);
+  offset-path: circle(115px at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
 }
 
-.slice-item.skull { font-size: 1.35rem; }
+.slice-item.skull { font-size: 1.5rem; }
 
 .message {
   text-align: center;
   font-weight: bold;
-  font-size: 1.15rem;
-  margin-top: 25px;
-  min-height: 32px;
-}
-
-@keyframes marker-tick {
-  from { transform: translateX(-50%) rotate(-10deg); }
-  to   { transform: translateX(-50%) rotate(10deg); }
+  font-size: 1.2rem;
+  margin-top: 20px;
+  min-height: 40px;
 }
 </style>
