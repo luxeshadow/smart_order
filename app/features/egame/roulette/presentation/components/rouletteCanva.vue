@@ -29,7 +29,6 @@ interface Slice {
 }
 
 // L'index 0 commence géométriquement à droite (3h). 
-// Avec le décalage appliqué dans le script, l'index 0 correspond bien au premier élément ci-dessous.
 const slices: Slice[] = [
   { type: 'skull', label: '💀', mult: 0 },
   { type: 'win', label: '1.25x', mult: 1.25 },
@@ -107,9 +106,9 @@ const spinWheel = async () => {
   const extraTours = (Math.floor(Math.random() * 4) + 5) * 360
 
   // RECTIFICATION VISUELLE :
-  // - L'offset-path commence à 90° (à droite). La flèche est à 270° (en haut). Il y a donc un décalage initial de 270°.
-  // - Pour amener l'index gagnant sous la flèche lors d'une rotation horaire, on ajoute (winningIndex * degreesPerSlice).
-  const targetAngle = extraTours + 270 + (winningIndex * degreesPerSlice)
+  // - L'offset-path commence à 90° (à droite). La flèche est à 270° (en haut). Écart initial = 180°.
+  // - Pour amener l'index sous la flèche avec une rotation horaire, on SOUSTRAIT sa position.
+  const targetAngle = extraTours + 180 - (winningIndex * degreesPerSlice)
   
   // Application de la rotation fluide cumulée
   currentRotation.value += targetAngle - (currentRotation.value % 360)
@@ -325,7 +324,6 @@ onMounted(() => {
   border: 4px solid #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
   user-select: none;
-  /* Centrage des couleurs du dégradé conique sur les délimitations des parts */
   background: repeating-conic-gradient(
     from var(--start-angle),
     #111827 0deg var(--slice-angle),
@@ -342,6 +340,8 @@ onMounted(() => {
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
+  /* Correction d'alignement au centre du point d'ancrage de la courbure */
+  transform: translate(-50%, -50%);
 }
 
 .slice-item.skull {
