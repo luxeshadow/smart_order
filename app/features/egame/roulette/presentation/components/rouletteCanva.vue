@@ -9,7 +9,14 @@ import { useConfetti } from '@/core/utils/useConfetti'
 
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
+
+// Importations de la méthode sécurisée
+import { PlayRouletteGameUseCase } from '~/features/egame/roulette/application/usecases/play_roulette_game_usecase'
+import { PlayRouletteGameRepositoryImpl } from '~/features/egame/roulette/data/repositories/play_roulette_game_repository_impl'
 import { Failure } from '@/core/errors/failure'
+
+// IMPORTATION DEPUIS TON DOSSIER CONSTANTES (Ajuste le chemin si nécessaire)
+import { ROULETTE_SLICES } from '@/core/constants/roulette_game'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -23,26 +30,12 @@ const { triggerConfetti } = useConfetti()
 const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
-interface Slice {
-  type: 'skull' | 'win'
-  label: string
-  mult: number
-}
+// Instanciation de la roulette
+const rouletteRepo = new PlayRouletteGameRepositoryImpl()
+const playRouletteUseCase = new PlayRouletteGameUseCase(rouletteRepo)
 
-const slices: Slice[] = [
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.25x', mult: 1.25 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.5x', mult: 1.5 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '2x', mult: 2 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.25x', mult: 1.25 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.75x', mult: 1.75 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '5x', mult: 5 }
-]
+// Utilisation directe de la constante partagée (Zéro duplication, le template reste inchangé)
+const slices = ROULETTE_SLICES
 
 const betInput = ref(500)
 const isSpinning = ref(false)
@@ -85,22 +78,37 @@ const spinWheel = async () => {
     return
   }
 
+  // 1. On effectue le tirage de confiance côté Repository (BDD)
+  const result = await playRouletteUseCase.execute({
+    userId: user.value?.id || '',
+    betAmount: bet
+  })
+
+  if (result instanceof Failure) {
+    msgText.value = `❌ ${result.message}`
+    msgColor.value = "#ef4444"
+    showToast(result.message, "fi-rr-cross", "error")
+    return
+  }
+
+  // Déduction visuelle immédiate de la mise pendant la rotation
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
   msgText.value = "La roue tourne..."
-  msgColor.value = "#ff5e00" // base
+  msgColor.value = "#ff5e00"
 
   const total = slices.length
   const sliceAngle = 360 / total
 
-  const winningIndex = Math.floor(Math.random() * total)
+  // 2. On force la roue à cibler l'index EXACT déterminé par le Repository
+  const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
-  const targetRotation = winningIndex * sliceAngle
+  const targetRotation = serverWinningIndex * sliceAngle
 
   currentRotation.value += extraTurns + targetRotation
 
-  setTimeout(() => {
+  setTimeout(async () => {
     isSpinning.value = false
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
@@ -109,100 +117,29 @@ const spinWheel = async () => {
     const angleUnderPointer = (360 - normalized + visualOffset) % 360
     const detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
 
-    debugInfo.value = { winning: winningIndex, detected: detectedIndex }
+    debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
-    const item = slices[detectedIndex]
-    if (!item) return
-
-    if (item.type === 'skull') {
-      msgText.value = `💀 Perdu ${betInput.value} XOF`
+    // 3. Traitement des résultats renvoyés par le serveur
+    if (!result.isWin) {
+      msgText.value = `💀 Perdu ${bet} XOF`
       msgColor.value = "#ef4444"
-      fetchBalance()
+      await fetchBalance() // Resynchronise le solde réel
       return
     }
 
-    const gains = Math.floor(betInput.value * item.mult)
-    transactionStore.mainBalance = (mainBalance.value || 0) + gains
-
     triggerConfetti()
-    showToast(`+${gains}`, "fi-rr-check", "success")
+    showToast(`+${result.gains}`, "fi-rr-check", "success")
 
-    msgText.value = `🎉 ${item.label} → +${gains} XOF`
+    const item = slices[serverWinningIndex]
+    msgText.value = `🎉 ${item?.label || 'Gagné'} → +${result.gains} XOF`
     msgColor.value = "#22c55e"
+    
+    await fetchBalance() // Met à jour le store Pinia avec le solde incluant le gain
   }, 4300)
 }
 
 onMounted(fetchBalance)
 </script>
-
-<template>
-  <div id="roulette-root">
-    <nav class="app-bar">
-      <button class="back-btn" @click="router.back()">
-        <i class="fi fi-rr-arrow-small-left"></i>
-      </button>
-      <span class="app-bar-title">E-games</span>
-      <div class="spacer"></div>
-    </nav>
-
-    <div class="top-bar">
-      <span class="title-label">Lucky Wheel</span>
-      <span class="balance-badge">
-        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
-      </span>
-    </div>
-
-    <div class="bet-container">
-      <label for="bet-input">Mise (Min 500) :</label>
-      <input 
-        type="number" 
-        id="bet-input" 
-        v-model.number="betInput" 
-        min="500" 
-        :disabled="isSpinning"
-      >
-    </div>
-
-    <section class="wrapper" data-items="12">
-      <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
-        </button>
-      </div>
-      
-      <div 
-        id="wheel" 
-        class="wheel" 
-        :style="{ transform: `rotate(${currentRotation}deg)` }"
-      >
-        <span 
-          v-for="(slice, index) in slices" 
-          :key="index"
-          :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
-        >
-          {{ slice.label }}
-        </span>
-      </div>
-    </section>
-
-    <div id="message" class="message" :style="{ color: msgColor }">
-      {{ msgText }}
-    </div>
-
-    <div class="debug-info">
-      Winning Index: {{ debugInfo.winning }} | Detected: {{ debugInfo.detected }}
-    </div>
-  </div>
-</template>
-
 <style scoped>
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
