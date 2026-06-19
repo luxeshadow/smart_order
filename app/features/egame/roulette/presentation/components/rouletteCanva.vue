@@ -22,13 +22,14 @@ const { triggerConfetti } = useConfetti()
 const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
-// --- Configuration des Segments de la Roue (12 items) ---
 interface Slice {
   type: 'skull' | 'win';
   label: string;
   mult: number;
 }
 
+// L'index 0 commence géométriquement à droite (3h). 
+// Avec le décalage appliqué dans le script, l'index 0 correspond bien au premier élément ci-dessous.
 const slices: Slice[] = [
   { type: 'skull', label: '💀', mult: 0 },
   { type: 'win', label: '1.25x', mult: 1.25 },
@@ -78,7 +79,7 @@ const spinWheel = async () => {
     return
   }
 
-  // 1. TCHEK DU SOLDE AVANT LE LANCER
+  // 1. VÉRIFICATION DU SOLDE AVANT LE LANCER
   msgText.value = "Vérification du solde..."
   msgColor.value = "#94a3b8"
   await fetchBalance()
@@ -103,18 +104,21 @@ const spinWheel = async () => {
 
   // Choix de l'index gagnant (0 à 11)
   const winningIndex = Math.floor(Math.random() * totalItems)
-  const extraTours = (Math.floor(Math.random() * 4) + 5) * 360 // 5 à 8 tours complets
+  const extraTours = (Math.floor(Math.random() * 4) + 5) * 360
 
-  // Alignement précis avec la flèche du haut
-  const targetAngle = extraTours - (winningIndex * degreesPerSlice)
-  currentRotation.value += targetAngle - (currentRotation.value % 360) + 360
+  // RECTIFICATION VISUELLE :
+  // - L'offset-path commence à 90° (à droite). La flèche est à 270° (en haut). Il y a donc un décalage initial de 270°.
+  // - Pour amener l'index gagnant sous la flèche lors d'une rotation horaire, on ajoute (winningIndex * degreesPerSlice).
+  const targetAngle = extraTours + 270 + (winningIndex * degreesPerSlice)
+  
+  // Application de la rotation fluide cumulée
+  currentRotation.value += targetAngle - (currentRotation.value % 360)
 
   // 3. Traitement à la fin de l'animation CSS (4 secondes)
   setTimeout(async () => {
     isSpinning.value = false
     const item = slices[winningIndex]
 
-    // Garde stricte pour résoudre le warning 'item' is possibly 'undefined'
     if (!item) return
 
     if (item.type === 'skull') {
@@ -124,8 +128,7 @@ const spinWheel = async () => {
     } else {
       const gains = Math.floor(bet * item.mult)
       const nouveauSolde = (mainBalance.value || 0) + gains
-      
-      // Injecte les gains réels dans Pinia
+
       transactionStore.mainBalance = nouveauSolde
       
       triggerConfetti()
@@ -184,7 +187,7 @@ onMounted(() => {
           v-for="(slice, index) in slices" 
           :key="index"
           :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
+          :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
         >
           {{ slice.label }}
         </span>
@@ -322,6 +325,7 @@ onMounted(() => {
   border: 4px solid #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
   user-select: none;
+  /* Centrage des couleurs du dégradé conique sur les délimitations des parts */
   background: repeating-conic-gradient(
     from var(--start-angle),
     #111827 0deg var(--slice-angle),
