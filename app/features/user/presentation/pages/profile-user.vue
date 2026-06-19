@@ -230,7 +230,6 @@ const vibrate = () => {
 
 
 <style scoped>
-/* Ajoute ces styles pour le bouton de transfert */
 .settings-btn {
   margin-left: auto;
   width: 44px;
