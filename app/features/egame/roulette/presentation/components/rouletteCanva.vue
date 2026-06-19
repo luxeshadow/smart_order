@@ -10,6 +10,7 @@ import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/applicatio
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
 const { user } = storeToRefs(authStore)
@@ -142,6 +143,13 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
+   <nav class="app-bar">
+      <button class="back-btn" @click="router.back()">
+        <i class="fi fi-rr-arrow-small-left"></i>
+      </button>
+      <span class="app-bar-title">E-games</span>
+      <div class="spacer"></div>
+    </nav>
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
@@ -206,6 +214,40 @@ onMounted(fetchBalance)
 <style scoped>
 /* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
+
+/* AppBar */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  z-index: 1000;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.back-btn {
+
+  width: 45px;
+  height: 45px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #2d3436;
+}
+
+.spacer { width: 40px; }
 
 #roulette-root {
   font-family: "Jura", sans-serif;
