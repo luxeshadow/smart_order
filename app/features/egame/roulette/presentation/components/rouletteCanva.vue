@@ -62,7 +62,6 @@ const fetchBalance = async () => {
   }
 }
 
-// 🔥 SPIN FIX FINAL
 const spinWheel = async () => {
   if (isSpinning.value) return
 
@@ -74,7 +73,6 @@ const spinWheel = async () => {
   }
 
   await fetchBalance()
-
   const balance = mainBalance.value || 0
   if (bet > balance) {
     msgText.value = "❌ Solde insuffisant"
@@ -95,9 +93,9 @@ const spinWheel = async () => {
   const winningIndex = Math.floor(Math.random() * total)
 
   const extraTurns = (Math.floor(Math.random() * 4) + 5) * 360
+  const targetRotation = winningIndex * sliceAngle
 
-  // 🎯 rotation SANS offset
-  currentRotation.value += extraTurns + (winningIndex * sliceAngle)
+  currentRotation.value += extraTurns + targetRotation
 }
 
 setTimeout(async () => {
@@ -106,17 +104,20 @@ setTimeout(async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 🔥 NORMALISATION PROPRE
-  const normalized = ((currentRotation.value % 360) + 360) % 360
+  // Normalisation
+  let normalized = ((currentRotation.value % 360) + 360) % 360
 
-  // 🔥 INDEX EXACT sous aiguille (0° en haut)
-  const indexUnderPointer = Math.floor(
-    (360 - normalized) / sliceAngle
-  ) % total
+  // Index sous l'aiguille
+  const indexUnderPointer = Math.floor(normalized / sliceAngle) % total
 
   const item = slices[indexUnderPointer]
 
-  if (!item) return
+  // ✅ Fix TypeScript + sécurité
+  if (!item) {
+    msgText.value = "Erreur lors du tirage"
+    msgColor.value = "#ef4444"
+    return
+  }
 
   if (item.type === 'skull') {
     msgText.value = `💀 Perdu ${betInput.value} XOF`
@@ -126,7 +127,6 @@ setTimeout(async () => {
   }
 
   const gains = Math.floor(betInput.value * item.mult)
-
   transactionStore.mainBalance = (mainBalance.value || 0) + gains
 
   triggerConfetti()
@@ -134,7 +134,6 @@ setTimeout(async () => {
 
   msgText.value = `🎉 ${item.label} → +${gains}`
   msgColor.value = "#22c55e"
-
 }, 4000)
 
 onMounted(fetchBalance)
@@ -326,7 +325,7 @@ onMounted(fetchBalance)
     #111827 0deg var(--slice-angle),
     #1e293b var(--slice-angle) calc(var(--slice-angle) * 2)
   );
-  transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+  transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 /* Positionnement des éléments textuels sur la courbure */
