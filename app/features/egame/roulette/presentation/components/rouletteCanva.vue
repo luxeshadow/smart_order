@@ -18,8 +18,8 @@ const { mainBalance } = storeToRefs(transactionStore)
 const { showToast } = useToast()
 const { triggerConfetti } = useConfetti()
 
-const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
-const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
+const repo = new ShowMyPrincipalBalanceRepositoryImpl()
+const useCase = new ShowMyPrincipalBalanceUseCase(repo)
 
 interface Slice {
   type: 'skull' | 'win'
@@ -48,23 +48,19 @@ const msgText = ref('')
 const msgColor = ref('#94a3b8')
 const currentRotation = ref(0)
 
-// debug
-const debugIndex = ref<number | null>(null)
-
-// 🎯 angle du pointeur (haut = 0)
 const POINTER_ANGLE = 0
 
-const formatBalance = (value: number | null): string => {
-  if (!value) return "00,000,000"
-  const padded = Math.floor(value).toString().padStart(8, '0')
-  return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3")
+const formatBalance = (v: number | null) => {
+  if (!v) return "00,000,000"
+  const p = Math.floor(v).toString().padStart(8, '0')
+  return p.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3")
 }
 
 const fetchBalance = async () => {
   if (!user.value?.id) return
-  const result = await getBalanceUseCase.execute({ userId: user.value.id })
-  if (!(result instanceof Failure)) {
-    transactionStore.updateAllBalances(result)
+  const res = await useCase.execute({ userId: user.value.id })
+  if (!(res instanceof Failure)) {
+    transactionStore.updateAllBalances(res)
   }
 }
 
@@ -72,76 +68,60 @@ const spinWheel = async () => {
   if (isSpinning.value) return
 
   const bet = Number(betInput.value)
-
-  if (isNaN(bet) || bet < 500) {
-    msgText.value = "❌ Mise minimale 500 XOF"
-    msgColor.value = "#ef4444"
-    return
-  }
+  if (isNaN(bet) || bet < 500) return
 
   await fetchBalance()
 
   const balance = mainBalance.value || 0
-
-  if (bet > balance) {
-    msgText.value = "❌ Solde insuffisant"
-    msgColor.value = "#ef4444"
-    showToast("Solde insuffisant", "fi-rr-info", "error")
-    return
-  }
+  if (bet > balance) return
 
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
-  msgText.value = "La roue tourne..."
-  msgColor.value = "#fbbf24"
+  msgText.value = "..."
 
   const total = slices.length
   const sliceAngle = 360 / total
 
+  // 🎯 résultat décidé
   const winningIndex = Math.floor(Math.random() * total)
-  const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
 
-  currentRotation.value += extraTurns + winningIndex * sliceAngle
+  // 🎯 centre du segment
+  const target = winningIndex * sliceAngle + sliceAngle / 2
+
+  // 🎯 rotations
+  const spins = (5 + Math.floor(Math.random() * 3)) * 360
+
+  currentRotation.value += spins + (360 - target)
 
   setTimeout(async () => {
     isSpinning.value = false
 
-    // 🔥 NORMALISATION PROPRE
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // 🔥 angle sous aiguille
-    const angle = (360 - normalized + POINTER_ANGLE) % 360
+    // lecture EXACTE sous aiguille fixe
+    const angle = (normalized + POINTER_ANGLE) % 360
 
-    const indexUnderPointer = Math.floor(angle / sliceAngle) % total
+    const index = Math.floor(angle / sliceAngle) % total
 
-    debugIndex.value = indexUnderPointer
+    const item = slices[index]
 
-    const item = slices[indexUnderPointer]
-
-    if (!item) {
-      msgText.value = "Erreur"
-      msgColor.value = "#ef4444"
-      return
-    }
+    if (!item) return
 
     if (item.type === 'skull') {
-      msgText.value = `💀 Perdu ${betInput.value} XOF`
-      msgColor.value = "#ef4444"
+      msgText.value = "💀 Perdu"
       await fetchBalance()
       return
     }
 
-    const gains = Math.floor(betInput.value * item.mult)
+    const gain = Math.floor(bet * item.mult)
 
-    transactionStore.mainBalance = (mainBalance.value || 0) + gains
+    transactionStore.mainBalance = (mainBalance.value || 0) + gain
 
     triggerConfetti()
-    showToast(`+${gains}`, "fi-rr-check", "success")
+    showToast(`+${gain}`, "fi-rr-check", "success")
 
-    msgText.value = `🎉 ${item.label} → +${gains}`
-    msgColor.value = "#22c55e"
-
+    msgText.value = `${item.label} → +${gain}`
   }, 4200)
 }
 
@@ -149,223 +129,110 @@ onMounted(fetchBalance)
 </script>
 
 <template>
-  
   <div id="roulette-root">
+
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
-        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
+        Solde : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
       </span>
     </div>
 
     <div class="bet-container">
-      <label for="bet-input">Mise (Min 500) :</label>
-      <input 
-        type="number" 
-        id="bet-input" 
-        v-model.number="betInput" 
-        min="500" 
-        :disabled="isSpinning"
-      >
+      <label>Mise :</label>
+      <input type="number" v-model.number="betInput" min="500" :disabled="isSpinning">
     </div>
 
-    <section class="wrapper" data-items="12">
-      <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning" aria-label="Tourner la roue">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
-        </button>
+    <section class="wrapper">
+
+      <div class="controls">
+        <button @click="spinWheel" :disabled="isSpinning">SPIN</button>
       </div>
-      
-      <div 
-        id="wheel" 
-        class="wheel" 
-        :style="{ transform: `rotate(${currentRotation}deg)` }"
-      >
-        <span 
-          v-for="(slice, index) in slices" 
-          :key="index"
-          :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
-        >
-          {{ slice.label }}
+
+      <div class="wheel" :style="{ transform: `rotate(${currentRotation}deg)` }">
+        <span v-for="(s, i) in slices" :key="i" class="slice-item">
+          {{ s.label }}
         </span>
       </div>
+
     </section>
 
-    <div id="message" class="message" :style="{ color: msgColor }">
+    <div class="message" :style="{ color: msgColor }">
       {{ msgText }}
     </div>
+
   </div>
 </template>
 
 <style scoped>
-/* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
 #roulette-root {
-  font-family: "Jura", sans-serif;
-  background-color: #080c18;
-  color: #f5f5f5;
+  font-family: Jura;
+  background: #080c18;
+  color: white;
+  padding: 20px;
   border-radius: 16px;
-  padding: 24px;
   max-width: 500px;
   margin: auto;
-  user-select: none;
 }
 
 .top-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-bottom: 10px;
-}
-
-.title-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #94a3b8;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.balance-badge {
-  font-size: 13px;
-  color: #64748b;
-}
-
-.balance-badge .amount {
-  color: #fbbf24;
-  font-weight: 700;
-  font-size: 15px;
 }
 
 .bet-container {
   text-align: center;
-  margin-bottom: 25px;
-  font-size: 1.1rem;
-}
-
-.bet-container input {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.03);
-  color: #fff;
-  width: 130px;
-  font-size: 1.1rem;
-  text-align: center;
-  font-weight: bold;
-  margin-left: 10px;
-  outline: none;
-}
-
-.bet-container input:focus {
-  border-color: #ff5e00;
+  margin-bottom: 20px;
 }
 
 .wrapper {
-  --items: 12;
-  --slice-angle: calc(360deg / var(--items));
-  --wheel-radius: min(38vw, 180px);
-  --wheel-size: calc(var(--wheel-radius) * 2);
-  --item-radius: calc(var(--wheel-radius) - 18%);
-
   position: relative;
-  width: var(--wheel-size);
-  aspect-ratio: 1;
+  width: 260px;
+  height: 260px;
   margin: auto;
 }
 
 .controls {
   position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 50px;
-  height: 50px;
-  background: #04070f;
-  border: 3px solid #fff;
-  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
   z-index: 10;
 }
 
 .controls button {
-  cursor: pointer;
-  background: transparent;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   border: none;
+  background: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.wheel {
   width: 100%;
   height: 100%;
-  color: white;
-  display: grid;
-  place-items: center;
-}
-
-.controls::before {
-  content: '';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 18px solid #ef4444;
-  z-index: 11;
-  animation: marker-tick 400ms ease-in-out infinite alternate;
-}
-
-/* 🔥 FIX IMPORTANT : on SUPPRIME start-angle */
-.wheel {
-  position: absolute;
-  inset: 0;
   border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-
-  /* ❌ SUPPRIMÉ : from var(--start-angle) */
+  border: 4px solid white;
+  transition: transform 4s cubic-bezier(.2,.8,.2,1);
   background: repeating-conic-gradient(
-    #111827 0deg calc(var(--slice-angle)),
-    #1e293b calc(var(--slice-angle)) calc(var(--slice-angle) * 2)
+    #1e293b 0deg 30deg,
+    #111827 30deg 60deg
   );
-
-  transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .slice-item {
   position: absolute;
-  font-size: 1.1rem;
-  font-weight: 700;
-
-  offset-path: circle(var(--item-radius) at 50% 50%);
-  offset-rotate: auto;
-
-  /* 🔥 CENTRAGE FIXE (important) */
-  offset-distance: calc(var(--offset-dist) - 4%);
-}
-
-.slice-item.skull {
-  font-size: 1.35rem;
+  font-size: 14px;
 }
 
 .message {
   text-align: center;
+  margin-top: 20px;
   font-weight: bold;
-  font-size: 1.15rem;
-  margin-top: 25px;
-  min-height: 32px;
-}
-
-@keyframes marker-tick {
-  from { transform: translateX(-50%) rotate(-10deg); }
-  to   { transform: translateX(-50%) rotate(10deg); }
 }
 </style>
