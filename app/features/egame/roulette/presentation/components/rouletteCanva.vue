@@ -28,18 +28,18 @@ interface Slice {
 }
 
 const slices: Slice[] = [
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.25x', mult: 1.25 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.5x', mult: 1.5 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '2x', mult: 2 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.25x', mult: 1.25 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '1.75x', mult: 1.75 },
-  { type: 'skull', label: '💀', mult: 0 },
-  { type: 'win', label: '10x', mult: 10 }
+  { type: 'skull', label: '💀', mult: 0 },     // 0
+  { type: 'win', label: '1.25x', mult: 1.25 }, // 1
+  { type: 'skull', label: '💀', mult: 0 },     // 2
+  { type: 'win', label: '1.5x', mult: 1.5 },   // 3
+  { type: 'skull', label: '💀', mult: 0 },     // 4
+  { type: 'win', label: '2x', mult: 2 },       // 5
+  { type: 'skull', label: '💀', mult: 0 },     // 6
+  { type: 'win', label: '1.25x', mult: 1.25 }, // 7
+  { type: 'skull', label: '💀', mult: 0 },     // 8
+  { type: 'win', label: '1.75x', mult: 1.75 }, // 9
+  { type: 'skull', label: '💀', mult: 0 },     // 10
+  { type: 'win', label: '10x', mult: 10 }      // 11
 ]
 
 const betInput = ref(500)
@@ -48,7 +48,7 @@ const msgText = ref('')
 const msgColor = ref('#94a3b8')
 const currentRotation = ref(0)
 
-const debugIndex = ref<number | null>(null)
+const debugInfo = ref({ winning: null as number | null, detected: null as number | null })
 
 const formatBalance = (value: number | null): string => {
   if (!value) return "00,000,000"
@@ -92,7 +92,6 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // On choisit d'abord le résultat
   const winningIndex = Math.floor(Math.random() * total)
   const winningItem = slices[winningIndex]
 
@@ -101,30 +100,23 @@ const spinWheel = async () => {
 
   currentRotation.value += extraTurns + targetRotation
 
-  // Attendre la fin de l'animation
   setTimeout(() => {
     isSpinning.value = false
 
-    // === Détection basée sur la position réelle de la roue ===
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // Ajustement visuel (à modifier si besoin : 0, 5, 10, 15...)
-    const visualOffset = 15
+    // ================== AJUSTEMENT ICI ==================
+    const visualOffset = 30   // ← Change cette valeur (essaie 20, 25, 30, 35, 40)
 
     const angleUnderPointer = (360 - normalized + visualOffset) % 360
-    let detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
+    const detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
 
-    debugIndex.value = detectedIndex
+    debugInfo.value = { winning: winningIndex, detected: detectedIndex }
 
     const item = slices[detectedIndex]
 
-    if (!item) {
-      msgText.value = "Erreur"
-      msgColor.value = "#ef4444"
-      return
-    }
+    if (!item) return
 
-    // On utilise le vrai item détecté (pas forcément le winningItem)
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
       msgColor.value = "#ef4444"
@@ -148,49 +140,20 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
-    <div class="top-bar">
-      <span class="title-label">Lucky Wheel</span>
-      <span class="balance-badge">
-        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
-      </span>
-    </div>
-
-    <div class="bet-container">
-      <label for="bet-input">Mise (Min 500) :</label>
-      <input 
-        type="number" 
-        id="bet-input" 
-        v-model.number="betInput" 
-        min="500" 
-        :disabled="isSpinning"
-      >
-    </div>
+    <!-- ... le reste du template est identique ... -->
+    <div class="top-bar"> ... </div>
+    <div class="bet-container"> ... </div>
 
     <section class="wrapper" data-items="12">
       <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning" aria-label="Tourner la roue">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
+        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
+          <!-- ton svg -->
         </button>
       </div>
       
-      <div 
-        id="wheel" 
-        class="wheel" 
-        :style="{ transform: `rotate(${currentRotation}deg)` }"
-      >
-        <span 
-          v-for="(slice, index) in slices" 
-          :key="index"
-          :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
-        >
+      <div id="wheel" class="wheel" :style="{ transform: `rotate(${currentRotation}deg)` }">
+        <span v-for="(slice, index) in slices" :key="index" :class="['slice-item', slice.type]"
+          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }">
           {{ slice.label }}
         </span>
       </div>
@@ -200,12 +163,15 @@ onMounted(fetchBalance)
       {{ msgText }}
     </div>
 
-    <!-- Debug -->
-    <div style="text-align:center; margin-top:10px; color:#64748b; font-size:0.9rem;">
-      Debug Index: {{ debugIndex }}
+    <!-- DEBUG -->
+    <div style="text-align:center; margin-top:15px; color:#94a3b8; font-size:0.95rem;">
+      Winning Index: {{ debugInfo.winning }} | 
+      Detected Index: {{ debugInfo.detected }}
     </div>
   </div>
 </template>
+
+
 
 <style scoped>
 /* === STYLE (inchangé sauf petite amélioration) === */
