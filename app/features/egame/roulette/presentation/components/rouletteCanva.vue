@@ -22,9 +22,9 @@ const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
 interface Slice {
-  type: 'skull' | 'win';
-  label: string;
-  mult: number;
+  type: 'skull' | 'win'
+  label: string
+  mult: number
 }
 
 const slices: Slice[] = [
@@ -42,7 +42,7 @@ const slices: Slice[] = [
   { type: 'win', label: '10x', mult: 10 }
 ]
 
-const betInput = ref<number>(500)
+const betInput = ref(500)
 const isSpinning = ref(false)
 const msgText = ref('')
 const msgColor = ref('#94a3b8')
@@ -82,6 +82,7 @@ const spinWheel = async () => {
     return
   }
 
+  // retrait local immédiat
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
@@ -91,18 +92,22 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
+  // angle du pointeur (correction du décalage visuel)
   const pointerOffset = sliceAngle / 2
 
+  // choix du gagnant
   const winningIndex = Math.floor(Math.random() * total)
 
+  // rotations aléatoires
   const extraSpins = (Math.floor(Math.random() * 4) + 5) * 360
 
-  const targetRotation =
+  // 🎯 alignement EXACT sur l’aiguille
+  const finalRotation =
     currentRotation.value +
     extraSpins +
-    (360 - winningIndex * sliceAngle - pointerOffset)
+    (360 - (winningIndex * sliceAngle + pointerOffset))
 
-  currentRotation.value = targetRotation
+  currentRotation.value = finalRotation
 
   setTimeout(async () => {
     isSpinning.value = false
@@ -114,16 +119,18 @@ const spinWheel = async () => {
       msgText.value = `💀 Perdu ${bet.toLocaleString()} XOF`
       msgColor.value = "#ef4444"
       await fetchBalance()
-    } else {
-      const gain = Math.floor(bet * item.mult)
-      transactionStore.mainBalance = (mainBalance.value || 0) + gain
-
-      triggerConfetti()
-      showToast(`+${gain} XOF`, "fi-rr-check", "success")
-
-      msgText.value = `Gain x${item.mult} : +${gain} XOF`
-      msgColor.value = "#22c55e"
+      return
     }
+
+    const gain = Math.floor(bet * item.mult)
+    transactionStore.mainBalance = (mainBalance.value || 0) + gain
+
+    triggerConfetti()
+    showToast(`+${gain.toLocaleString()} XOF`, "fi-rr-check", "success")
+
+    msgText.value = `🎉 x${item.mult} → +${gain.toLocaleString()} XOF`
+    msgColor.value = "#22c55e"
+
   }, 4000)
 }
 
@@ -176,6 +183,9 @@ onMounted(fetchBalance)
   background: #080c18;
   color: white;
   padding: 20px;
+  border-radius: 16px;
+  max-width: 500px;
+  margin: auto;
 }
 
 .wrapper {
@@ -198,12 +208,28 @@ onMounted(fetchBalance)
 
 .controls {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  cursor: pointer;
+  font-weight: bold;
 }
 
 .slice-item {
   position: absolute;
+}
+
+.message {
+  text-align: center;
+  margin-top: 20px;
+  font-weight: bold;
 }
 </style>
