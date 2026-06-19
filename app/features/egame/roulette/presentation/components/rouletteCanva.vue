@@ -51,8 +51,8 @@ const currentRotation = ref(0)
 // debug
 const debugIndex = ref<number | null>(null)
 
-// 🔥 IMPORTANT : angle réel du pointeur (AJUSTE si ton aiguille est décalée)
-const POINTER_ANGLE = 0 // 0 = haut
+// 🎯 angle du pointeur (haut = 0)
+const POINTER_ANGLE = 0
 
 const formatBalance = (value: number | null): string => {
   if (!value) return "00,000,000"
@@ -100,30 +100,30 @@ const spinWheel = async () => {
   const sliceAngle = 360 / total
 
   const winningIndex = Math.floor(Math.random() * total)
-
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
 
-  // 🎯 cible exacte
-  const targetRotation = winningIndex * sliceAngle
-
-  currentRotation.value += extraTurns + targetRotation
+  currentRotation.value += extraTurns + winningIndex * sliceAngle
 
   setTimeout(async () => {
     isSpinning.value = false
 
+    // 🔥 NORMALISATION PROPRE
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // 🔥 CORRECTION PROPRE
-    const angleAtPointer = (normalized + POINTER_ANGLE) % 360
+    // 🔥 angle sous aiguille
+    const angle = (360 - normalized + POINTER_ANGLE) % 360
 
-    const indexUnderPointer =
-      Math.floor(((360 - angleAtPointer) % 360) / sliceAngle)
+    const indexUnderPointer = Math.floor(angle / sliceAngle) % total
 
     debugIndex.value = indexUnderPointer
 
     const item = slices[indexUnderPointer]
 
-    if (!item) return
+    if (!item) {
+      msgText.value = "Erreur"
+      msgColor.value = "#ef4444"
+      return
+    }
 
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
@@ -142,12 +142,11 @@ const spinWheel = async () => {
     msgText.value = `🎉 ${item.label} → +${gains}`
     msgColor.value = "#22c55e"
 
-  }, 4300)
+  }, 4200)
 }
 
 onMounted(fetchBalance)
 </script>
-
 
 <template>
   
