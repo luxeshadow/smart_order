@@ -90,26 +90,30 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // Choisir le gagnant
   const winningIndex = Math.floor(Math.random() * total)
 
-  const extraTurns = (Math.floor(Math.random() * 5) + 5) * 360
+  const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   const targetRotation = winningIndex * sliceAngle
 
   currentRotation.value += extraTurns + targetRotation
 
-  // === RÉSULTAT APRÈS ANIMATION ===
+  // Résultat après animation
   setTimeout(async () => {
     isSpinning.value = false
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // 🔧 Calcul plus précis avec un petit offset pour mieux coller à l'aiguille
-    let indexUnderPointer = Math.floor((normalized + (sliceAngle / 2)) / sliceAngle) % total
+    // 🔧 Ajustement précis pour correspondre à l'aiguille + position des textes
+    const adjusted = (normalized + 15) % 360   // ← Ajustement important
+    let indexUnderPointer = Math.floor(adjusted / sliceAngle) % total
 
     const item = slices[indexUnderPointer]
 
-    if (!item) return
+    if (!item) {
+      msgText.value = "Erreur"
+      msgColor.value = "#ef4444"
+      return
+    }
 
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
@@ -126,14 +130,13 @@ const spinWheel = async () => {
 
     msgText.value = `🎉 ${item.label} → +${gains}`
     msgColor.value = "#22c55e"
-  }, 4200)
+  }, 4300)
 }
 
 onMounted(fetchBalance)
 </script>
 
 <template>
-  <!-- ... le template reste IDENTIQUE ... -->
   <div id="roulette-root">
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
@@ -190,6 +193,7 @@ onMounted(fetchBalance)
 </template>
 
 <style scoped>
+/* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
 #roulette-root {
@@ -248,9 +252,6 @@ onMounted(fetchBalance)
   --wheel-padding: 15%;
   --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
 
-  --marker-bg-color: #ef4444;
-  --button-text-color: white;
-
   position: relative;
   width: var(--wheel-size);
   aspect-ratio: 1;
@@ -276,37 +277,28 @@ onMounted(fetchBalance)
   border: none;
   width: 100%;
   height: 100%;
-  color: var(--button-text-color);
+  color: white;
   display: grid;
   place-items: center;
-  transition: transform 150ms ease-in-out;
 }
-.controls button:hover:not(:disabled) {
-  transform: scale(1.1);
-}
-.controls button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+.controls button:hover:not(:disabled) { transform: scale(1.1); }
+.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Flèche */
 .controls::before {
   content: '';
   position: absolute;
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 0;
-  height: 0;
+  width: 0; height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 18px solid var(--marker-bg-color);
+  border-bottom: 18px solid #ef4444;
   z-index: 11;
 }
 
-/* Animation de l'aiguille pendant le spin */
 .controls.ticking::before {
-  animation: marker-tick 300ms ease-in-out infinite alternate;
+  animation: marker-tick 400ms ease-in-out infinite alternate;
 }
 
 .wheel {
@@ -314,11 +306,11 @@ onMounted(fetchBalance)
   inset: 0;
   border-radius: 50%;
   border: 4px solid #fff;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
   background: repeating-conic-gradient(
     from var(--start-angle),
     #111827 0deg var(--slice-angle),
-    #1e293b var(--slice-angle) calc(var(--slice-angle) * 2)
+    #1e293b var(--slice-angle) calc(var(--slice-angle)*2)
   );
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
@@ -332,20 +324,18 @@ onMounted(fetchBalance)
   offset-distance: var(--offset-dist);
 }
 
-.slice-item.skull {
-  font-size: 1.3rem;
-}
+.slice-item.skull { font-size: 1.35rem; }
 
 .message {
   text-align: center;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   margin-top: 25px;
-  min-height: 30px;
+  min-height: 32px;
 }
 
 @keyframes marker-tick {
-  from { transform: translateX(-50%) rotate(-8deg); }
-  to   { transform: translateX(-50%) rotate(8deg); }
+  from { transform: translateX(-50%) rotate(-10deg); }
+  to   { transform: translateX(-50%) rotate(10deg); }
 }
 </style>
