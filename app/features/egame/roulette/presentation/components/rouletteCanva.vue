@@ -81,6 +81,7 @@ const spinWheel = async () => {
     return
   }
 
+  // Débiter la mise
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
@@ -95,46 +96,41 @@ const spinWheel = async () => {
   const extraTurns = (Math.floor(Math.random() * 4) + 5) * 360
   const targetRotation = winningIndex * sliceAngle
 
+  // Rotation de la roue
   currentRotation.value += extraTurns + targetRotation
+
+  // === Résultat après l'animation ===
+  setTimeout(async () => {
+    isSpinning.value = false
+
+    const normalized = ((currentRotation.value % 360) + 360) % 360
+    const indexUnderPointer = Math.floor(normalized / sliceAngle) % total
+
+    const item = slices[indexUnderPointer]
+
+    if (!item) {
+      msgText.value = "Erreur lors du tirage"
+      msgColor.value = "#ef4444"
+      return
+    }
+
+    if (item.type === 'skull') {
+      msgText.value = `💀 Perdu ${betInput.value} XOF`
+      msgColor.value = "#ef4444"
+      await fetchBalance()
+      return
+    }
+
+    const gains = Math.floor(betInput.value * item.mult)
+    transactionStore.mainBalance = (mainBalance.value || 0) + gains
+
+    triggerConfetti()
+    showToast(`+${gains}`, "fi-rr-check", "success")
+
+    msgText.value = `🎉 ${item.label} → +${gains}`
+    msgColor.value = "#22c55e"
+  }, 4200) // un peu plus que la durée de transition
 }
-
-setTimeout(async () => {
-  isSpinning.value = false
-
-  const total = slices.length
-  const sliceAngle = 360 / total
-
-  // Normalisation
-  let normalized = ((currentRotation.value % 360) + 360) % 360
-
-  // Index sous l'aiguille
-  const indexUnderPointer = Math.floor(normalized / sliceAngle) % total
-
-  const item = slices[indexUnderPointer]
-
-  // ✅ Fix TypeScript + sécurité
-  if (!item) {
-    msgText.value = "Erreur lors du tirage"
-    msgColor.value = "#ef4444"
-    return
-  }
-
-  if (item.type === 'skull') {
-    msgText.value = `💀 Perdu ${betInput.value} XOF`
-    msgColor.value = "#ef4444"
-    await fetchBalance()
-    return
-  }
-
-  const gains = Math.floor(betInput.value * item.mult)
-  transactionStore.mainBalance = (mainBalance.value || 0) + gains
-
-  triggerConfetti()
-  showToast(`+${gains}`, "fi-rr-check", "success")
-
-  msgText.value = `🎉 ${item.label} → +${gains}`
-  msgColor.value = "#22c55e"
-}, 4000)
 
 onMounted(fetchBalance)
 </script>
@@ -217,6 +213,7 @@ onMounted(fetchBalance)
   border-bottom: 1px solid rgba(255,255,255,0.06);
   padding-bottom: 10px;
 }
+
 .title-label { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
 .balance-badge { font-size: 13px; color: #64748b; }
 .balance-badge .amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
@@ -294,7 +291,7 @@ onMounted(fetchBalance)
   opacity: 0.6;
 }
 
-/* Flèche Repère du haut */
+/* Flèche */
 .controls::before {
   content: '';
   position: absolute;
@@ -309,8 +306,9 @@ onMounted(fetchBalance)
   z-index: 11;
 }
 
+/* Animation de l'aiguille pendant le spin */
 .controls.ticking::before {
-  animation: marker-tick 120ms ease-in-out infinite;
+  animation: marker-tick 300ms ease-in-out infinite alternate;
 }
 
 .wheel {
@@ -319,7 +317,6 @@ onMounted(fetchBalance)
   border-radius: 50%;
   border: 4px solid #fff;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-  user-select: none;
   background: repeating-conic-gradient(
     from var(--start-angle),
     #111827 0deg var(--slice-angle),
@@ -328,7 +325,6 @@ onMounted(fetchBalance)
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-/* Positionnement des éléments textuels sur la courbure */
 .slice-item {
   position: absolute;
   font-size: 1.1rem;
@@ -351,7 +347,7 @@ onMounted(fetchBalance)
 }
 
 @keyframes marker-tick {
-  0%, 100% { transform: translateX(-50%) rotate(0deg); }
-  50% { transform: translateX(-50%) rotate(-15deg); }
+  from { transform: translateX(-50%) rotate(-8deg); }
+  to   { transform: translateX(-50%) rotate(8deg); }
 }
 </style>
