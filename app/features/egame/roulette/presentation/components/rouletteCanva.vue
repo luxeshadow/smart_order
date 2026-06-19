@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
@@ -47,6 +47,15 @@ const isSpinning = ref(false)
 const msgText = ref('')
 const msgColor = ref('#94a3b8')
 const currentRotation = ref(0)
+
+// DEBUG
+const debugMode = ref(true)
+const debugIndex = ref<number | null>(null)
+
+const debugSlice = computed(() => {
+  if (debugIndex.value === null) return null
+  return slices[debugIndex.value] ?? null
+})
 
 const formatBalance = (value: number | null): string => {
   if (!value) return "00,000,000"
@@ -105,12 +114,15 @@ const spinWheel = async () => {
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // ✅ FIX PROPRE : alignement aiguille en haut + inversion roue
-    const pointerAngle = 0
+    // 🔥 IMPORTANT: correction aiguille réelle (-10deg dans ton CSS)
+    const pointerAngle = 10
+
     const angle = (normalized + pointerAngle) % 360
 
     const indexUnderPointer =
       (total - Math.floor(angle / sliceAngle)) % total
+
+    debugIndex.value = indexUnderPointer
 
     const item = slices[indexUnderPointer]
 
@@ -145,57 +157,63 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
+
+    <!-- DEBUG -->
+    <div v-if="debugMode" style="margin-bottom:10px; font-size:12px; opacity:0.7;">
+      DEBUG INDEX: {{ debugIndex }}
+      <br>
+      UNDER POINTER: {{ debugSlice?.label }}
+    </div>
+
+    <!-- HEADER -->
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
-        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
+        Solde Principal :
+        <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
       </span>
     </div>
 
+    <!-- BET -->
     <div class="bet-container">
-      <label for="bet-input">Mise (Min 500) :</label>
-      <input 
-        type="number" 
-        id="bet-input" 
-        v-model.number="betInput" 
-        min="500" 
+      <label>Mise (Min 500) :</label>
+      <input
+        type="number"
+        v-model.number="betInput"
+        min="500"
         :disabled="isSpinning"
       >
     </div>
 
+    <!-- WHEEL -->
     <section class="wrapper" data-items="12">
       <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning" aria-label="Tourner la roue">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
+        <button @click="spinWheel" :disabled="isSpinning">
+          🎯
         </button>
       </div>
-      
-      <div 
-        id="wheel" 
-        class="wheel" 
+
+      <div
+        class="wheel"
         :style="{ transform: `rotate(${currentRotation}deg)` }"
       >
-        <span 
-          v-for="(slice, index) in slices" 
+        <span
+          v-for="(slice, index) in slices"
           :key="index"
-          :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
+          class="slice-item"
+          :class="slice.type"
+          :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
         >
           {{ slice.label }}
         </span>
       </div>
     </section>
 
-    <div id="message" class="message" :style="{ color: msgColor }">
+    <!-- MESSAGE -->
+    <div class="message" :style="{ color: msgColor }">
       {{ msgText }}
     </div>
+
   </div>
 </template>
 
