@@ -18,8 +18,8 @@ const { mainBalance } = storeToRefs(transactionStore)
 const { showToast } = useToast()
 const { triggerConfetti } = useConfetti()
 
-const repo = new ShowMyPrincipalBalanceRepositoryImpl()
-const useCase = new ShowMyPrincipalBalanceUseCase(repo)
+const balanceRepo = new ShowMyPrincipalBalanceRepositoryImpl()
+const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
 interface Slice {
   type: 'skull' | 'win'
@@ -48,19 +48,23 @@ const msgText = ref('')
 const msgColor = ref('#94a3b8')
 const currentRotation = ref(0)
 
+// debug
+const debugIndex = ref<number | null>(null)
+
+// 🎯 angle du pointeur (haut = 0)
 const POINTER_ANGLE = 0
 
-const formatBalance = (v: number | null) => {
-  if (!v) return "00,000,000"
-  const p = Math.floor(v).toString().padStart(8, '0')
-  return p.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3")
+const formatBalance = (value: number | null): string => {
+  if (!value) return "00,000,000"
+  const padded = Math.floor(value).toString().padStart(8, '0')
+  return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3")
 }
 
 const fetchBalance = async () => {
   if (!user.value?.id) return
-  const res = await useCase.execute({ userId: user.value.id })
-  if (!(res instanceof Failure)) {
-    transactionStore.updateAllBalances(res)
+  const result = await getBalanceUseCase.execute({ userId: user.value.id })
+  if (!(result instanceof Failure)) {
+    transactionStore.updateAllBalances(result)
   }
 }
 
@@ -68,60 +72,76 @@ const spinWheel = async () => {
   if (isSpinning.value) return
 
   const bet = Number(betInput.value)
-  if (isNaN(bet) || bet < 500) return
+
+  if (isNaN(bet) || bet < 500) {
+    msgText.value = "❌ Mise minimale 500 XOF"
+    msgColor.value = "#ef4444"
+    return
+  }
 
   await fetchBalance()
 
   const balance = mainBalance.value || 0
-  if (bet > balance) return
+
+  if (bet > balance) {
+    msgText.value = "❌ Solde insuffisant"
+    msgColor.value = "#ef4444"
+    showToast("Solde insuffisant", "fi-rr-info", "error")
+    return
+  }
 
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
-  msgText.value = "..."
+  msgText.value = "La roue tourne..."
+  msgColor.value = "#fbbf24"
 
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 🎯 résultat décidé
   const winningIndex = Math.floor(Math.random() * total)
+  const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
 
-  // 🎯 centre du segment
-  const target = winningIndex * sliceAngle + sliceAngle / 2
-
-  // 🎯 rotations
-  const spins = (5 + Math.floor(Math.random() * 3)) * 360
-
-  currentRotation.value += spins + (360 - target)
+  currentRotation.value += extraTurns + winningIndex * sliceAngle
 
   setTimeout(async () => {
     isSpinning.value = false
 
+    // 🔥 NORMALISATION PROPRE
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // lecture EXACTE sous aiguille fixe
-    const angle = (normalized + POINTER_ANGLE) % 360
+    // 🔥 angle sous aiguille
+    const angle = (360 - normalized + POINTER_ANGLE) % 360
 
-    const index = Math.floor(angle / sliceAngle) % total
+    const indexUnderPointer = Math.floor(angle / sliceAngle) % total
 
-    const item = slices[index]
+    debugIndex.value = indexUnderPointer
 
-    if (!item) return
+    const item = slices[indexUnderPointer]
+
+    if (!item) {
+      msgText.value = "Erreur"
+      msgColor.value = "#ef4444"
+      return
+    }
 
     if (item.type === 'skull') {
-      msgText.value = "💀 Perdu"
+      msgText.value = `💀 Perdu ${betInput.value} XOF`
+      msgColor.value = "#ef4444"
       await fetchBalance()
       return
     }
 
-    const gain = Math.floor(bet * item.mult)
+    const gains = Math.floor(betInput.value * item.mult)
 
-    transactionStore.mainBalance = (mainBalance.value || 0) + gain
+    transactionStore.mainBalance = (mainBalance.value || 0) + gains
 
     triggerConfetti()
-    showToast(`+${gain}`, "fi-rr-check", "success")
+    showToast(`+${gains}`, "fi-rr-check", "success")
 
-    msgText.value = `${item.label} → +${gain}`
+    msgText.value = `🎉 ${item.label} → +${gains}`
+    msgColor.value = "#22c55e"
+
   }, 4200)
 }
 
@@ -129,110 +149,206 @@ onMounted(fetchBalance)
 </script>
 
 <template>
+  
   <div id="roulette-root">
-
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
-        Solde : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
+        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
       </span>
     </div>
 
     <div class="bet-container">
-      <label>Mise :</label>
-      <input type="number" v-model.number="betInput" min="500" :disabled="isSpinning">
+      <label for="bet-input">Mise (Min 500) :</label>
+      <input 
+        type="number" 
+        id="bet-input" 
+        v-model.number="betInput" 
+        min="500" 
+        :disabled="isSpinning"
+      >
     </div>
 
-    <section class="wrapper">
-
-      <div class="controls">
-        <button @click="spinWheel" :disabled="isSpinning">SPIN</button>
+    <section class="wrapper" data-items="12">
+      <div class="controls" :class="{ ticking: isSpinning }">
+        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning" aria-label="Tourner la roue">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
+            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
+            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
+            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
+          </svg>
+        </button>
       </div>
-
-      <div class="wheel" :style="{ transform: `rotate(${currentRotation}deg)` }">
-        <span v-for="(s, i) in slices" :key="i" class="slice-item">
-          {{ s.label }}
+      
+      <div 
+        id="wheel" 
+        class="wheel" 
+        :style="{ transform: `rotate(${currentRotation}deg)` }"
+      >
+        <span 
+          v-for="(slice, index) in slices" 
+          :key="index"
+          :class="['slice-item', slice.type]"
+          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
+        >
+          {{ slice.label }}
         </span>
       </div>
-
     </section>
 
-    <div class="message" :style="{ color: msgColor }">
+    <div id="message" class="message" :style="{ color: msgColor }">
       {{ msgText }}
     </div>
-
   </div>
 </template>
 
 <style scoped>
+/* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
 #roulette-root {
-  font-family: Jura;
-  background: #080c18;
-  color: white;
-  padding: 20px;
+  font-family: "Jura", sans-serif;
+  background-color: #080c18;
+  color: #f5f5f5;
   border-radius: 16px;
+  padding: 24px;
   max-width: 500px;
   margin: auto;
+  user-select: none;
 }
 
 .top-bar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 10px;
 }
+
+.title-label { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
+.balance-badge { font-size: 13px; color: #64748b; }
+.balance-badge .amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
 
 .bet-container {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+}
+
+.bet-container input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  width: 130px;
+  font-size: 1.1rem;
+  text-align: center;
+  font-weight: bold;
+  margin-left: 10px;
+  outline: none;
+}
+.bet-container input:focus {
+  border-color: #ff5e00;
 }
 
 .wrapper {
+  --items: 12;
+  --slice-angle: calc(360deg / var(--items));
+  --start-angle: calc(var(--slice-angle) / 2);
+  --wheel-radius: min(38vw, 180px);
+  --wheel-size: calc(var(--wheel-radius) * 2);
+  --wheel-padding: 15%;
+  --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
+
   position: relative;
-  width: 260px;
-  height: 260px;
+  width: var(--wheel-size);
+  aspect-ratio: 1;
   margin: auto;
 }
 
 .controls {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
   z-index: 10;
+  inset: 0;
+  margin: auto;
+  width: 50px;
+  height: 50px;
+  background: #04070f;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
 }
 
 .controls button {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: none;
-  background: white;
-  font-weight: bold;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  height: 100%;
+  color: white;
+  display: grid;
+  place-items: center;
+}
+.controls button:hover:not(:disabled) { transform: scale(1.1); }
+.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.controls::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid #ef4444;
+  z-index: 11;
+}
+
+.controls.ticking::before {
+  animation: marker-tick 400ms ease-in-out infinite alternate;
 }
 
 .wheel {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  border: 4px solid white;
-  transition: transform 4s cubic-bezier(.2,.8,.2,1);
+  border: 4px solid #fff;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
   background: repeating-conic-gradient(
-    #1e293b 0deg 30deg,
-    #111827 30deg 60deg
+    from var(--start-angle),
+    #111827 0deg var(--slice-angle),
+    #1e293b var(--slice-angle) calc(var(--slice-angle)*2)
   );
+  transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .slice-item {
   position: absolute;
-  font-size: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  offset-path: circle(var(--item-radius) at 50% 50%);
+  offset-rotate: auto;
+  offset-distance: var(--offset-dist);
 }
+
+.slice-item.skull { font-size: 1.35rem; }
 
 .message {
   text-align: center;
-  margin-top: 20px;
   font-weight: bold;
+  font-size: 1.15rem;
+  margin-top: 25px;
+  min-height: 32px;
+}
+
+@keyframes marker-tick {
+  from { transform: translateX(-50%) rotate(-10deg); }
+  to   { transform: translateX(-50%) rotate(10deg); }
 }
 </style>
