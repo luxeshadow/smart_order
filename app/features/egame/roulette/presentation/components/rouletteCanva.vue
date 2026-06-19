@@ -66,6 +66,7 @@ const spinWheel = async () => {
   if (isSpinning.value) return
 
   const bet = Number(betInput.value)
+
   if (isNaN(bet) || bet < 500) {
     msgText.value = "❌ Mise minimale 500 XOF"
     msgColor.value = "#ef4444"
@@ -73,7 +74,9 @@ const spinWheel = async () => {
   }
 
   await fetchBalance()
+
   const balance = mainBalance.value || 0
+
   if (bet > balance) {
     msgText.value = "❌ Solde insuffisant"
     msgColor.value = "#ef4444"
@@ -97,15 +100,17 @@ const spinWheel = async () => {
 
   currentRotation.value += extraTurns + targetRotation
 
-  // Résultat après animation
   setTimeout(async () => {
     isSpinning.value = false
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // 🔧 Ajustement précis pour correspondre à l'aiguille + position des textes
-    const adjusted = (normalized + 15) % 360   // ← Ajustement important
-    let indexUnderPointer = Math.floor(adjusted / sliceAngle) % total
+    // ✅ FIX PROPRE : alignement aiguille en haut + inversion roue
+    const pointerAngle = 0
+    const angle = (normalized + pointerAngle) % 360
+
+    const indexUnderPointer =
+      (total - Math.floor(angle / sliceAngle)) % total
 
     const item = slices[indexUnderPointer]
 
@@ -123,6 +128,7 @@ const spinWheel = async () => {
     }
 
     const gains = Math.floor(betInput.value * item.mult)
+
     transactionStore.mainBalance = (mainBalance.value || 0) + gains
 
     triggerConfetti()
@@ -130,6 +136,7 @@ const spinWheel = async () => {
 
     msgText.value = `🎉 ${item.label} → +${gains}`
     msgColor.value = "#22c55e"
+
   }, 4300)
 }
 
