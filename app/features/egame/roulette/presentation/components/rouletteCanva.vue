@@ -107,7 +107,7 @@ const spinWheel = async () => {
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
     // ====================== AJUSTEMENT CLÉ ======================
-    const visualOffset = 25   // ← Modifie cette valeur (20 / 25 / 30 / 35) jusqu'à ce que ça corresponde
+    const visualOffset = 145   // Valeur corrigée selon ton test   // ← Modifie cette valeur (20 / 25 / 30 / 35) jusqu'à ce que ça corresponde
 
     const angleUnderPointer = (360 - normalized + visualOffset) % 360
     const detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
