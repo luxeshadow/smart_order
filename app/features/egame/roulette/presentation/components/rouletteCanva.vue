@@ -48,11 +48,7 @@ const msgText = ref('')
 const msgColor = ref('#94a3b8')
 const currentRotation = ref(0)
 
-// debug
 const debugIndex = ref<number | null>(null)
-
-// 🎯 angle du pointeur (haut = 0)
-const POINTER_ANGLE = 0
 
 const formatBalance = (value: number | null): string => {
   if (!value) return "00,000,000"
@@ -72,7 +68,6 @@ const spinWheel = async () => {
   if (isSpinning.value) return
 
   const bet = Number(betInput.value)
-
   if (isNaN(bet) || bet < 500) {
     msgText.value = "❌ Mise minimale 500 XOF"
     msgColor.value = "#ef4444"
@@ -80,9 +75,7 @@ const spinWheel = async () => {
   }
 
   await fetchBalance()
-
   const balance = mainBalance.value || 0
-
   if (bet > balance) {
     msgText.value = "❌ Solde insuffisant"
     msgColor.value = "#ef4444"
@@ -99,25 +92,31 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
+  // On choisit d'abord le résultat
   const winningIndex = Math.floor(Math.random() * total)
+  const winningItem = slices[winningIndex]
+
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
+  const targetRotation = winningIndex * sliceAngle
 
-  currentRotation.value += extraTurns + winningIndex * sliceAngle
+  currentRotation.value += extraTurns + targetRotation
 
-  setTimeout(async () => {
+  // Attendre la fin de l'animation
+  setTimeout(() => {
     isSpinning.value = false
 
-    // 🔥 NORMALISATION PROPRE
+    // === Détection basée sur la position réelle de la roue ===
     const normalized = ((currentRotation.value % 360) + 360) % 360
 
-    // 🔥 angle sous aiguille
-    const angle = (360 - normalized + POINTER_ANGLE) % 360
+    // Ajustement visuel (à modifier si besoin : 0, 5, 10, 15...)
+    const visualOffset = 15
 
-    const indexUnderPointer = Math.floor(angle / sliceAngle) % total
+    const angleUnderPointer = (360 - normalized + visualOffset) % 360
+    let detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
 
-    debugIndex.value = indexUnderPointer
+    debugIndex.value = detectedIndex
 
-    const item = slices[indexUnderPointer]
+    const item = slices[detectedIndex]
 
     if (!item) {
       msgText.value = "Erreur"
@@ -125,15 +124,15 @@ const spinWheel = async () => {
       return
     }
 
+    // On utilise le vrai item détecté (pas forcément le winningItem)
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
       msgColor.value = "#ef4444"
-      await fetchBalance()
+      fetchBalance()
       return
     }
 
     const gains = Math.floor(betInput.value * item.mult)
-
     transactionStore.mainBalance = (mainBalance.value || 0) + gains
 
     triggerConfetti()
@@ -141,15 +140,13 @@ const spinWheel = async () => {
 
     msgText.value = `🎉 ${item.label} → +${gains}`
     msgColor.value = "#22c55e"
-
-  }, 4200)
+  }, 4300)
 }
 
 onMounted(fetchBalance)
 </script>
 
 <template>
-  
   <div id="roulette-root">
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
@@ -201,6 +198,11 @@ onMounted(fetchBalance)
 
     <div id="message" class="message" :style="{ color: msgColor }">
       {{ msgText }}
+    </div>
+
+    <!-- Debug -->
+    <div style="text-align:center; margin-top:10px; color:#64748b; font-size:0.9rem;">
+      Debug Index: {{ debugIndex }}
     </div>
   </div>
 </template>
