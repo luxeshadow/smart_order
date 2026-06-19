@@ -81,7 +81,6 @@ const spinWheel = async () => {
     return
   }
 
-  // Débiter la mise
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
@@ -91,28 +90,26 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
+  // Choisir le gagnant
   const winningIndex = Math.floor(Math.random() * total)
 
-  const extraTurns = (Math.floor(Math.random() * 4) + 5) * 360
+  const extraTurns = (Math.floor(Math.random() * 5) + 5) * 360
   const targetRotation = winningIndex * sliceAngle
 
-  // Rotation de la roue
   currentRotation.value += extraTurns + targetRotation
 
-  // === Résultat après l'animation ===
+  // === RÉSULTAT APRÈS ANIMATION ===
   setTimeout(async () => {
     isSpinning.value = false
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
-    const indexUnderPointer = Math.floor(normalized / sliceAngle) % total
+
+    // 🔧 Calcul plus précis avec un petit offset pour mieux coller à l'aiguille
+    let indexUnderPointer = Math.floor((normalized + (sliceAngle / 2)) / sliceAngle) % total
 
     const item = slices[indexUnderPointer]
 
-    if (!item) {
-      msgText.value = "Erreur lors du tirage"
-      msgColor.value = "#ef4444"
-      return
-    }
+    if (!item) return
 
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
@@ -129,13 +126,14 @@ const spinWheel = async () => {
 
     msgText.value = `🎉 ${item.label} → +${gains}`
     msgColor.value = "#22c55e"
-  }, 4200) // un peu plus que la durée de transition
+  }, 4200)
 }
 
 onMounted(fetchBalance)
 </script>
 
 <template>
+  <!-- ... le template reste IDENTIQUE ... -->
   <div id="roulette-root">
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
