@@ -2,7 +2,7 @@ export class AppColor {
 
   static readonly primary = {
     light: '#fff3e0',
-    base: '#000000',
+    base: '#ff5e00',
     base_1: '#ff5e00',
     dark: '#e65100',
     accent: '#ffb74d',

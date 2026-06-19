@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 import { useToast } from '@/core/utils/useToast'
@@ -46,7 +47,7 @@ const slices: Slice[] = [
 const betInput = ref(500)
 const isSpinning = ref(false)
 const msgText = ref('')
-const msgColor = ref('#94a3b8')
+const msgColor = ref('#64748b')
 const currentRotation = ref(0)
 
 const debugInfo = ref({ winning: null as number | null, detected: null as number | null })
@@ -88,15 +89,12 @@ const spinWheel = async () => {
 
   isSpinning.value = true
   msgText.value = "La roue tourne..."
-  msgColor.value = "#fbbf24"
+  msgColor.value = "#ff5e00" // base
 
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 🎯 CHOIX DU GAGNANT EN PREMIER
   const winningIndex = Math.floor(Math.random() * total)
-  const winningItem = slices[winningIndex]
-
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   const targetRotation = winningIndex * sliceAngle
 
@@ -106,9 +104,7 @@ const spinWheel = async () => {
     isSpinning.value = false
 
     const normalized = ((currentRotation.value % 360) + 360) % 360
-
-    // ====================== AJUSTEMENT CLÉ ======================
-    const visualOffset = 265   // Valeur corrigée selon ton test   // ← Modifie cette valeur (20 / 25 / 30 / 35) jusqu'à ce que ça corresponde
+    const visualOffset = 265 
 
     const angleUnderPointer = (360 - normalized + visualOffset) % 360
     const detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
@@ -116,10 +112,8 @@ const spinWheel = async () => {
     debugInfo.value = { winning: winningIndex, detected: detectedIndex }
 
     const item = slices[detectedIndex]
-
     if (!item) return
 
-    // On utilise le résultat détecté (plus fidèle à ce que voit le joueur)
     if (item.type === 'skull') {
       msgText.value = `💀 Perdu ${betInput.value} XOF`
       msgColor.value = "#ef4444"
@@ -133,7 +127,7 @@ const spinWheel = async () => {
     triggerConfetti()
     showToast(`+${gains}`, "fi-rr-check", "success")
 
-    msgText.value = `🎉 ${item.label} → +${gains}`
+    msgText.value = `🎉 ${item.label} → +${gains} XOF`
     msgColor.value = "#22c55e"
   }, 4300)
 }
@@ -143,13 +137,14 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
-   <nav class="app-bar">
+    <nav class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
       <span class="app-bar-title">E-games</span>
       <div class="spacer"></div>
     </nav>
+
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
@@ -202,20 +197,15 @@ onMounted(fetchBalance)
       {{ msgText }}
     </div>
 
-    <!-- Debug -->
-    <div style="text-align:center; margin-top:15px; color:#94a3b8; font-size:0.95rem;">
-      Winning Index: {{ debugInfo.winning }} | 
-      Detected: {{ debugInfo.detected }}
+    <div class="debug-info">
+      Winning Index: {{ debugInfo.winning }} | Detected: {{ debugInfo.detected }}
     </div>
   </div>
 </template>
 
-
 <style scoped>
-/* === STYLE (inchangé sauf petite amélioration) === */
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
-/* AppBar */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -229,7 +219,6 @@ onMounted(fetchBalance)
 }
 
 .back-btn {
-
   width: 45px;
   height: 45px;
   background-color: #f8f9fa;
@@ -249,14 +238,17 @@ onMounted(fetchBalance)
 
 .spacer { width: 40px; }
 
+/* Nouveau fond clair & lumineux */
 #roulette-root {
   font-family: "Jura", sans-serif;
-  background-color: #080c18;
-  color: #f5f5f5;
+  background-color: #ffffff;
+  color: #334155;
   border-radius: 16px;
   padding: 24px;
+  margin-top: 65px; /* Évite la superposition avec l'app-bar */
   max-width: 500px;
-  margin: auto;
+  margin-left: auto;
+  margin-right: auto;
   user-select: none;
 }
 
@@ -265,26 +257,27 @@ onMounted(fetchBalance)
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 10px;
 }
 
-.title-label { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
+.title-label { font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
 .balance-badge { font-size: 13px; color: #64748b; }
-.balance-badge .amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
+.balance-badge .amount { color: #ff5e00; font-weight: 700; font-size: 15px; } /* base */
 
 .bet-container {
   text-align: center;
   margin-bottom: 25px;
   font-size: 1.1rem;
+  color: #1e293b;
 }
 
 .bet-container input {
   padding: 8px 12px;
   border-radius: 8px;
-  border: 2px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.03);
-  color: #fff;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
   width: 130px;
   font-size: 1.1rem;
   text-align: center;
@@ -293,7 +286,7 @@ onMounted(fetchBalance)
   outline: none;
 }
 .bet-container input:focus {
-  border-color: #ff5e00;
+  border-color: #ff5e00; /* base */
 }
 
 .wrapper {
@@ -318,10 +311,10 @@ onMounted(fetchBalance)
   margin: auto;
   width: 50px;
   height: 50px;
-  background: #04070f;
-  border: 3px solid #fff;
+  background: #ffffff;
+  border: 3px solid #ff5e00; /* base */
   border-radius: 50%;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .controls button {
@@ -330,7 +323,7 @@ onMounted(fetchBalance)
   border: none;
   width: 100%;
   height: 100%;
-  color: white;
+  color: #ff5e00; /* base */
   display: grid;
   place-items: center;
 }
@@ -346,7 +339,7 @@ onMounted(fetchBalance)
   width: 0; height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 18px solid #ef4444;
+  border-bottom: 18px solid #ff5e00; /* base */
   z-index: 11;
 }
 
@@ -354,16 +347,17 @@ onMounted(fetchBalance)
   animation: marker-tick 400ms ease-in-out infinite alternate;
 }
 
+/* Changement de look de la roue vers le orange/crème */
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #fff;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  border: 4px solid #ff5e00; /* base */
+  box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
   background: repeating-conic-gradient(
     from var(--start-angle),
-    #111827 0deg var(--slice-angle),
-    #1e293b var(--slice-angle) calc(var(--slice-angle)*2)
+    #fff3e0 0deg var(--slice-angle),       /* light */
+    #ffb74d var(--slice-angle) calc(var(--slice-angle)*2) /* accent */
   );
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
@@ -372,6 +366,7 @@ onMounted(fetchBalance)
   position: absolute;
   font-size: 1.1rem;
   font-weight: 700;
+  color: #e65100; /* dark pour maximiser le contraste sur fond clair */
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
@@ -385,6 +380,13 @@ onMounted(fetchBalance)
   font-size: 1.15rem;
   margin-top: 25px;
   min-height: 32px;
+}
+
+.debug-info {
+  text-align: center; 
+  margin-top: 15px; 
+  color: #94a3b8; 
+  font-size: 0.95rem;
 }
 
 @keyframes marker-tick {
