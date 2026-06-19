@@ -229,9 +229,24 @@ onMounted(fetchBalance)
   padding-bottom: 10px;
 }
 
-.title-label { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
-.balance-badge { font-size: 13px; color: #64748b; }
-.balance-badge .amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
+.title-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.balance-badge {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.balance-badge .amount {
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 15px;
+}
 
 .bet-container {
   text-align: center;
@@ -252,6 +267,7 @@ onMounted(fetchBalance)
   margin-left: 10px;
   outline: none;
 }
+
 .bet-container input:focus {
   border-color: #ff5e00;
 }
@@ -259,11 +275,9 @@ onMounted(fetchBalance)
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  --start-angle: calc(var(--slice-angle) / 2);
   --wheel-radius: min(38vw, 180px);
   --wheel-size: calc(var(--wheel-radius) * 2);
-  --wheel-padding: 15%;
-  --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
+  --item-radius: calc(var(--wheel-radius) - 18%);
 
   position: relative;
   width: var(--wheel-size);
@@ -273,7 +287,6 @@ onMounted(fetchBalance)
 
 .controls {
   position: absolute;
-  z-index: 10;
   inset: 0;
   margin: auto;
   width: 50px;
@@ -281,7 +294,7 @@ onMounted(fetchBalance)
   background: #04070f;
   border: 3px solid #fff;
   border-radius: 50%;
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  z-index: 10;
 }
 
 .controls button {
@@ -294,8 +307,6 @@ onMounted(fetchBalance)
   display: grid;
   place-items: center;
 }
-.controls button:hover:not(:disabled) { transform: scale(1.1); }
-.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .controls::before {
   content: '';
@@ -303,28 +314,29 @@ onMounted(fetchBalance)
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 0; height: 0;
+  width: 0;
+  height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-bottom: 18px solid #ef4444;
   z-index: 11;
-}
-
-.controls.ticking::before {
   animation: marker-tick 400ms ease-in-out infinite alternate;
 }
 
+/* 🔥 FIX IMPORTANT : on SUPPRIME start-angle */
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   border: 4px solid #fff;
   box-shadow: 0 0 20px rgba(0,0,0,0.6);
+
+  /* ❌ SUPPRIMÉ : from var(--start-angle) */
   background: repeating-conic-gradient(
-    from var(--start-angle),
-    #111827 0deg var(--slice-angle),
-    #1e293b var(--slice-angle) calc(var(--slice-angle)*2)
+    #111827 0deg calc(var(--slice-angle)),
+    #1e293b calc(var(--slice-angle)) calc(var(--slice-angle) * 2)
   );
+
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -332,12 +344,17 @@ onMounted(fetchBalance)
   position: absolute;
   font-size: 1.1rem;
   font-weight: 700;
+
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
-  offset-distance: var(--offset-dist);
+
+  /* 🔥 CENTRAGE FIXE (important) */
+  offset-distance: calc(var(--offset-dist) - 4%);
 }
 
-.slice-item.skull { font-size: 1.35rem; }
+.slice-item.skull {
+  font-size: 1.35rem;
+}
 
 .message {
   text-align: center;
