@@ -104,23 +104,22 @@ const spinWheel = async () => {
   const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   
-  // Correction de la cible : alignement au centre absolu du segment gagnant au sommet (0°)
+  // Angle requis pour amener la case correspondante sous le pointeur
   const targetRotation = (total - serverWinningIndex) * sliceAngle
 
-  // Reset de la base de rotation pour préserver l'élan fluide vers l'avant sans accumuler d'erreurs
+  // On arrondit par rapport à l'angle accumulé précédent
   const currentBaseRotation = Math.ceil(currentRotation.value / 360) * 360
   currentRotation.value = currentBaseRotation + extraTurns + targetRotation
 
   setTimeout(async () => {
     isSpinning.value = false
 
-    // Calcul inverse rigoureux de la position arrêtée
     const normalizedAngle = currentRotation.value % 360
     const detectedIndex = Math.round((360 - normalizedAngle) / sliceAngle) % total
 
     debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
-    // 3. Traitement des résultats renvoyés par le serveur
+    // 3. Traitement des résultats
     if (!result.isWin) {
       msgText.value = `💀 Perdu ${bet} XOF`
       msgColor.value = "#ef4444"
@@ -187,16 +186,16 @@ onMounted(fetchBalance)
       <div 
         id="wheel" 
         class="wheel" 
-        :style="{ transform: `rotate(${currentRotation}deg)` }"
+        :style="{ transform: `rotate(calc(-90deg + ${currentRotation}deg))` }"
       >
-        <span 
+        <div 
           v-for="(slice, index) in slices" 
           :key="index"
           :class="['slice-item', slice.type]"
           :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
         >
           <span class="slice-text">{{ slice.label }}</span>
-        </span>
+        </div>
       </div>
     </section>
 
@@ -221,7 +220,7 @@ onMounted(fetchBalance)
   display: flex;
   align-items: center;
   padding: 0 15px;
-  z-index: 2000; /* Rehaussé pour éviter tout chevauchement ou tremblement */
+  z-index: 2000;
   border-bottom: 1px solid #f1f1f1;
 }
 
@@ -298,12 +297,9 @@ onMounted(fetchBalance)
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  /* Décentrage initial supprimé pour aligner l'index 0 au sommet exact (0deg) */
-  --start-angle: 0deg; 
-  
   --wheel-radius: min(38vw, 180px);
   --wheel-size: calc(var(--wheel-radius) * 2);
-  --wheel-padding: 15%;
+  --wheel-padding: 18%;
   --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
 
   position: relative;
@@ -338,7 +334,6 @@ onMounted(fetchBalance)
 .controls button:hover:not(:disabled) { transform: scale(1.1); }
 .controls button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Flèche du haut alignée rigoureusement à 0° */
 .controls::before {
   content: '';
   position: absolute;
@@ -363,7 +358,7 @@ onMounted(fetchBalance)
   border: 4px solid #ff5e00;
   box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
   
-  /* Ajustement du fond conique pour démarrer exactement au milieu du premier segment */
+  /* Conic-gradient synchronisé avec le décalage de -90° (début parfait centré) */
   background: repeating-conic-gradient(
     from calc(0deg - (var(--slice-angle) / 2)),
     #fff3e0 0deg var(--slice-angle),
@@ -376,21 +371,27 @@ onMounted(fetchBalance)
 
 .slice-item {
   position: absolute;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #e65100;
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Redressement du texte pour qu'il pointe vers le centre proprement */
+/* Redressement propre pour que les textes pointent tous verticalement vers le haut de la case */
 .slice-text {
   display: inline-block;
   transform: rotate(90deg); 
+  white-space: nowrap;
 }
 
-.slice-item.skull { font-size: 1.35rem; }
+.slice-item.skull { font-size: 1.2rem; }
 
 .message {
   text-align: center;
