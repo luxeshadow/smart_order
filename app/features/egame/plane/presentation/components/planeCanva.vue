@@ -1,3 +1,91 @@
+<template>
+  <nav class="app-bar">
+    <button class="back-btn" @click="router.back()">
+      <i class="fi fi-rr-arrow-small-left"></i>
+    </button>
+    <span class="app-bar-title">E-games</span>
+    <div class="spacer"></div>
+  </nav>
+
+  <div id="crash-root">
+    <div class="top-bar">
+      <span class="title-label">Crash Arena</span>
+      <span class="balance-badge">
+        Solde : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
+      </span>
+    </div>
+
+    <div class="arena-container">
+      <div class="canvas-wrap">
+        <canvas ref="canvasRef"></canvas>
+        
+        <div class="mult-overlay">
+          <div class="mult-val" :style="{ color: multColor }">{{ multValText }}</div>
+          <div class="mult-sub">{{ multSubText }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-section">
+      <div class="ctrl-box">
+        <div class="ctrl-label">Montant à miser (XOF)</div>
+        <div class="input-wrapper">
+          <input 
+            type="number" 
+            v-model.number="betInput" 
+            class="ctrl-input" 
+            :disabled="phase !== 'idle'"
+            min="500" 
+            step="100"
+          >
+        </div>
+        <div class="chip-row">
+          <button class="chip" :disabled="phase !== 'idle'" @click="addBet(500)">+500</button>
+          <button class="chip" :disabled="phase !== 'idle'" @click="addBet(1000)">+1K</button>
+          <button class="chip" :disabled="phase !== 'idle'" @click="setBet(Math.floor((mainBalance || 0) / 2 / 100) * 100)">½</button>
+          <button class="chip" :disabled="phase !== 'idle'" @click="setBet(mainBalance || 0)">Max</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button 
+        v-if="phase !== 'running'" 
+        id="btn-start" 
+        class="btn-main btn-start-safe" 
+        :disabled="phase !== 'idle'" 
+        @click="startGame"
+      >
+        Placer le pari
+      </button>
+      <button 
+        v-else 
+        id="btn-cashout" 
+        class="btn-main btn-cashout-safe" 
+        @click="cashOut"
+      >
+        Sécuriser les gains
+      </button>
+    </div>
+
+    <div class="msg" :style="{ color: msgColor }">{{ msgText }}</div>
+
+    <div class="history-row">
+      <span 
+        v-for="(h, idx) in history" 
+        :key="idx" 
+        class="hist-chip"
+        :style="{
+          backgroundColor: h.m < 1.5 ? AppColor.status.error + '10' : h.m < 3 ? AppColor.status.warning + '10' : AppColor.status.success + '10',
+          color: h.m < 1.5 ? AppColor.status.error : h.m < 3 ? AppColor.status.warning : AppColor.status.success,
+          borderColor: h.m < 1.5 ? AppColor.status.error + '20' : h.m < 3 ? AppColor.status.warning + '20' : AppColor.status.success + '20'
+        }"
+      >
+        {{ h.m.toFixed(2) }}x
+      </span>
+    </div>
+  </div>
+</template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
@@ -13,6 +101,10 @@ import { useConfetti } from '@/core/utils/useConfetti'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { Failure } from '@/core/errors/failure'
+
+// --- Mapping local des couleurs pour le v-bind CSS ---
+const cssTertiaryBase = AppColor.tertiary.base
+const cssPrimaryBase = AppColor.primary.base
 
 // --- Accès aux Stores & Utilitaires ---
 const router = useRouter()
@@ -57,7 +149,6 @@ let explodeStart = 0
 const EXPLODE_DUR = 900
 let debris: any[] = []
 
-// Ajustement des marges intérieures du graphique pour laisser de la place au texte en haut à gauche
 const PAD = { l: 54, b: 32, r: 24, t: 45 }
 
 // --- Calculs Dynamiques Textes & Couleurs ---
@@ -104,54 +195,26 @@ const addBet = (n: number) => {
   betInput.value = Math.min((Number(betInput.value) || 0) + n, currentSolde)
 }
 const setBet = (n: number) => { betInput.value = n }
-const setAuto = (v: number) => { autoInput.value = v > 0 ? v : '' }
 
 // --- Moteur Graphique Mathématiques ---
 const W = () => (canvasRef.value ? canvasRef.value.width / window.devicePixelRatio : 0)
 const H = () => (canvasRef.value ? canvasRef.value.height / window.devicePixelRatio : 0)
 
 const genCrash = (): number => {
-  const r = Math.random() // Génère un nombre entre 0 et 1
-
-  // 1. Cote >= 10 (5% de chances -> de 0.00 à 0.05)
-  if (r < 0.05) {
-    return parseFloat((10 + Math.random() * 15).toFixed(2)) // Entre 10.00 et 25.00
-  }
-  
-  // 2. Cote >= 5 (10% de chances au total -> +5% de 0.05 à 0.10)
-  if (r < 0.10) {
-    return parseFloat((5 + Math.random() * 5).toFixed(2)) // Entre 5.00 et 9.99
-  }
-  
-  // 3. Cote >= 4 (20% de chances au total -> +10% de 0.10 à 0.20)
-  if (r < 0.20) {
-    return parseFloat((4 + Math.random() * 1).toFixed(2)) // Entre 4.00 et 4.99
-  }
-  
-  // 4. Cote >= 3 (30% de chances au total -> +10% de 0.20 à 0.30)
-  if (r < 0.30) {
-    return parseFloat((3 + Math.random() * 1).toFixed(2)) // Entre 3.00 et 3.99
-  }
-  
-  // 5. Cote >= 2 (40% de chances au total -> +10% de 0.30 à 0.40)
-  if (r < 0.40) {
-    return parseFloat((2 + Math.random() * 1).toFixed(2)) // Entre 2.00 et 2.99
-  }
-  
-  // 6. Cote >= 1.5 (50% de chances au total -> +10% de 0.40 à 0.50)
-  if (r < 0.50) {
-    return parseFloat((1.5 + Math.random() * 0.5).toFixed(2)) // Entre 1.50 et 1.99
-  }
-  
-  // 7. Crash rapide ou instantané (50% de chances restants -> de 0.50 à 1.00)
-  // Permet d'avoir des crashs réalistes dès le départ entre 1.00x et 1.49x
-  if (Math.random() < 0.15) return 1.00 // 15% de chance de crash instantané à 1.00x
-  return parseFloat((1.01 + Math.random() * 0.48).toFixed(2)) // Entre 1.01x et 1.49x
+  const r = Math.random()
+  if (r < 0.05) return parseFloat((10 + Math.random() * 15).toFixed(2))
+  if (r < 0.10) return parseFloat((5 + Math.random() * 5).toFixed(2))
+  if (r < 0.20) return parseFloat((4 + Math.random() * 1).toFixed(2))
+  if (r < 0.30) return parseFloat((3 + Math.random() * 1).toFixed(2))
+  if (r < 0.40) return parseFloat((2 + Math.random() * 1).toFixed(2))
+  if (r < 0.50) return parseFloat((1.5 + Math.random() * 0.5).toFixed(2))
+  if (Math.random() < 0.15) return 1.00
+  return parseFloat((1.01 + Math.random() * 0.48).toFixed(2))
 }
 
 const multToY = (m: number, maxM: number) => {
   const gH = H() - PAD.b - PAD.t
-  const norm = Math.pow((m - 1) / Math.max(maxM - 1, 0.001), 0.6)
+  const norm = Math.log(m) / Math.log(Math.max(maxM, 1.5))
   return PAD.t + gH - norm * gH
 }
 
@@ -354,7 +417,6 @@ const launch = () => {
   const tick = (now: number) => {
     const elapsed = (now - startTime) / 1000
     
-    // MODIFICATION ICI : Courbe beaucoup plus lente et douce (0.05 et 0.015 au lieu de 0.08 et 0.04)
     mult.value = parseFloat((1 + elapsed * 0.05 + elapsed * elapsed * 0.015).toFixed(3))
     path.push({ t: elapsed, m: mult.value })
 
@@ -453,105 +515,6 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<template>
-  <nav class="app-bar">
-    <button class="back-btn" @click="router.back()">
-      <i class="fi fi-rr-arrow-small-left"></i>
-    </button>
-    <span class="app-bar-title">E-games</span>
-    <div class="spacer"></div>
-  </nav>
-
-  <div id="crash-root">
-    <div class="top-bar">
-      <span class="title-label">Crash Arena</span>
-      <span class="balance-badge">
-        Solde : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
-      </span>
-    </div>
-
-    <div class="arena-container">
-      <div class="canvas-wrap">
-        <canvas ref="canvasRef"></canvas>
-        
-        <div class="mult-overlay">
-          <div class="mult-val" :style="{ color: multColor }">{{ multValText }}</div>
-          <div class="mult-sub">{{ multSubText }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="controls-section">
-      <div class="ctrl-box">
-        <div class="ctrl-label">Montant à miser (XOF)</div>
-        <div class="input-wrapper">
-          <input 
-            type="number" 
-            v-model.number="betInput" 
-            class="ctrl-input" 
-            :disabled="phase !== 'idle'"
-            min="500" 
-            step="100"
-          >
-        </div>
-        <div class="chip-row">
-          <button class="chip" :disabled="phase !== 'idle'" @click="addBet(500)">+500</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="addBet(1000)">+1K</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="setBet(Math.floor((mainBalance || 0) / 2 / 100) * 100)">½</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="setBet(mainBalance || 0)">Max</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button 
-        v-if="phase !== 'running'" 
-        id="btn-start" 
-        class="btn-main btn-start-safe" 
-        :disabled="phase !== 'idle'" 
-        @click="startGame"
-      >
-        Placer le pari
-      </button>
-      <button 
-        v-else 
-        id="btn-cashout" 
-        class="btn-main btn-cashout-safe" 
-        @click="cashOut"
-      >
-        Sécuriser les gains
-      </button>
-    </div>
-
-    <div class="msg" :style="{ color: msgColor }">{{ msgText }}</div>
-
-    <div class="history-row">
-      <span 
-        v-for="(h, idx) in history" 
-        :key="idx" 
-        class="hist-chip"
-        :style="{
-          backgroundColor: h.m < 1.5 ? AppColor.status.error + '10' : h.m < 3 ? AppColor.status.warning + '10' : AppColor.status.success + '10',
-          color: h.m < 1.5 ? AppColor.status.error : h.m < 3 ? AppColor.status.warning : AppColor.status.success,
-          borderColor: h.m < 1.5 ? AppColor.status.error + '20' : h.m < 3 ? AppColor.status.warning + '20' : AppColor.status.success + '20'
-        }"
-      >
-        {{ h.m.toFixed(2) }}x
-      </span>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-// Modifie ta fonction multToY dans le script pour écraser la distorsion entre 1 et 1.5 :
-const multToY = (m: number, maxM: number) => {
-  const gH = H() - PAD.b - PAD.t
-  // Utilisation d'un calcul logarithmique pour lisser et harmoniser la hauteur des paliers de cotes
-  const norm = Math.log(m) / Math.log(Math.max(maxM, 1.5))
-  return PAD.t + gH - norm * gH
-}
-</script>
-
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -592,7 +555,7 @@ const multToY = (m: number, maxM: number) => {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #ffffff;
   padding: 85px 16px 20px 16px;
-  color: v-bind('AppColor.tertiary.base');
+  color: v-bind('cssTertiaryBase');
   user-select: none;
 }
 
@@ -601,7 +564,7 @@ const multToY = (m: number, maxM: number) => {
 .balance-badge { font-size: 13px; color: #64748b; }
 .balance-badge .amount { color: #0f172a; font-weight: 700; }
 
-/* Box de l'arène nettoyé des lignes CSS doublons */
+/* Box de l'arène */
 .arena-container {
   background: #f8fafc;
   border-left: 2px solid #cbd5e1; 
@@ -622,7 +585,7 @@ const multToY = (m: number, maxM: number) => {
 }
 canvas { display: block; width: 100%; height: 100%; }
 
-/* Indicateurs de cotes rétrécis pour ne pas agresser le design */
+/* Indicateurs de cotes */
 .mult-overlay { 
   position: absolute; 
   top: 10px; 
@@ -657,7 +620,7 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 .ctrl-input:focus { 
   background: #ffffff;
-  border-color: v-bind('AppColor.primary.base');
+  border-color: v-bind('cssPrimaryBase');
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
 }
 
