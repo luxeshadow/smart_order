@@ -421,11 +421,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <nav class="app-bar">
+    <button class="back-btn" @click="router.back()">
+      <i class="fi fi-rr-arrow-small-left"></i>
+    </button>
+    <span class="app-bar-title">E-games</span>
+    <div class="spacer"></div>
+  </nav>
+
   <div id="crash-root">
     <div class="top-bar">
       <span class="title-label">Crash Arena</span>
       <span class="balance-badge">
-        Solde Principal : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
+        Solde : <span class="amount">{{ formatBalance(mainBalance) }}</span> XOF
       </span>
     </div>
 
@@ -464,7 +472,7 @@ onBeforeUnmount(() => {
           v-model="autoInput" 
           class="ctrl-input" 
           :disabled="phase !== 'idle'"
-          placeholder="Ex: 2.00"
+          placeholder="Libre"
         >
         <div class="chip-row">
           <button class="chip" :disabled="phase !== 'idle'" @click="setAuto(1.5)">1.5x</button>
@@ -505,7 +513,7 @@ onBeforeUnmount(() => {
         :style="{
           backgroundColor: h.m < 1.5 ? AppColor.status.error + '12' : h.m < 3 ? AppColor.status.warning + '12' : AppColor.status.success + '12',
           color: h.m < 1.5 ? AppColor.status.error : h.m < 3 ? AppColor.status.warning : AppColor.status.success,
-          borderColor: h.m < 1.5 ? AppColor.status.error + '25' : h.m < 3 ? AppColor.status.warning + '25' : AppColor.status.success + '25'
+          borderColor: h.m < 1.5 ? AppColor.status.error + '18' : h.m < 3 ? AppColor.status.warning + '18' : AppColor.status.success + '18'
         }"
       >
         {{ h.m.toFixed(2) }}x
@@ -517,101 +525,135 @@ onBeforeUnmount(() => {
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Styles requis pour la barre d'application transmise */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  z-index: 2000;
+  border-bottom: 1px solid #f1f1f1;
+}
+.back-btn {
+  width: 45px;
+  height: 45px;
+  background-color: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #2d3436;
+}
+.spacer { width: 45px; }
+
+/* Conteneur principal - Épuré et décalé vers le bas pour laisser la place au Header */
 #crash-root {
   font-family: sans-serif;
   background: transparent;
-  border-radius: 16px;
-  padding: 10px 0;
+  padding: 80px 16px 20px 16px;
   color: v-bind('AppColor.tertiary.base');
   user-select: none;
 }
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.title-label { font-size: 13px; font-weight: 700; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
-.balance-badge { font-size: 13px; color: #666; }
-.balance-badge .amount { color: v-bind('AppColor.primary.base'); font-weight: 800; font-size: 15px; }
 
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.title-label { font-size: 12px; font-weight: 700; color: #a0aec0; letter-spacing: 0.8px; text-transform: uppercase; }
+.balance-badge { font-size: 13px; color: #718096; font-weight: 500; }
+.balance-badge .amount { color: v-bind('AppColor.tertiary.base'); font-weight: 800; }
+
+/* Zone Canvas minimaliste en apesanteur (plus de cadre lourd de casino) */
 .canvas-wrap { 
   position: relative; 
   width: 100%; 
-  height: 260px; 
-  background: v-bind('AppColor.surface.smoke'); 
-  border-radius: 20px; 
+  height: 240px; 
+  background: transparent; 
+  border-radius: 0; 
   overflow: hidden; 
-  border: 1px solid v-bind('AppColor.surface.bone'); 
-  margin-bottom: 14px; 
+  margin-bottom: 20px; 
 }
 canvas { display: block; width: 100%; height: 100%; }
 
-/* CHANGEMENT ICI : Ancrage absolu en haut à gauche */
+/* Alignement discret de l'état en haut à gauche */
 .mult-overlay { 
   position: absolute; 
-  top: 15px; 
-  left: 15px; 
+  top: 10px; 
+  left: 4px; 
   text-align: left; 
   pointer-events: none; 
   z-index: 4; 
 }
-.mult-val { font-size: 2.2rem; font-weight: 900; line-height: 1; transition: color 0.3s; }
-.mult-sub { font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: #888; font-weight: 700; margin-top: 2px; }
+.mult-val { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+.mult-sub { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-top: 1px; }
 
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+/* Structure des blocs de contrôles lissés */
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.ctrl-box { background: transparent; display: flex; flex-direction: column; }
+.ctrl-label { font-size: 10px; color: #a0aec0; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
 
-.ctrl-box { 
-  background: v-bind('AppColor.surface.off'); 
-  border: 1px solid v-bind('AppColor.surface.smoke'); 
-  border-radius: 16px; 
-  padding: 12px; 
-}
-.ctrl-label { font-size: 10px; color: #888; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-
+/* Inputs soulignés comme des composants financiers épurés */
 .ctrl-input { 
   width: 100%; 
-  background: v-bind('AppColor.surface.pure'); 
-  border: 1px solid v-bind('AppColor.surface.bone'); 
-  border-radius: 10px; 
-  padding: 8px 12px; 
+  background: v-bind('AppColor.surface.smoke'); 
+  border: none;
+  border-radius: 12px; 
+  padding: 10px 14px; 
   color: v-bind('AppColor.tertiary.base'); 
-  font-size: 15px; 
+  font-size: 16px; 
   font-weight: 700; 
   outline: none; 
+  transition: background 0.2s;
 }
-.ctrl-input:focus { border-color: v-bind('AppColor.primary.base'); }
+.ctrl-input:focus { background: v-bind('AppColor.surface.bone'); }
 
-.chip-row { display: flex; gap: 5px; margin-top: 7px; }
+.chip-row { display: flex; gap: 4px; margin-top: 8px; }
 .chip { 
   flex: 1; 
   padding: 6px 0; 
   border-radius: 8px; 
-  border: 1px solid v-bind('AppColor.surface.bone'); 
-  background: v-bind('AppColor.surface.pure'); 
-  color: #666; 
+  border: 1px solid transparent;
+  background: v-bind('AppColor.surface.smoke'); 
+  color: #718096; 
   font-size: 11px; 
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer; 
   transition: all 0.15s; 
 }
-.chip:hover:not(:disabled) { border-color: v-bind('AppColor.primary.base'); color: v-bind('AppColor.primary.base'); }
-.chip:disabled { opacity: 0.3; cursor: not-allowed; }
+.chip:hover:not(:disabled) { background: v-bind('AppColor.surface.bone'); color: v-bind('AppColor.tertiary.base'); }
+.chip:disabled { opacity: 0.25; cursor: not-allowed; }
 
-.btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+/* Boutons d'actions principaux spacieux */
+.btn-row { display: flex; gap: 10px; margin-bottom: 14px; }
 .btn-main { 
   flex: 1; 
-  padding: 15px; 
+  padding: 16px; 
   border: none; 
-  border-radius: 16px; 
-  font-size: 15px; 
-  font-weight: 800; 
+  border-radius: 14px; 
+  font-size: 16px; 
+  font-weight: 700; 
   cursor: pointer; 
-  transition: transform 0.1s; 
+  transition: transform 0.1s, opacity 0.2s; 
 }
-.btn-main:active { transform: scale(0.97); }
-.btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-main:active { transform: scale(0.98); }
+.btn-main:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 #btn-start { background: v-bind('AppColor.primary.base'); color: #fff; }
 #btn-cashout { background: v-bind('AppColor.status.success'); color: #fff; }
 
-.msg { text-align: center; font-size: 13px; min-height: 18px; margin-bottom: 10px; font-weight: 700; }
-.history-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; min-height: 24px; }
-.hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 8px; font-weight: 700; border: 1px solid; }
-</style>
+.msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 14px; font-weight: 600; color: #718096; }
 
+/* Badges d'historique ronds et discrets */
+.history-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid; }
+</style>
