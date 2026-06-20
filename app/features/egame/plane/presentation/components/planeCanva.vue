@@ -1,8 +1,9 @@
+
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
-import { AppImage } from "@/core/constants/app_images"
+import { AppColor } from "@/core/constants/app_colors"
 import { useAuthStore } from "@/features/auth/presentation/stores/auth_store"
 import { useTransactionStore } from "@/features/transaction/presentation/stores/transaction_store"
 
@@ -56,7 +57,8 @@ let explodeStart = 0
 const EXPLODE_DUR = 900
 let debris: any[] = []
 
-const PAD = { l: 48, b: 32, r: 16, t: 16 }
+// Ajustement des marges intérieures du graphique pour laisser de la place au texte en haut à gauche
+const PAD = { l: 54, b: 32, r: 24, t: 45 }
 
 // --- Calculs Dynamiques Textes & Couleurs ---
 const multValText = computed(() => {
@@ -73,17 +75,17 @@ const multSubText = computed(() => {
 })
 
 const multColor = computed(() => {
-  if (phase.value === 'countdown') return '#fbbf24'
-  if (phase.value === 'running') return '#f97316'
-  if (phase.value === 'crashed') return '#ef4444'
-  if (phase.value === 'cashedout') return '#22c55e'
-  return '#22c55e'
+  if (phase.value === 'countdown') return AppColor.status.warning
+  if (phase.value === 'running') return AppColor.primary.base
+  if (phase.value === 'crashed') return AppColor.status.error
+  if (phase.value === 'cashedout') return AppColor.status.success
+  return AppColor.status.success
 })
 
-// --- Formatage de Solde Réutilisé ---
+// --- Formatage de Solde ---
 const formatBalance = (value: number | null): string => {
   if (value === null || value === undefined) return "00,000,000"
-  const padded = Math.floor(value).toString().padStart(8, '0')
+  const padded = Math.floor(value).toString().padStart(8, '0');
   return padded.replace(/(\d{2})(\d{3})(\d{3})/, "$1,$2,$3")
 }
 
@@ -137,7 +139,7 @@ const drawPlane = (canvasCtx: CanvasRenderingContext2D, x: number, y: number, an
   canvasCtx.beginPath()
   canvasCtx.moveTo(-13, 0)
   canvasCtx.bezierCurveTo(-13 - fl * 0.6, -4, -13 - fl, 0, -13 - fl * 0.6, 4)
-  canvasCtx.fillStyle = 'rgba(251,191,36,0.9)'
+  canvasCtx.fillStyle = AppColor.status.warning
   canvasCtx.fill()
 
   // Fuselage
@@ -146,7 +148,7 @@ const drawPlane = (canvasCtx: CanvasRenderingContext2D, x: number, y: number, an
   canvasCtx.bezierCurveTo(14, -4, -4, -5, -13, -3)
   canvasCtx.lineTo(-13, 3)
   canvasCtx.bezierCurveTo(-4, 5, 14, 4, 18, 0)
-  canvasCtx.fillStyle = '#f97316'
+  canvasCtx.fillStyle = AppColor.primary.base
   canvasCtx.fill()
 
   // Ailes
@@ -156,7 +158,7 @@ const drawPlane = (canvasCtx: CanvasRenderingContext2D, x: number, y: number, an
   canvasCtx.lineTo(-9, -13)
   canvasCtx.lineTo(-7, -2)
   canvasCtx.closePath()
-  canvasCtx.fillStyle = '#ea6c0a'
+  canvasCtx.fillStyle = AppColor.primary.dark
   canvasCtx.fill()
 
   canvasCtx.restore()
@@ -165,7 +167,7 @@ const drawPlane = (canvasCtx: CanvasRenderingContext2D, x: number, y: number, an
 // --- Particules & Explosion Vectorielle ---
 const initExplosion = (x: number, y: number) => {
   debris = []
-  const COLORS = ['#f97316', '#fbbf24', '#ef4444', '#fb923c', '#fff']
+  const COLORS = [AppColor.primary.base, AppColor.status.warning, AppColor.status.error, AppColor.primary.accent, '#888']
 
   for (let i = 0; i < 12; i++) {
     const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.3
@@ -186,7 +188,7 @@ const drawExplosion = (canvasCtx: CanvasRenderingContext2D, progress: number) =>
   
   canvasCtx.beginPath()
   canvasCtx.arc(planeX, planeY, r, 0, Math.PI * 2)
-  canvasCtx.strokeStyle = `rgba(239,68,68,${a})`
+  canvasCtx.strokeStyle = `rgba(244,67,54,${a})`
   canvasCtx.lineWidth = 2
   canvasCtx.stroke()
 
@@ -219,13 +221,13 @@ const drawScene = () => {
   const maxM = Math.max(mult.value * 1.4, 2.5)
 
   // Grille Horizontale Multiplicateurs
-  c.strokeStyle = 'rgba(255,255,255,0.04)'
+  c.strokeStyle = 'rgba(0,0,0,0.06)'
   c.lineWidth = 1;
   [1.5, 2, 3, 5, 10, 20].forEach(m => {
     if (m > maxM) return
     const y = multToY(m, maxM)
     c.beginPath(); c.moveTo(PAD.l, y); c.lineTo(w - PAD.r, y); c.stroke()
-    c.fillStyle = 'rgba(255,255,255,0.22)'
+    c.fillStyle = '#888888'
     c.font = '10px sans-serif'
     c.textAlign = 'right'
     c.fillText(m + 'x', PAD.l - 5, y + 3)
@@ -240,8 +242,8 @@ const drawScene = () => {
     c.beginPath()
     c.moveTo(timeToX(firstPoint.t, maxT), multToY(firstPoint.m, maxM))
     for (const p of path) c.lineTo(timeToX(p.t, maxT), multToY(p.m, maxM))
-    c.strokeStyle = crashed ? '#ef4444' : '#f97316'
-    c.lineWidth = 2.5
+    c.strokeStyle = crashed ? AppColor.status.error : AppColor.primary.base
+    c.lineWidth = 3
     c.stroke()
 
     const last = path[path.length - 1]
@@ -274,21 +276,19 @@ const startGame = async () => {
   triggerVibration()
   const bet = Number(betInput.value)
   if (isNaN(bet) || bet < 500) { 
-    msgText.value = 'Mise minimale de 500 requise.'; msgColor.value = '#ef4444'; return 
+    msgText.value = 'Mise minimale de 500 requise.'; msgColor.value = AppColor.status.error; return 
   }
 
-  // TCHEK SOLDE AVANT CHAQUE LANCER
-  msgText.value = 'Vérification du solde en cours...'; msgColor.value = '#94a3b8'
+  msgText.value = 'Vérification du solde...'; msgColor.value = '#64748b'
   await fetchBalance()
 
   const soldeActuel = mainBalance.value || 0
   if (bet > soldeActuel) { 
-    msgText.value = 'Solde insuffisant !'; msgColor.value = '#ef4444'
+    msgText.value = 'Solde insuffisant !'; msgColor.value = AppColor.status.error
     showToast("Votre solde principal est insuffisant.", "fi-rr-info", "error")
     return 
   }
 
-  // Déduction directe de la mise dans le store Pinia
   transactionStore.mainBalance = soldeActuel - bet
   
   currentBet = bet
@@ -300,7 +300,7 @@ const startGame = async () => {
   smoothAngle = 0
 
   let cd = 3
-  msgText.value = `Décollage dans ${cd}s`; msgColor.value = '#fbbf24'
+  msgText.value = `Décollage dans ${cd}s`; msgColor.value = AppColor.status.warning
   
   countdownInterval = setInterval(() => {
     cd--
@@ -320,7 +320,9 @@ const launch = () => {
 
   const tick = (now: number) => {
     const elapsed = (now - startTime) / 1000
-    mult.value = parseFloat((1 + elapsed * 0.08 + elapsed * elapsed * 0.04).toFixed(3))
+    
+    // MODIFICATION ICI : Courbe beaucoup plus lente et douce (0.05 et 0.015 au lieu de 0.08 et 0.04)
+    mult.value = parseFloat((1 + elapsed * 0.05 + elapsed * elapsed * 0.015).toFixed(3))
     path.push({ t: elapsed, m: mult.value })
 
     const auto = parseFloat(String(autoInput.value))
@@ -340,11 +342,11 @@ const doCrash = async (elapsed: number) => {
   explodeStart = performance.now()
   initExplosion(planeX, planeY)
 
-  msgText.value = `Crash à ${crashAt.toFixed(2)}x — En attente du prochain tour.`
-  msgColor.value = '#ef4444'
+  msgText.value = `Crash à ${crashAt.toFixed(2)}x`
+  msgColor.value = AppColor.status.error
   addHistory(crashAt, false)
 
-  await fetchBalance() // Synchronisation sécurisée post-perte
+  await fetchBalance()
 
   const explodeTick = (now: number) => {
     drawScene()
@@ -368,14 +370,13 @@ const cashOut = async () => {
   const gains = Math.floor(currentBet * mult.value)
   const nouveauSolde = (mainBalance.value || 0) + gains
   
-  // Modification directe et réactive de la balance Pinia
   transactionStore.mainBalance = nouveauSolde
 
   triggerConfetti()
   showToast(`Succès ! +${gains.toLocaleString('fr-FR')} XOF`, "fi-rr-check", "success")
   
   msgText.value = `Encaissé à ${mult.value.toFixed(2)}x → +${gains.toLocaleString('fr-FR')} XOF`
-  msgColor.value = '#22c55e'
+  msgColor.value = AppColor.status.success
   
   addHistory(mult.value, true)
   drawScene()
@@ -430,6 +431,7 @@ onBeforeUnmount(() => {
 
     <div class="canvas-wrap">
       <canvas ref="canvasRef"></canvas>
+      
       <div class="mult-overlay">
         <div class="mult-val" :style="{ color: multColor }">{{ multValText }}</div>
         <div class="mult-sub">{{ multSubText }}</div>
@@ -501,9 +503,9 @@ onBeforeUnmount(() => {
         :key="idx" 
         class="hist-chip"
         :style="{
-          backgroundColor: h.m < 1.5 ? '#ef444418' : h.m < 3 ? '#fbbf2418' : '#22c55e18',
-          color: h.m < 1.5 ? '#ef4444' : h.m < 3 ? '#fbbf24' : '#22c55e',
-          borderColor: h.m < 1.5 ? '#ef444433' : h.m < 3 ? '#fbbf2433' : '#22c55e33'
+          backgroundColor: h.m < 1.5 ? AppColor.status.error + '12' : h.m < 3 ? AppColor.status.warning + '12' : AppColor.status.success + '12',
+          color: h.m < 1.5 ? AppColor.status.error : h.m < 3 ? AppColor.status.warning : AppColor.status.success,
+          borderColor: h.m < 1.5 ? AppColor.status.error + '25' : h.m < 3 ? AppColor.status.warning + '25' : AppColor.status.success + '25'
         }"
       >
         {{ h.m.toFixed(2) }}x
@@ -517,37 +519,99 @@ onBeforeUnmount(() => {
 
 #crash-root {
   font-family: sans-serif;
-  background: #080c18;
+  background: transparent;
   border-radius: 16px;
-  padding: 18px;
-  color: #fff;
+  padding: 10px 0;
+  color: v-bind('AppColor.tertiary.base');
   user-select: none;
 }
 .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.title-label { font-size: 13px; font-weight: 600; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
-.balance-badge { font-size: 13px; color: #64748b; }
-.balance-badge .amount { color: #fbbf24; font-weight: 700; font-size: 15px; }
-.canvas-wrap { position: relative; width: 100%; height: 280px; background: #04070f; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px; }
+.title-label { font-size: 13px; font-weight: 700; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+.balance-badge { font-size: 13px; color: #666; }
+.balance-badge .amount { color: v-bind('AppColor.primary.base'); font-weight: 800; font-size: 15px; }
+
+.canvas-wrap { 
+  position: relative; 
+  width: 100%; 
+  height: 260px; 
+  background: v-bind('AppColor.surface.smoke'); 
+  border-radius: 20px; 
+  overflow: hidden; 
+  border: 1px solid v-bind('AppColor.surface.bone'); 
+  margin-bottom: 14px; 
+}
 canvas { display: block; width: 100%; height: 100%; }
-.mult-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; z-index: 4; }
-.mult-val { font-size: 3.4rem; font-weight: 800; letter-spacing: -2px; line-height: 1; transition: color 0.3s; }
-.mult-sub { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.6; margin-top: 4px; }
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.ctrl-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 12px; }
-.ctrl-label { font-size: 10px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-.ctrl-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 7px 10px; color: #fff; font-size: 15px; font-weight: 600; outline: none; }
-.ctrl-input:focus { border-color: rgba(255,255,255,0.25); }
+
+/* CHANGEMENT ICI : Ancrage absolu en haut à gauche */
+.mult-overlay { 
+  position: absolute; 
+  top: 15px; 
+  left: 15px; 
+  text-align: left; 
+  pointer-events: none; 
+  z-index: 4; 
+}
+.mult-val { font-size: 2.2rem; font-weight: 900; line-height: 1; transition: color 0.3s; }
+.mult-sub { font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: #888; font-weight: 700; margin-top: 2px; }
+
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+
+.ctrl-box { 
+  background: v-bind('AppColor.surface.off'); 
+  border: 1px solid v-bind('AppColor.surface.smoke'); 
+  border-radius: 16px; 
+  padding: 12px; 
+}
+.ctrl-label { font-size: 10px; color: #888; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+
+.ctrl-input { 
+  width: 100%; 
+  background: v-bind('AppColor.surface.pure'); 
+  border: 1px solid v-bind('AppColor.surface.bone'); 
+  border-radius: 10px; 
+  padding: 8px 12px; 
+  color: v-bind('AppColor.tertiary.base'); 
+  font-size: 15px; 
+  font-weight: 700; 
+  outline: none; 
+}
+.ctrl-input:focus { border-color: v-bind('AppColor.primary.base'); }
+
 .chip-row { display: flex; gap: 5px; margin-top: 7px; }
-.chip { flex: 1; padding: 5px 0; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #94a3b8; font-size: 11px; cursor: pointer; transition: all 0.15s; }
-.chip:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; }
-.chip:disabled { opacity: 0.2; cursor: not-allowed; }
-.btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.btn-main { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
-.btn-main:active { transform: scale(0.98); }
-.btn-main:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-#btn-start { background: #ff5e00; color: #fff; }
-#btn-cashout { background: #22c55e; color: #052e16; }
-.msg { text-align: center; font-size: 13px; min-height: 18px; margin-bottom: 8px; font-weight: 500; }
-.history-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; min-height: 24px; }
-.hist-chip { font-size: 11px; padding: 3px 8px; border-radius: 5px; font-weight: 600; border: 1px solid transparent; }
+.chip { 
+  flex: 1; 
+  padding: 6px 0; 
+  border-radius: 8px; 
+  border: 1px solid v-bind('AppColor.surface.bone'); 
+  background: v-bind('AppColor.surface.pure'); 
+  color: #666; 
+  font-size: 11px; 
+  font-weight: 600;
+  cursor: pointer; 
+  transition: all 0.15s; 
+}
+.chip:hover:not(:disabled) { border-color: v-bind('AppColor.primary.base'); color: v-bind('AppColor.primary.base'); }
+.chip:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.btn-main { 
+  flex: 1; 
+  padding: 15px; 
+  border: none; 
+  border-radius: 16px; 
+  font-size: 15px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  transition: transform 0.1s; 
+}
+.btn-main:active { transform: scale(0.97); }
+.btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+#btn-start { background: v-bind('AppColor.primary.base'); color: #fff; }
+#btn-cashout { background: v-bind('AppColor.status.success'); color: #fff; }
+
+.msg { text-align: center; font-size: 13px; min-height: 18px; margin-bottom: 10px; font-weight: 700; }
+.history-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; min-height: 24px; }
+.hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 8px; font-weight: 700; border: 1px solid; }
 </style>
+
