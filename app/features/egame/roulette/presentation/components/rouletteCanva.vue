@@ -146,7 +146,7 @@ onMounted(fetchBalance)
     <button class="back-btn" @click="router.back()">
       <i class="fi fi-rr-arrow-small-left"></i>
     </button>
-    <span class="app-bar-title">E-games</span>
+    
     <div class="spacer"></div>
   </nav>
 
