@@ -209,6 +209,12 @@ const vibrate = () => {
         <span>Historique des flux</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
+      
+      <div class="menu-item" @click="router.push('/game/roulette-game')">
+        <div class="menu-icon"><i class="fi fi-rr-time-past"></i></div>
+        <span>E-games</span>
+        <i class="fi fi-rr-gamepad"></i>
+      </div>
       <div class="menu-item" @click="handleShareReferral">
         <div class="menu-icon">
           <i class="fi fi-rr-share"></i>
