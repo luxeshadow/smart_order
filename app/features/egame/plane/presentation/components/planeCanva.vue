@@ -542,6 +542,16 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<script setup lang="ts">
+// Modifie ta fonction multToY dans le script pour écraser la distorsion entre 1 et 1.5 :
+const multToY = (m: number, maxM: number) => {
+  const gH = H() - PAD.b - PAD.t
+  // Utilisation d'un calcul logarithmique pour lisser et harmoniser la hauteur des paliers de cotes
+  const norm = Math.log(m) / Math.log(Math.max(maxM, 1.5))
+  return PAD.t + gH - norm * gH
+}
+</script>
+
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -591,39 +601,41 @@ onBeforeUnmount(() => {
 .balance-badge { font-size: 13px; color: #64748b; }
 .balance-badge .amount { color: #0f172a; font-weight: 700; }
 
-/* Box Container avec Grille et mise en valeur des Axes */
+/* Box de l'arène nettoyé des lignes CSS doublons */
 .arena-container {
-  background-image: 
-    linear-gradient(to right, #f1f5f9 1px, transparent 1px),
-    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
-  background-size: 40px 40px;
-  border-left: 2px solid #cbd5e1; /* Axe des ordonnées mis en évidence */
-  border-bottom: 2px solid #cbd5e1; /* Axe de base mis en évidence */
+  background: #f8fafc;
+  border-left: 2px solid #cbd5e1; 
+  border-bottom: 2px solid #cbd5e1;
   border-top: 1px solid #f1f5f9;
   border-right: 1px solid #f1f5f9;
-  border-radius: 4px;
-  margin-bottom: 24px;
-  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 0;
 }
 
 .canvas-wrap { 
   position: relative; 
   width: 100%; 
-  height: 220px; 
+  height: 200px; 
   background: transparent;
   overflow: hidden; 
 }
 canvas { display: block; width: 100%; height: 100%; }
 
+/* Indicateurs de cotes rétrécis pour ne pas agresser le design */
 .mult-overlay { 
   position: absolute; 
-  top: 12px; 
-  left: 12px; 
+  top: 10px; 
+  left: 14px; 
   pointer-events: none; 
   z-index: 4; 
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
-.mult-val { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
-.mult-sub { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-top: 2px; }
+.mult-val { font-size: 1.4rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.3px; }
+.mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-top: 1px; }
 
 /* Zone de Saisie Épurée */
 .controls-section { margin-bottom: 20px; }
@@ -634,7 +646,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .ctrl-input { 
   width: 100%; 
   background: #f8fafc;
-  border: 1px solid #e2e8f0; /* Bordure douce ajoutée */
+  border: 1px solid #e2e8f0; 
   border-radius: 12px; 
   padding: 12px 16px; 
   color: #0f172a; 
@@ -665,7 +677,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .chip:hover:not(:disabled) { border-color: #cbd5e1; background: #f8fafc; color: #0f172a; }
 .chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* Boutons d'actions adoucis (Safe Design) */
+/* Actionneurs */
 .btn-row { display: flex; gap: 12px; margin-bottom: 16px; }
 .btn-main { 
   flex: 1; 
@@ -680,15 +692,13 @@ canvas { display: block; width: 100%; height: 100%; }
 .btn-main:active { transform: scale(0.99); }
 .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-/* Style épuré non-agressif pour le bouton de lancement */
 .btn-start-safe {
-  background: #0f172a; /* Teinte sombre type fintech plutôt que flash casino */
+  background: #0f172a; 
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 .btn-start-safe:hover:not(:disabled) { background: #1e293b; }
 
-/* Style rassurant pour l'encaissement */
 .btn-cashout-safe {
   background: #10b981;
   color: #ffffff;
@@ -697,7 +707,6 @@ canvas { display: block; width: 100%; height: 100%; }
 
 .msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 16px; font-weight: 600; color: #64748b; }
 
-/* Jetons Historiques Neutres */
 .history-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 8px; font-weight: 700; border: 1px solid; }
 </style>

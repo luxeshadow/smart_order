@@ -142,15 +142,15 @@ onMounted(fetchBalance)
 </script>
 
 <template>
-  <div id="roulette-root">
-    <nav class="app-bar">
-      <button class="back-btn" @click="router.back()">
-        <i class="fi fi-rr-arrow-small-left"></i>
-      </button>
-      <span class="app-bar-title">E-games</span>
-      <div class="spacer"></div>
-    </nav>
+  <nav class="app-bar">
+    <button class="back-btn" @click="router.back()">
+      <i class="fi fi-rr-arrow-small-left"></i>
+    </button>
+    <span class="app-bar-title">E-games</span>
+    <div class="spacer"></div>
+  </nav>
 
+  <div id="roulette-root">
     <div class="top-bar">
       <span class="title-label">Lucky Wheel</span>
       <span class="balance-badge">
@@ -222,6 +222,7 @@ onMounted(fetchBalance)
   padding: 0 15px;
   z-index: 2000;
   border-bottom: 1px solid #f1f1f1;
+  box-sizing: border-box;
 }
 
 .back-btn {
@@ -232,6 +233,11 @@ onMounted(fetchBalance)
   border-radius: 14px;
   padding: 4px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .app-bar-title {
@@ -242,7 +248,11 @@ onMounted(fetchBalance)
   color: #2d3436;
 }
 
-.spacer { width: 40px; }
+/* Aligné sur la largeur exacte du bouton de retour pour un centrage parfait */
+.spacer { 
+  width: 45px; 
+  flex-shrink: 0;
+}
 
 #roulette-root {
   font-family: "Jura", sans-serif;
@@ -358,7 +368,6 @@ onMounted(fetchBalance)
   border: 4px solid #ff5e00;
   box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
   
-  /* Conic-gradient synchronisé avec le décalage de -90° (début parfait centré) */
   background: repeating-conic-gradient(
     from calc(0deg - (var(--slice-angle) / 2)),
     #fff3e0 0deg var(--slice-angle),
@@ -384,7 +393,6 @@ onMounted(fetchBalance)
   justify-content: center;
 }
 
-/* Redressement propre pour que les textes pointent tous verticalement vers le haut de la case */
 .slice-text {
   display: inline-block;
   transform: rotate(90deg); 
