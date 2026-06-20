@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
 import { useRouter } from 'vue-router'
 import { storeToRefs } from "pinia"
 import { AppImage } from "@/core/constants/app_images"
@@ -36,7 +35,6 @@ const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 
 const refundRepo = new RefundToMainBalanceRepositoryImpl()
 const refundUseCase = new RefundToMainBalanceUseCase(refundRepo)
-
 
 const formatBalance = (value: number | null): string => {
   if (value === null || value === undefined) return "00,000,000";
@@ -84,13 +82,6 @@ const handleTransferRefund = async () => {
   }
 
   isTransferring.value = false
-}
-// À insérer près de tes autres refs (ex: à côté de isTransferring)
-const showEgamesDropdown = ref(false)
-
-const toggleEgamesDropdown = () => {
-  vibrate()
-  showEgamesDropdown.value = !showEgamesDropdown.value
 }
 
 onMounted(() => {
@@ -219,28 +210,15 @@ const vibrate = () => {
         <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
       
-      <div class="menu-item dropdown-trigger" @click="toggleEgamesDropdown" :class="{ 'is-active': showEgamesDropdown }">
+      <div class="menu-item" @click="router.push('/game/roulette-game')">
         <div class="menu-icon"><i class="fi fi-rr-gamepad"></i></div>
-        <span>E-games</span>
-        <i class="fi fi-rr-angle-small-right arrow-dropdown"></i>
+        <span>Egames Lucky Wheel</span>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
-
-      <div class="dropdown-menu" :class="{ 'is-open': showEgamesDropdown }">
-        <div class="dropdown-content">
-          
-          <div class="submenu-item" @click="router.push('/game/roulette-game')">
-            <div class="submenu-icon"><i class="fi fi-rr-dharmachakra"></i></div>
-            <span>Lucky Wheel</span>
-            <i class="fi fi-rr-angle-small-right arrow"></i>
-          </div>
-
-          <div class="submenu-item" @click="router.push('/game/plane-game')">
-            <div class="submenu-icon"><i class="fi fi-rr-plane-departure"></i></div>
-            <span>Plane Game</span>
-            <i class="fi fi-rr-angle-small-right arrow"></i>
-          </div>
-
-        </div>
+      <div class="menu-item" @click="router.push('/game/plane-game')">
+        <div class="menu-icon"><i class="fi fi-rr-gamepad"></i></div>
+        <span>Egames Plane Arena</span>
+        <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
       <div class="menu-item" @click="handleShareReferral">
         <div class="menu-icon">
