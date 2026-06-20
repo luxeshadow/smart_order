@@ -101,22 +101,27 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 2. Alignement de la cible pour compenser le sens de rotation CSS inverse au pointeur haut (0°)
+  // 2. Calcul du positionnement absolu parfait (évite l'accumulation d'erreurs)
   const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   
-  // On inverse la rotation de l'index cible pour qu'il finisse pile sous le marqueur
+  // Angle requis pour amener l'index ciblé pile sous le pointeur du haut (0°)
   const targetRotation = (total - serverWinningIndex) * sliceAngle
 
-  currentRotation.value += extraTurns + targetRotation
+  // On arrondit d'abord l'angle actuel au tour complet supérieur pour garantir une rotation fluide vers l'avant
+  const currentBaseRotation = Math.ceil(currentRotation.value / 360) * 360
+  
+  // Attribution de la nouvelle rotation absolue
+  currentRotation.value = currentBaseRotation + extraTurns + targetRotation
 
   setTimeout(async () => {
     isSpinning.value = false
 
-    // Calcul de l'index sous le pointeur (haut = 0°) suite à la rotation horaire
+    // Calcul de l'index sous le pointeur (0°) basé sur l'angle final réel
     const normalizedAngle = currentRotation.value % 360
     const detectedIndex = Math.round((360 - normalizedAngle) / sliceAngle) % total
 
+    // Les deux valeurs sont désormais obligatoirement et rigoureusement identiques
     debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
     // 3. Traitement des résultats renvoyés par le serveur
@@ -143,11 +148,11 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
-    <nav class="app-bar">
+    <nav class="app-bare">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-      <span class="app-bar-title">E-games</span>
+      <span class="app-bar-titl">E-games</span>
       <div class="spacer"></div>
     </nav>
 
@@ -212,7 +217,7 @@ onMounted(fetchBalance)
 <style scoped>
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
-.app-bar {
+.app-bare {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 65px;
@@ -234,7 +239,7 @@ onMounted(fetchBalance)
   transition: all 0.2s ease;
 }
 
-.app-bar-title {
+.app-bar-titl {
   flex: 1;
   text-align: center;
   font-weight: 700;
