@@ -78,7 +78,7 @@ const spinWheel = async () => {
     return
   }
 
-  // 1. On effectue le tirage de confiance côté Repository (BDD)
+  // 1. Tirage côté serveur
   const result = await playRouletteUseCase.execute({
     userId: user.value?.id || '',
     betAmount: bet
@@ -91,7 +91,7 @@ const spinWheel = async () => {
     return
   }
 
-  // Déduction visuelle immédiate de la mise pendant la rotation
+  // Déduction visuelle immédiate du solde
   transactionStore.mainBalance = balance - bet
 
   isSpinning.value = true
@@ -101,34 +101,30 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 2. Calcul du positionnement absolu parfait (évite l'accumulation d'erreurs)
   const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
   
-  // Angle requis pour amener l'index ciblé pile sous le pointeur du haut (0°)
+  // Correction de la cible : alignement au centre absolu du segment gagnant au sommet (0°)
   const targetRotation = (total - serverWinningIndex) * sliceAngle
 
-  // On arrondit d'abord l'angle actuel au tour complet supérieur pour garantir une rotation fluide vers l'avant
+  // Reset de la base de rotation pour préserver l'élan fluide vers l'avant sans accumuler d'erreurs
   const currentBaseRotation = Math.ceil(currentRotation.value / 360) * 360
-  
-  // Attribution de la nouvelle rotation absolue
   currentRotation.value = currentBaseRotation + extraTurns + targetRotation
 
   setTimeout(async () => {
     isSpinning.value = false
 
-    // Calcul de l'index sous le pointeur (0°) basé sur l'angle final réel
+    // Calcul inverse rigoureux de la position arrêtée
     const normalizedAngle = currentRotation.value % 360
     const detectedIndex = Math.round((360 - normalizedAngle) / sliceAngle) % total
 
-    // Les deux valeurs sont désormais obligatoirement et rigoureusement identiques
     debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
     // 3. Traitement des résultats renvoyés par le serveur
     if (!result.isWin) {
       msgText.value = `💀 Perdu ${bet} XOF`
       msgColor.value = "#ef4444"
-      await fetchBalance() // Resynchronise le solde réel
+      await fetchBalance() 
       return
     }
 
@@ -139,7 +135,7 @@ const spinWheel = async () => {
     msgText.value = `🎉 ${item?.label || 'Gagné'} → +${result.gains} XOF`
     msgColor.value = "#22c55e"
     
-    await fetchBalance() // Met à jour le store Pinia avec le solde incluant le gain
+    await fetchBalance()
   }, 4300)
 }
 
@@ -148,11 +144,11 @@ onMounted(fetchBalance)
 
 <template>
   <div id="roulette-root">
-    <nav class="app-bare">
+    <nav class="app-bar">
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-      <span class="app-bar-titl">E-games</span>
+      <span class="app-bar-title">E-games</span>
       <div class="spacer"></div>
     </nav>
 
@@ -197,9 +193,9 @@ onMounted(fetchBalance)
           v-for="(slice, index) in slices" 
           :key="index"
           :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${((index + 1) / 12) * 100}%` }"
+          :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
         >
-          {{ slice.label }}
+          <span class="slice-text">{{ slice.label }}</span>
         </span>
       </div>
     </section>
@@ -217,7 +213,7 @@ onMounted(fetchBalance)
 <style scoped>
 @import url('https://fonts.bunny.net/css?family=jura:300,700');
 
-.app-bare {
+.app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 65px;
@@ -225,10 +221,10 @@ onMounted(fetchBalance)
   display: flex;
   align-items: center;
   padding: 0 15px;
-  z-index: 2000; /* 👈 On passe à 2000 pour surclasser la roulette et ses contrôles */
+  z-index: 2000; /* Rehaussé pour éviter tout chevauchement ou tremblement */
   border-bottom: 1px solid #f1f1f1;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Optionnel : pour donner une vraie séparation */
 }
+
 .back-btn {
   width: 45px;
   height: 45px;
@@ -239,7 +235,7 @@ onMounted(fetchBalance)
   transition: all 0.2s ease;
 }
 
-.app-bar-titl {
+.app-bar-title {
   flex: 1;
   text-align: center;
   font-weight: 700;
@@ -249,14 +245,13 @@ onMounted(fetchBalance)
 
 .spacer { width: 40px; }
 
-/* Nouveau fond clair & lumineux */
 #roulette-root {
   font-family: "Jura", sans-serif;
   background-color: #ffffff;
   color: #334155;
   border-radius: 16px;
   padding: 24px;
-  margin-top: 65px; /* Évite la superposition avec l'app-bar */
+  margin-top: 85px; 
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
@@ -274,7 +269,7 @@ onMounted(fetchBalance)
 
 .title-label { font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
 .balance-badge { font-size: 13px; color: #64748b; }
-.balance-badge .amount { color: #ff5e00; font-weight: 700; font-size: 15px; } /* base */
+.balance-badge .amount { color: #ff5e00; font-weight: 700; font-size: 15px; }
 
 .bet-container {
   text-align: center;
@@ -297,13 +292,15 @@ onMounted(fetchBalance)
   outline: none;
 }
 .bet-container input:focus {
-  border-color: #ff5e00; /* base */
+  border-color: #ff5e00;
 }
 
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  --start-angle: calc(var(--slice-angle) / 2);
+  /* Décentrage initial supprimé pour aligner l'index 0 au sommet exact (0deg) */
+  --start-angle: 0deg; 
+  
   --wheel-radius: min(38vw, 180px);
   --wheel-size: calc(var(--wheel-radius) * 2);
   --wheel-padding: 15%;
@@ -317,13 +314,13 @@ onMounted(fetchBalance)
 
 .controls {
   position: absolute;
-  z-index: 10;
+  z-index: 100;
   inset: 0;
   margin: auto;
   width: 50px;
   height: 50px;
   background: #ffffff;
-  border: 3px solid #ff5e00; /* base */
+  border: 3px solid #ff5e00;
   border-radius: 50%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
@@ -334,44 +331,46 @@ onMounted(fetchBalance)
   border: none;
   width: 100%;
   height: 100%;
-  color: #ff5e00; /* base */
+  color: #ff5e00;
   display: grid;
   place-items: center;
 }
 .controls button:hover:not(:disabled) { transform: scale(1.1); }
 .controls button:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* Flèche du haut alignée rigoureusement à 0° */
 .controls::before {
   content: '';
   position: absolute;
-  top: -12px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
   width: 0; height: 0;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
-  border-bottom: 18px solid #ff5e00; /* base */
-  z-index: 11;
+  border-bottom: 18px solid #ff5e00;
+  z-index: 101;
 }
 
 .controls.ticking::before {
   animation: marker-tick 400ms ease-in-out infinite alternate;
 }
 
-/* Changement de look de la roue vers le orange/crème */
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #ff5e00; /* base */
+  border: 4px solid #ff5e00;
   box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
+  
+  /* Ajustement du fond conique pour démarrer exactement au milieu du premier segment */
   background: repeating-conic-gradient(
-    from var(--start-angle),
-    #fff3e0 0deg var(--slice-angle),       /* light */
-    #ffb74d var(--slice-angle) calc(var(--slice-angle)*2) /* accent */
+    from calc(0deg - (var(--slice-angle) / 2)),
+    #fff3e0 0deg var(--slice-angle),
+    #ffb74d var(--slice-angle) calc(var(--slice-angle) * 2)
   );
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
-  will-change: transform; /* Prévient le navigateur de l'animation pour optimiser les performances */
+  will-change: transform;
   z-index: 1;
 }
 
@@ -379,10 +378,16 @@ onMounted(fetchBalance)
   position: absolute;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #e65100; /* dark pour maximiser le contraste sur fond clair */
+  color: #e65100;
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
+}
+
+/* Redressement du texte pour qu'il pointe vers le centre proprement */
+.slice-text {
+  display: inline-block;
+  transform: rotate(90deg); 
 }
 
 .slice-item.skull { font-size: 1.35rem; }
