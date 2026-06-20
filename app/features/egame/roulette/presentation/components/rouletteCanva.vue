@@ -366,6 +366,8 @@ onMounted(fetchBalance)
     #ffb74d var(--slice-angle) calc(var(--slice-angle)*2) /* accent */
   );
   transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform; /* Prévient le navigateur de l'animation pour optimiser les performances */
+  z-index: 1;
 }
 
 .slice-item {
