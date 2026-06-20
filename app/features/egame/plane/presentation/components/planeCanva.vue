@@ -111,9 +111,42 @@ const W = () => (canvasRef.value ? canvasRef.value.width / window.devicePixelRat
 const H = () => (canvasRef.value ? canvasRef.value.height / window.devicePixelRatio : 0)
 
 const genCrash = (): number => {
-  const r = Math.random()
-  if (r < 0.08) return 1.00
-  return parseFloat((1.02 + Math.pow(Math.random(), 0.6) * 6 + (Math.random() > 0.78 ? Math.random() * 14 : 0)).toFixed(2))
+  const r = Math.random() // Génère un nombre entre 0 et 1
+
+  // 1. Cote >= 10 (5% de chances -> de 0.00 à 0.05)
+  if (r < 0.05) {
+    return parseFloat((10 + Math.random() * 15).toFixed(2)) // Entre 10.00 et 25.00
+  }
+  
+  // 2. Cote >= 5 (10% de chances au total -> +5% de 0.05 à 0.10)
+  if (r < 0.10) {
+    return parseFloat((5 + Math.random() * 5).toFixed(2)) // Entre 5.00 et 9.99
+  }
+  
+  // 3. Cote >= 4 (20% de chances au total -> +10% de 0.10 à 0.20)
+  if (r < 0.20) {
+    return parseFloat((4 + Math.random() * 1).toFixed(2)) // Entre 4.00 et 4.99
+  }
+  
+  // 4. Cote >= 3 (30% de chances au total -> +10% de 0.20 à 0.30)
+  if (r < 0.30) {
+    return parseFloat((3 + Math.random() * 1).toFixed(2)) // Entre 3.00 et 3.99
+  }
+  
+  // 5. Cote >= 2 (40% de chances au total -> +10% de 0.30 à 0.40)
+  if (r < 0.40) {
+    return parseFloat((2 + Math.random() * 1).toFixed(2)) // Entre 2.00 et 2.99
+  }
+  
+  // 6. Cote >= 1.5 (50% de chances au total -> +10% de 0.40 à 0.50)
+  if (r < 0.50) {
+    return parseFloat((1.5 + Math.random() * 0.5).toFixed(2)) // Entre 1.50 et 1.99
+  }
+  
+  // 7. Crash rapide ou instantané (50% de chances restants -> de 0.50 à 1.00)
+  // Permet d'avoir des crashs réalistes dès le départ entre 1.00x et 1.49x
+  if (Math.random() < 0.15) return 1.00 // 15% de chance de crash instantané à 1.00x
+  return parseFloat((1.01 + Math.random() * 0.48).toFixed(2)) // Entre 1.01x et 1.49x
 }
 
 const multToY = (m: number, maxM: number) => {
@@ -437,48 +470,35 @@ onBeforeUnmount(() => {
       </span>
     </div>
 
-    <div class="canvas-wrap">
-      <canvas ref="canvasRef"></canvas>
-      
-      <div class="mult-overlay">
-        <div class="mult-val" :style="{ color: multColor }">{{ multValText }}</div>
-        <div class="mult-sub">{{ multSubText }}</div>
+    <div class="arena-container">
+      <div class="canvas-wrap">
+        <canvas ref="canvasRef"></canvas>
+        
+        <div class="mult-overlay">
+          <div class="mult-val" :style="{ color: multColor }">{{ multValText }}</div>
+          <div class="mult-sub">{{ multSubText }}</div>
+        </div>
       </div>
     </div>
 
-    <div class="controls">
+    <div class="controls-section">
       <div class="ctrl-box">
-        <div class="ctrl-label">Mise (min. 500)</div>
-        <input 
-          type="number" 
-          v-model.number="betInput" 
-          class="ctrl-input" 
-          :disabled="phase !== 'idle'"
-          min="500" 
-          step="100"
-        >
+        <div class="ctrl-label">Montant à miser (XOF)</div>
+        <div class="input-wrapper">
+          <input 
+            type="number" 
+            v-model.number="betInput" 
+            class="ctrl-input" 
+            :disabled="phase !== 'idle'"
+            min="500" 
+            step="100"
+          >
+        </div>
         <div class="chip-row">
           <button class="chip" :disabled="phase !== 'idle'" @click="addBet(500)">+500</button>
           <button class="chip" :disabled="phase !== 'idle'" @click="addBet(1000)">+1K</button>
           <button class="chip" :disabled="phase !== 'idle'" @click="setBet(Math.floor((mainBalance || 0) / 2 / 100) * 100)">½</button>
           <button class="chip" :disabled="phase !== 'idle'" @click="setBet(mainBalance || 0)">Max</button>
-        </div>
-      </div>
-
-      <div class="ctrl-box">
-        <div class="ctrl-label">Cashout auto</div>
-        <input 
-          type="number" 
-          v-model="autoInput" 
-          class="ctrl-input" 
-          :disabled="phase !== 'idle'"
-          placeholder="Libre"
-        >
-        <div class="chip-row">
-          <button class="chip" :disabled="phase !== 'idle'" @click="setAuto(1.5)">1.5x</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="setAuto(2)">2x</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="setAuto(5)">5x</button>
-          <button class="chip" :disabled="phase !== 'idle'" @click="setAuto(0)">OFF</button>
         </div>
       </div>
     </div>
@@ -487,19 +507,19 @@ onBeforeUnmount(() => {
       <button 
         v-if="phase !== 'running'" 
         id="btn-start" 
-        class="btn-main" 
+        class="btn-main btn-start-safe" 
         :disabled="phase !== 'idle'" 
         @click="startGame"
       >
-        Lancer la mise
+        Placer le pari
       </button>
       <button 
         v-else 
         id="btn-cashout" 
-        class="btn-main" 
+        class="btn-main btn-cashout-safe" 
         @click="cashOut"
       >
-        Encaisser maintenant
+        Sécuriser les gains
       </button>
     </div>
 
@@ -511,9 +531,9 @@ onBeforeUnmount(() => {
         :key="idx" 
         class="hist-chip"
         :style="{
-          backgroundColor: h.m < 1.5 ? AppColor.status.error + '12' : h.m < 3 ? AppColor.status.warning + '12' : AppColor.status.success + '12',
+          backgroundColor: h.m < 1.5 ? AppColor.status.error + '10' : h.m < 3 ? AppColor.status.warning + '10' : AppColor.status.success + '10',
           color: h.m < 1.5 ? AppColor.status.error : h.m < 3 ? AppColor.status.warning : AppColor.status.success,
-          borderColor: h.m < 1.5 ? AppColor.status.error + '18' : h.m < 3 ? AppColor.status.warning + '18' : AppColor.status.success + '18'
+          borderColor: h.m < 1.5 ? AppColor.status.error + '20' : h.m < 3 ? AppColor.status.warning + '20' : AppColor.status.success + '20'
         }"
       >
         {{ h.m.toFixed(2) }}x
@@ -525,12 +545,12 @@ onBeforeUnmount(() => {
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Styles requis pour la barre d'application transmise */
+/* Barre d'application */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 65px;
-  background: white;
+  background: #ffffff;
   display: flex;
   align-items: center;
   padding: 0 15px;
@@ -543,8 +563,6 @@ onBeforeUnmount(() => {
   background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  padding: 4px;
-  transition: all 0.2s ease;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -559,101 +577,127 @@ onBeforeUnmount(() => {
 }
 .spacer { width: 45px; }
 
-/* Conteneur principal - Épuré et décalé vers le bas pour laisser la place au Header */
+/* Base Container */
 #crash-root {
-  font-family: sans-serif;
-  background: transparent;
-  padding: 80px 16px 20px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #ffffff;
+  padding: 85px 16px 20px 16px;
   color: v-bind('AppColor.tertiary.base');
   user-select: none;
 }
 
-.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.title-label { font-size: 12px; font-weight: 700; color: #a0aec0; letter-spacing: 0.8px; text-transform: uppercase; }
-.balance-badge { font-size: 13px; color: #718096; font-weight: 500; }
-.balance-badge .amount { color: v-bind('AppColor.tertiary.base'); font-weight: 800; }
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.title-label { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase; }
+.balance-badge { font-size: 13px; color: #64748b; }
+.balance-badge .amount { color: #0f172a; font-weight: 700; }
 
-/* Zone Canvas minimaliste en apesanteur (plus de cadre lourd de casino) */
+/* Box Container avec Grille et mise en valeur des Axes */
+.arena-container {
+  background-image: 
+    linear-gradient(to right, #f1f5f9 1px, transparent 1px),
+    linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
+  background-size: 40px 40px;
+  border-left: 2px solid #cbd5e1; /* Axe des ordonnées mis en évidence */
+  border-bottom: 2px solid #cbd5e1; /* Axe de base mis en évidence */
+  border-top: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+}
+
 .canvas-wrap { 
   position: relative; 
   width: 100%; 
-  height: 240px; 
-  background: transparent; 
-  border-radius: 0; 
+  height: 220px; 
+  background: transparent;
   overflow: hidden; 
-  margin-bottom: 20px; 
 }
 canvas { display: block; width: 100%; height: 100%; }
 
-/* Alignement discret de l'état en haut à gauche */
 .mult-overlay { 
   position: absolute; 
-  top: 10px; 
-  left: 4px; 
-  text-align: left; 
+  top: 12px; 
+  left: 12px; 
   pointer-events: none; 
   z-index: 4; 
 }
-.mult-val { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -1px; }
-.mult-sub { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #a0aec0; font-weight: 700; margin-top: 1px; }
+.mult-val { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
+.mult-sub { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-top: 2px; }
 
-/* Structure des blocs de contrôles lissés */
-.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-.ctrl-box { background: transparent; display: flex; flex-direction: column; }
-.ctrl-label { font-size: 10px; color: #a0aec0; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+/* Zone de Saisie Épurée */
+.controls-section { margin-bottom: 20px; }
+.ctrl-box { display: flex; flex-direction: column; }
+.ctrl-label { font-size: 11px; color: #64748b; font-weight: 600; margin-bottom: 8px; }
 
-/* Inputs soulignés comme des composants financiers épurés */
+.input-wrapper { position: relative; }
 .ctrl-input { 
   width: 100%; 
-  background: v-bind('AppColor.surface.smoke'); 
-  border: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0; /* Bordure douce ajoutée */
   border-radius: 12px; 
-  padding: 10px 14px; 
-  color: v-bind('AppColor.tertiary.base'); 
+  padding: 12px 16px; 
+  color: #0f172a; 
   font-size: 16px; 
   font-weight: 700; 
   outline: none; 
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
-.ctrl-input:focus { background: v-bind('AppColor.surface.bone'); }
+.ctrl-input:focus { 
+  background: #ffffff;
+  border-color: v-bind('AppColor.primary.base');
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
 
-.chip-row { display: flex; gap: 4px; margin-top: 8px; }
+.chip-row { display: flex; gap: 6px; margin-top: 8px; }
 .chip { 
   flex: 1; 
-  padding: 6px 0; 
-  border-radius: 8px; 
-  border: 1px solid transparent;
-  background: v-bind('AppColor.surface.smoke'); 
-  color: #718096; 
-  font-size: 11px; 
-  font-weight: 700;
+  padding: 8px 0; 
+  border-radius: 10px; 
+  border: 1px solid #e2e8f0;
+  background: #ffffff; 
+  color: #475569; 
+  font-size: 12px; 
+  font-weight: 600;
   cursor: pointer; 
-  transition: all 0.15s; 
+  transition: all 0.15s ease; 
 }
-.chip:hover:not(:disabled) { background: v-bind('AppColor.surface.bone'); color: v-bind('AppColor.tertiary.base'); }
-.chip:disabled { opacity: 0.25; cursor: not-allowed; }
+.chip:hover:not(:disabled) { border-color: #cbd5e1; background: #f8fafc; color: #0f172a; }
+.chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* Boutons d'actions principaux spacieux */
-.btn-row { display: flex; gap: 10px; margin-bottom: 14px; }
+/* Boutons d'actions adoucis (Safe Design) */
+.btn-row { display: flex; gap: 12px; margin-bottom: 16px; }
 .btn-main { 
   flex: 1; 
-  padding: 16px; 
+  padding: 15px; 
   border: none; 
   border-radius: 14px; 
-  font-size: 16px; 
+  font-size: 15px; 
   font-weight: 700; 
   cursor: pointer; 
-  transition: transform 0.1s, opacity 0.2s; 
+  transition: all 0.2s ease; 
 }
-.btn-main:active { transform: scale(0.98); }
-.btn-main:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn-main:active { transform: scale(0.99); }
+.btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-#btn-start { background: v-bind('AppColor.primary.base'); color: #fff; }
-#btn-cashout { background: v-bind('AppColor.status.success'); color: #fff; }
+/* Style épuré non-agressif pour le bouton de lancement */
+.btn-start-safe {
+  background: #0f172a; /* Teinte sombre type fintech plutôt que flash casino */
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+.btn-start-safe:hover:not(:disabled) { background: #1e293b; }
 
-.msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 14px; font-weight: 600; color: #718096; }
+/* Style rassurant pour l'encaissement */
+.btn-cashout-safe {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
 
-/* Badges d'historique ronds et discrets */
+.msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 16px; font-weight: 600; color: #64748b; }
+
+/* Jetons Historiques Neutres */
 .history-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-.hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; border: 1px solid; }
+.hist-chip { font-size: 11px; padding: 4px 10px; border-radius: 8px; font-weight: 700; border: 1px solid; }
 </style>
