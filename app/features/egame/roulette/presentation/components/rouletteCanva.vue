@@ -15,7 +15,7 @@ import { PlayRouletteGameUseCase } from '~/features/egame/roulette/application/u
 import { PlayRouletteGameRepositoryImpl } from '~/features/egame/roulette/data/repositories/play_roulette_game_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
-// IMPORTATION DEPUIS TON DOSSIER CONSTANTES (Ajuste le chemin si nécessaire)
+// IMPORTATION DEPUIS TON DOSSIER CONSTANTES
 import { ROULETTE_SLICES } from '@/core/constants/roulette_game'
 
 const router = useRouter()
@@ -34,7 +34,7 @@ const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(balanceRepo)
 const rouletteRepo = new PlayRouletteGameRepositoryImpl()
 const playRouletteUseCase = new PlayRouletteGameUseCase(rouletteRepo)
 
-// Utilisation directe de la constante partagée (Zéro duplication, le template reste inchangé)
+// Utilisation directe de la constante partagée
 const slices = ROULETTE_SLICES
 
 const betInput = ref(500)
@@ -101,21 +101,21 @@ const spinWheel = async () => {
   const total = slices.length
   const sliceAngle = 360 / total
 
-  // 2. On force la roue à cibler l'index EXACT déterminé par le Repository
+  // 2. Alignement de la cible pour compenser le sens de rotation CSS inverse au pointeur haut (0°)
   const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
-  const targetRotation = serverWinningIndex * sliceAngle
+  
+  // On inverse la rotation de l'index cible pour qu'il finisse pile sous le marqueur
+  const targetRotation = (total - serverWinningIndex) * sliceAngle
 
   currentRotation.value += extraTurns + targetRotation
 
   setTimeout(async () => {
     isSpinning.value = false
 
-    const normalized = ((currentRotation.value % 360) + 360) % 360
-    const visualOffset = 295 
-
-    const angleUnderPointer = (360 - normalized + visualOffset) % 360
-    const detectedIndex = Math.floor(angleUnderPointer / sliceAngle) % total
+    // Calcul de l'index sous le pointeur (haut = 0°) suite à la rotation horaire
+    const normalizedAngle = currentRotation.value % 360
+    const detectedIndex = Math.round((360 - normalizedAngle) / sliceAngle) % total
 
     debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
@@ -220,10 +220,10 @@ onMounted(fetchBalance)
   display: flex;
   align-items: center;
   padding: 0 15px;
-  z-index: 1000;
+  z-index: 2000; /* 👈 On passe à 2000 pour surclasser la roulette et ses contrôles */
   border-bottom: 1px solid #f1f1f1;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Optionnel : pour donner une vraie séparation */
 }
-
 .back-btn {
   width: 45px;
   height: 45px;
