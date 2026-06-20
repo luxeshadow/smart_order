@@ -279,9 +279,9 @@ onMounted(fetchBalance)
 }
 
 .bet-container input {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
-  border: 2px solid #cbd5e1;
+  border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
   width: 130px;
