@@ -316,7 +316,6 @@ const drawScene = () => {
   const maxT = Math.max(elapsed * 1.35, 4)
   const maxM = Math.max(mult.value * 1.4, 2.5)
 
-  // Grille Horizontale Multiplicateurs
   c.strokeStyle = 'rgba(0,0,0,0.06)'
   c.lineWidth = 1;
   [1.5, 2, 3, 5, 10, 20].forEach(m => {
@@ -329,7 +328,6 @@ const drawScene = () => {
     c.fillText(m + 'x', PAD.l - 5, y + 3)
   })
 
-  // Graphique de courbe
   if (path.length > 1) {
     const crashed = phase.value === 'crashed'
     const firstPoint = path[0]

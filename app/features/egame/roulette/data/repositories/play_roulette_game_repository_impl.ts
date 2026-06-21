@@ -1,4 +1,3 @@
-// features/transaction/data/repositories/play_roulette_game_repository_impl.ts
 import { useApi } from '@/core/constants/supabase_client'
 import { DatabaseException } from '@/core/errors/exception'
 import { DatabaseFailure } from '@/core/errors/failure'
@@ -27,8 +26,37 @@ export class PlayRouletteGameRepositoryImpl implements PlayRouletteGameRepositor
         throw new DatabaseException("Solde insuffisant.")
       }
 
-      // Utilisation directe de la constante globale
-      const winningIndex = Math.floor(Math.random() * ROULETTE_SLICES.length)
+      // --- LOGIQUE DE RARETÉ DU JACKPOT SÉCURISÉE ---
+      let winningIndex: number = 0
+      const randomRoll = Math.random() // Entre 0 et 1
+
+      if (randomRoll < 0.60) {
+        // 1. Perte (60% de chances globales)
+        const skullIndices = ROULETTE_SLICES.map((slice, idx) => slice.type === 'skull' ? idx : -1).filter(idx => idx !== -1)
+        
+        // Utilisation de ?? 0 pour garantir un type strict 'number'
+        winningIndex = skullIndices[Math.floor(Math.random() * skullIndices.length)] ?? 0
+      } else {
+        // 2. Gain (40% de chances globales)
+        const jackpotRoll = Math.random() 
+
+        if (jackpotRoll < 0.03) {
+          // 3% de chances d'avoir le Jackpot (soit 1.2% absolu)
+          const jackpotIndices = ROULETTE_SLICES.map((slice, idx) => slice.mult === 5 ? idx : -1).filter(idx => idx !== -1)
+          
+          if (jackpotIndices.length > 0) {
+            winningIndex = jackpotIndices[Math.floor(Math.random() * jackpotIndices.length)] ?? 9 // Fallback index de ta case 5x au cas où
+          } else {
+            winningIndex = ROULETTE_SLICES.findIndex(slice => slice.type === 'win' && slice.mult !== 5)
+          }
+        } else {
+          // 97% de chances d'avoir un gain classique
+          const normalWinIndices = ROULETTE_SLICES.map((slice, idx) => (slice.type === 'win' && slice.mult !== 5) ? idx : -1).filter(idx => idx !== -1)
+          
+          winningIndex = normalWinIndices[Math.floor(Math.random() * normalWinIndices.length)] ?? 1
+        }
+      }
+
       const choice = ROULETTE_SLICES[winningIndex]
 
       if (!choice) {

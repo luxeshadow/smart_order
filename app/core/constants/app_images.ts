@@ -10,13 +10,15 @@ export class AppImage {
   static readonly Ria = '/assets/images/logo/ria.png'
   static readonly Money = '/assets/images/logo/wallet.png'
   static readonly Error_Divice = '/assets/images/logo/error-divice.png'
-    static readonly Error_404 = '/assets/images/logo/404.gif'
+  static readonly Error_404 = '/assets/images/logo/404.gif'
 
   //Gifs
   static readonly Profile = '/assets/videos/gif/profile.gif'
   static readonly EmptyBox = '/assets/videos/gif/empty_box.gif'
-   static readonly Money_Ringtone = '/assets/audios/ringtone/money.mpeg'
+  
   //Audios
+   static readonly Money_Ringtone = '/assets/audios/ringtone/money.mpeg'
+  
 
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'

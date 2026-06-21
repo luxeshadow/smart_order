@@ -15,8 +15,9 @@ import { PlayRouletteGameUseCase } from '~/features/egame/roulette/application/u
 import { PlayRouletteGameRepositoryImpl } from '~/features/egame/roulette/data/repositories/play_roulette_game_repository_impl'
 import { Failure } from '@/core/errors/failure'
 
-// IMPORTATION DEPUIS TON DOSSIER CONSTANTES
+// IMPORTATIONS DEPUIS LES CONSTANTES
 import { ROULETTE_SLICES } from '@/core/constants/roulette_game'
+import { AppAudio } from '@/core/constants/app_audios'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -125,6 +126,14 @@ const spinWheel = async () => {
       msgColor.value = "#ef4444"
       await fetchBalance() 
       return
+    }
+
+    // Lecture sécurisée du son de victoire avant l'explosion de confettis
+    try {
+      const audio = new Audio(AppAudio.Win_Ringtone)
+      audio.play()
+    } catch (e) {
+      console.warn("Audio play blocked or failed:", e)
     }
 
     triggerConfetti()
