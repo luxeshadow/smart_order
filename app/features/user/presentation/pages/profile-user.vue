@@ -215,7 +215,7 @@ const vibrate = () => {
         <span>Egames Lucky Wheel</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>
       </div>
-      <div class="menu-item" @click="router.push('/error')">
+      <div class="menu-item" @click="router.push('/game/plane-game')">
         <div class="menu-icon"><i class="fi fi-rr-gamepad"></i></div>
         <span>Egames Plane Arena</span>
         <i class="fi fi-rr-angle-small-right arrow"></i>

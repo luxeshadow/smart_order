@@ -14,7 +14,6 @@ export class PlayRouletteGameValidator {
       return "Le montant de la mise doit être un nombre supérieur à 0.";
     }
 
-    // Validation selon la règle métier de ton composant (Min 500 XOF)
     if (betValue < 500) {
       return "La mise minimale est de 500 XOF.";
     }

@@ -6,7 +6,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const authStore = useAuthStore()
 
-  // On attend impérativement que l'init soit finie si l'user n'est pas encore chargé
   if (!authStore.user) {
     await authStore.initUser() 
   }

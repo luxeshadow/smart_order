@@ -18,7 +18,7 @@ export const useToast = () => {
           </div>
         `,
         duration: 3500,
-        gravity: "bottom",
+        gravity: "top",
         position: "center",
         stopOnFocus: true,
         escapeMarkup: false,

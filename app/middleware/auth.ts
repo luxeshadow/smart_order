@@ -15,38 +15,31 @@ export default defineNuxtRouteMiddleware(async (to) => {
   ]
 
   try {
-    // 1. Récupérer la session actuelle (Recommandé pour le SSR)
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    // Correction du type : On convertit le 'User | null' de Supabase en 'User | undefined'
     let authUser: User | undefined = session?.user ?? undefined
 
-    // Sécurité : Si pas de session trouvée dans les cookies, on tente un getUser
     if (!authUser && !sessionError) {
       const { data: { user } } = await supabase.auth.getUser()
       authUser = user ?? undefined
     }
 
-    // 2. CAS : UTILISATEUR NON CONNECTÉ
     if (!authUser) {
       // Si on va déjà sur une page d'auth, on laisse passer
       if (authPages.includes(to.path)) {
         return
       }
 
-      // Si on tente d'accéder au dashboard sans être connecté -> Login
       if (to.path.startsWith('/dashboard')) {
         return navigateTo('/auth/login')
       }
 
-      // Pour le reste (comme /my-order), redirection vers la home
       if (to.path !== '/home') {
         return navigateTo('/home')
       }
       return
     }
 
-    // 3. CAS : UTILISATEUR CONNECTÉ -> Vérification du rôle en Base de données
     const { data: dbUser, error: dbError } = await supabase
       .from('users')
       .select('role')
