@@ -156,6 +156,7 @@ onMounted(fetchBalance)
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
+    
       <div class="spacer"></div>
     </nav>
 
@@ -177,43 +178,35 @@ onMounted(fetchBalance)
       >
     </div>
 
-    <div class="roulette-container">
-      <div class="led-lights">
-        <div v-for="i in 8" :key="i" class="led-dot" :style="{ transform: `rotate(${(i-1) * 45}deg) translateY(-143px)` }"></div>
+    <section class="wrapper" data-items="12">
+      <div class="controls" :class="{ ticking: isSpinning }">
+        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
+            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
+            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
+            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
+          </svg>
+        </button>
       </div>
-
-      <section class="wrapper" data-items="12">
-        <div class="marker-pin" :class="{ ticking: isSpinning }"></div>
-
-        <div class="controls">
-          <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-              <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-              <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-              <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-              <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-            </svg>
-          </button>
-        </div>
-        
+      
+      <div 
+        id="wheel" 
+        class="wheel" 
+        :style="{ transform: `rotate(calc(-90deg + ${currentRotation}deg))` }"
+      >
         <div 
-          id="wheel" 
-          class="wheel" 
-          :style="{ transform: `rotate(calc(-90deg + ${currentRotation}deg))` }"
+          v-for="(slice, index) in slices" 
+          :key="index"
+          :class="['slice-item', slice.type]"
+          :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
         >
-          <div 
-            v-for="(slice, index) in slices" 
-            :key="index"
-            :class="['slice-item', slice.type]"
-            :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
-          >
-            <span class="slice-text">{{ slice.label }}</span>
-          </div>
+          <span class="slice-text">{{ slice.label }}</span>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
     <div id="message" class="message" :style="{ color: msgColor }">
       {{ msgText }}
@@ -230,235 +223,357 @@ onMounted(fetchBalance)
 
 .app-bar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 65px;
-  background: white;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   padding: 0 15px;
   z-index: 2000;
-  border-bottom: 1px solid #f1f1f1;
+  border-bottom: 1px solid rgba(255,255,255,.3);
 }
 
 .back-btn {
   width: 45px;
   height: 45px;
-  background-color: #f8f9fa;
+  background: white;
   border: 1px solid #eee;
   border-radius: 14px;
-  padding: 4px;
-  transition: all 0.2s ease;
+  transition: .2s;
 }
 
-.spacer { width: 40px; }
+.back-btn:hover {
+  transform: scale(1.05);
+}
+
+.spacer {
+  width: 40px;
+}
 
 #roulette-root {
+  position: relative;
+  overflow: hidden;
+
   font-family: "Jura", sans-serif;
-  background-color: #ffffff;
+
+  background:
+    radial-gradient(circle at top,
+      #fffdf8 0%,
+      #fff8ef 100%);
+
   color: #334155;
   border-radius: 24px;
   padding: 24px;
-  margin-top: 85px; 
+  margin-top: 85px;
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
   user-select: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 10px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #ececec;
+  padding-bottom: 12px;
 }
 
-.title-label { font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
-.balance-badge { font-size: 13px; color: #64748b; }
-.balance-badge .amount { color: #ff5e00; font-weight: 700; font-size: 15px; }
+.title-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.balance-badge {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.balance-badge .amount {
+  color: #ff6f00;
+  font-weight: 900;
+  font-size: 16px;
+}
 
 .bet-container {
   text-align: center;
-  margin-bottom: 25px;
-  font-size: 1.1rem;
-  color: #1e293b;
+  margin-bottom: 30px;
+}
+
+.bet-container label {
+  font-weight: 700;
 }
 
 .bet-container input {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
-  border: 2px solid #cbd5e1;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 2px solid #ffe0b2;
+  background: white;
   width: 130px;
-  font-size: 1.1rem;
   text-align: center;
+  font-size: 18px;
   font-weight: bold;
-  margin-left: 10px;
+  margin-left: 12px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: .25s;
 }
+
 .bet-container input:focus {
-  border-color: #ff5e00;
+  border-color: #ff9800;
+  box-shadow: 0 0 15px rgba(255,152,0,.25);
 }
 
-/* --- AMÉLIORATION DESIGN DU CONTENEUR DE ROUE --- */
-.roulette-container {
-  position: relative;
-  width: 320px;
-  height: 320px;
-  margin: 40px auto;
-  background: #e65100; /* Fond orange foncé comme la bordure de l'image */
-  border-radius: 50%;
-  padding: 15px; /* Épaisseur du contour violet/orange */
-  box-shadow: 0 12px 28px rgba(230, 81, 0, 0.3), inset 0 -4px 10px rgba(0,0,0,0.3);
-}
-
-/* Système de lampes LED tout autour */
-.led-lights {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-}
-.led-dot {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 8px; height: 8px;
-  background: #ffffff;
-  border-radius: 50%;
-  margin-top: -4px; margin-left: -4px;
-  box-shadow: 0 0 8px #ffffff, 0 0 15px #ffffff;
-  animation: flash 1s ease-in-out infinite alternate;
-}
-
-@keyframes flash {
-  0% { opacity: 0.5; transform: scale(0.9); }
-  100% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 12px #ffb74d; }
-}
+/* ---------------------- */
+/* ROUE */
+/* ---------------------- */
 
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  width: 100%;
-  height: 100%;
+  --wheel-radius: min(40vw, 190px);
+  --wheel-size: calc(var(--wheel-radius) * 2);
+  --wheel-padding: 18%;
+  --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
+
   position: relative;
+  width: var(--wheel-size);
+  aspect-ratio: 1;
+  margin: auto;
 }
 
-/* Le marqueur physique au-dessus (Flèche blanche/orange) */
-.marker-pin {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-top: 22px solid #ffffff; /* Marqueur blanc pur */
-  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.3));
-  z-index: 110;
-}
-.marker-pin.ticking {
-  animation: marker-tick 250ms ease-in-out infinite alternate;
-}
+/* ---------------------- */
+/* BOUTON CENTRAL */
+/* ---------------------- */
 
-/* Bouton central repensé façon cartoon 3D doré */
 .controls {
   position: absolute;
   z-index: 100;
   inset: 0;
   margin: auto;
-  width: 65px;
-  height: 65px;
-  background: linear-gradient(135deg, #ffe082 0%, #ffb300 100%);
-  border: 4px solid #ffffff;
+
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.25), inset 0 -4px 0px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+  background:
+    radial-gradient(circle at 30% 30%,
+      #ffffff,
+      #ffe082 40%,
+      #ffb300 75%,
+      #ff6f00 100%
+    );
+
+  border: 5px solid white;
+
+  box-shadow:
+    0 0 20px rgba(255,215,0,.8),
+    0 0 40px rgba(255,152,0,.5),
+    inset 0 4px 12px rgba(255,255,255,.7);
+
+  animation: pulse 2s infinite;
 }
 
 .controls button {
-  cursor: pointer;
-  background: transparent;
-  border: none;
   width: 100%;
   height: 100%;
-  color: #e65100;
+  border: none;
+  background: transparent;
+  color: white;
   display: grid;
   place-items: center;
+  cursor: pointer;
 }
-.controls button:hover:not(:disabled) { transform: scale(1.05); }
-.controls button:disabled { opacity: 0.8; cursor: not-allowed; }
 
-/* La Roue avec des parts nettes bicolores orange/blanc */
+.controls button svg {
+  width: 32px;
+  height: 32px;
+}
+
+.controls button:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.controls button:disabled {
+  opacity: .6;
+}
+
+/* ---------------------- */
+/* AIGUILLE */
+/* ---------------------- */
+
+.controls::before {
+  content: '';
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 32px solid #ff1744;
+
+  filter:
+    drop-shadow(0 0 6px rgba(255,23,68,.8))
+    drop-shadow(0 0 15px rgba(255,23,68,.5));
+}
+
+.controls.ticking::before {
+  animation: marker-tick .08s infinite alternate;
+}
+
+/* ---------------------- */
+/* DISQUE */
+/* ---------------------- */
+
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #ffffff; /* Séparateur intérieur blanc */
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
-  
-  /* Gradation de couleurs alternée en conservant l'orange et le blanc cassé */
-  background: repeating-conic-gradient(
-    from calc(0deg - (var(--slice-angle) / 2)),
-    #ffffff 0deg var(--slice-angle),
-    #fff3e0 var(--slice-angle) calc(var(--slice-angle) * 2)
-  );
-  transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1); /* Animation plus fluide */
+  overflow: hidden;
+
+  border: 10px solid #ffd54f;
+
+  background:
+    radial-gradient(circle at center,
+      rgba(255,255,255,.9) 0%,
+      rgba(255,255,255,.2) 20%,
+      transparent 21%
+    ),
+
+    repeating-conic-gradient(
+      from calc(0deg - (var(--slice-angle) / 2)),
+      #fff8e1 0deg var(--slice-angle),
+      #ff9800 var(--slice-angle) calc(var(--slice-angle) * 2)
+    );
+
+  box-shadow:
+    0 0 15px rgba(255,215,0,.8),
+    0 0 35px rgba(255,140,0,.7),
+    0 0 60px rgba(255,94,0,.35),
+    inset 0 0 25px rgba(255,255,255,.35);
+
+  transition: transform 4s cubic-bezier(.1,.85,.15,1);
   will-change: transform;
-  z-index: 1;
 }
+
+/* LEDs */
+
+.wheel::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+
+  background:
+    repeating-conic-gradient(
+      #ffd700 0deg 2deg,
+      transparent 2deg 8deg
+    );
+
+  animation: led-spin 8s linear infinite;
+  z-index: -1;
+}
+
+.wheel::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.5);
+}
+
+/* ---------------------- */
+/* CASES */
+/* ---------------------- */
 
 .slice-item {
   position: absolute;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #e65100; /* Texte orange vif */
-  /* Ajustement de la distance du texte vers l'extérieur pour copier le rendu de la photo */
-  offset-path: circle(105px at 50% 50%); 
+
+  offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
-  width: 50px;
-  height: 50px;
+
+  width: 42px;
+  height: 42px;
+
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+
+  color: white;
+  font-size: 18px;
+  font-weight: 900;
+
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.4),
+    0 0 10px rgba(255,255,255,.4);
 }
 
-/* Orientation radiale : les textes pointent naturellement vers le centre */
 .slice-text {
-  display: inline-block;
-  transform: rotate(90deg); 
+  transform: rotate(90deg);
   white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
 }
 
-.slice-item.skull { font-size: 1.3rem; }
+.slice-item.skull {
+  font-size: 24px;
+}
 
 .message {
   text-align: center;
   font-weight: bold;
   font-size: 1.2rem;
-  margin-top: 25px;
+  margin-top: 35px;
   min-height: 32px;
 }
 
 .debug-info {
-  text-align: center; 
-  margin-top: 15px; 
-  color: #94a3b8; 
-  font-size: 0.95rem;
+  text-align: center;
+  margin-top: 20px;
+  color: #94a3b8;
+  font-size: .9rem;
+}
+
+/* ---------------------- */
+/* ANIMATIONS */
+/* ---------------------- */
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes marker-tick {
-  from { transform: translateX(-50%) rotate(-12deg); }
-  to   { transform: translateX(-50%) rotate(12deg); }
+  from {
+    transform: translateX(-50%) rotate(-10deg);
+  }
+
+  to {
+    transform: translateX(-50%) rotate(10deg);
+  }
+}
+
+@keyframes led-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
