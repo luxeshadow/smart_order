@@ -156,7 +156,6 @@ onMounted(fetchBalance)
       <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
-    
       <div class="spacer"></div>
     </nav>
 
@@ -178,35 +177,43 @@ onMounted(fetchBalance)
       >
     </div>
 
-    <section class="wrapper" data-items="12">
-      <div class="controls" :class="{ ticking: isSpinning }">
-        <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
-            <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
-            <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
-            <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
-            <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
-          </svg>
-        </button>
+    <div class="roulette-container">
+      <div class="led-lights">
+        <div v-for="i in 8" :key="i" class="led-dot" :style="{ transform: `rotate(${(i-1) * 45}deg) translateY(-143px)` }"></div>
       </div>
-      
-      <div 
-        id="wheel" 
-        class="wheel" 
-        :style="{ transform: `rotate(calc(-90deg + ${currentRotation}deg))` }"
-      >
-        <div 
-          v-for="(slice, index) in slices" 
-          :key="index"
-          :class="['slice-item', slice.type]"
-          :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
-        >
-          <span class="slice-text">{{ slice.label }}</span>
+
+      <section class="wrapper" data-items="12">
+        <div class="marker-pin" :class="{ ticking: isSpinning }"></div>
+
+        <div class="controls">
+          <button id="spin-btn" @click="spinWheel" :disabled="isSpinning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M14 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+              <path d="M12 21c-3.314 0 -6 -2.462 -6 -5.5s2.686 -5.5 6 -5.5" />
+              <path d="M21 12c0 3.314 -2.462 6 -5.5 6s-5.5 -2.686 -5.5 -6" />
+              <path d="M12 14c3.314 0 6 -2.462 6 -5.5s-2.686 -5.5 -6 -5.5" />
+              <path d="M14 12c0 -3.314 -2.462 -6 -5.5 -6s-5.5 2.686 -5.5 6" />
+            </svg>
+          </button>
         </div>
-      </div>
-    </section>
+        
+        <div 
+          id="wheel" 
+          class="wheel" 
+          :style="{ transform: `rotate(calc(-90deg + ${currentRotation}deg))` }"
+        >
+          <div 
+            v-for="(slice, index) in slices" 
+            :key="index"
+            :class="['slice-item', slice.type]"
+            :style="{ '--offset-dist': `${(index / 12) * 100}%` }"
+          >
+            <span class="slice-text">{{ slice.label }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <div id="message" class="message" :style="{ color: msgColor }">
       {{ msgText }}
@@ -243,27 +250,20 @@ onMounted(fetchBalance)
   transition: all 0.2s ease;
 }
 
-.app-bar-title {
-  flex: 1;
-  text-align: center;
-  font-weight: 700;
-  font-size: 17px;
-  color: #2d3436;
-}
-
 .spacer { width: 40px; }
 
 #roulette-root {
   font-family: "Jura", sans-serif;
   background-color: #ffffff;
   color: #334155;
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 24px;
   margin-top: 85px; 
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
   user-select: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .top-bar {
@@ -287,9 +287,9 @@ onMounted(fetchBalance)
 }
 
 .bet-container input {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 2px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
   width: 130px;
@@ -298,36 +298,90 @@ onMounted(fetchBalance)
   font-weight: bold;
   margin-left: 10px;
   outline: none;
+  transition: border-color 0.2s;
 }
 .bet-container input:focus {
   border-color: #ff5e00;
 }
 
+/* --- AMÉLIORATION DESIGN DU CONTENEUR DE ROUE --- */
+.roulette-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 40px auto;
+  background: #e65100; /* Fond orange foncé comme la bordure de l'image */
+  border-radius: 50%;
+  padding: 15px; /* Épaisseur du contour violet/orange */
+  box-shadow: 0 12px 28px rgba(230, 81, 0, 0.3), inset 0 -4px 10px rgba(0,0,0,0.3);
+}
+
+/* Système de lampes LED tout autour */
+.led-lights {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+.led-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 8px; height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  margin-top: -4px; margin-left: -4px;
+  box-shadow: 0 0 8px #ffffff, 0 0 15px #ffffff;
+  animation: flash 1s ease-in-out infinite alternate;
+}
+
+@keyframes flash {
+  0% { opacity: 0.5; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 12px #ffb74d; }
+}
+
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  --wheel-radius: min(38vw, 180px);
-  --wheel-size: calc(var(--wheel-radius) * 2);
-  --wheel-padding: 18%;
-  --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
-
+  width: 100%;
+  height: 100%;
   position: relative;
-  width: var(--wheel-size);
-  aspect-ratio: 1;
-  margin: auto;
 }
 
+/* Le marqueur physique au-dessus (Flèche blanche/orange) */
+.marker-pin {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 22px solid #ffffff; /* Marqueur blanc pur */
+  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.3));
+  z-index: 110;
+}
+.marker-pin.ticking {
+  animation: marker-tick 250ms ease-in-out infinite alternate;
+}
+
+/* Bouton central repensé façon cartoon 3D doré */
 .controls {
   position: absolute;
   z-index: 100;
   inset: 0;
   margin: auto;
-  width: 50px;
-  height: 50px;
-  background: #ffffff;
-  border: 3px solid #ff5e00;
+  width: 65px;
+  height: 65px;
+  background: linear-gradient(135deg, #ffe082 0%, #ffb300 100%);
+  border: 4px solid #ffffff;
   border-radius: 50%;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25), inset 0 -4px 0px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .controls button {
@@ -336,76 +390,62 @@ onMounted(fetchBalance)
   border: none;
   width: 100%;
   height: 100%;
-  color: #ff5e00;
+  color: #e65100;
   display: grid;
   place-items: center;
 }
-.controls button:hover:not(:disabled) { transform: scale(1.1); }
-.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
+.controls button:hover:not(:disabled) { transform: scale(1.05); }
+.controls button:disabled { opacity: 0.8; cursor: not-allowed; }
 
-.controls::before {
-  content: '';
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 18px solid #ff5e00;
-  z-index: 101;
-}
-
-.controls.ticking::before {
-  animation: marker-tick 400ms ease-in-out infinite alternate;
-}
-
+/* La Roue avec des parts nettes bicolores orange/blanc */
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 4px solid #ff5e00;
-  box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
+  border: 4px solid #ffffff; /* Séparateur intérieur blanc */
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.15);
   
-  /* Conic-gradient synchronisé avec le décalage de -90° (début parfait centré) */
+  /* Gradation de couleurs alternée en conservant l'orange et le blanc cassé */
   background: repeating-conic-gradient(
     from calc(0deg - (var(--slice-angle) / 2)),
-    #fff3e0 0deg var(--slice-angle),
-    #ffb74d var(--slice-angle) calc(var(--slice-angle) * 2)
+    #ffffff 0deg var(--slice-angle),
+    #fff3e0 var(--slice-angle) calc(var(--slice-angle) * 2)
   );
-  transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1); /* Animation plus fluide */
   will-change: transform;
   z-index: 1;
 }
 
 .slice-item {
   position: absolute;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #e65100;
-  offset-path: circle(var(--item-radius) at 50% 50%);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #e65100; /* Texte orange vif */
+  /* Ajustement de la distance du texte vers l'extérieur pour copier le rendu de la photo */
+  offset-path: circle(105px at 50% 50%); 
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Redressement propre pour que les textes pointent tous verticalement vers le haut de la case */
+/* Orientation radiale : les textes pointent naturellement vers le centre */
 .slice-text {
   display: inline-block;
   transform: rotate(90deg); 
   white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
 }
 
-.slice-item.skull { font-size: 1.2rem; }
+.slice-item.skull { font-size: 1.3rem; }
 
 .message {
   text-align: center;
   font-weight: bold;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   margin-top: 25px;
   min-height: 32px;
 }
@@ -418,7 +458,7 @@ onMounted(fetchBalance)
 }
 
 @keyframes marker-tick {
-  from { transform: translateX(-50%) rotate(-10deg); }
-  to   { transform: translateX(-50%) rotate(10deg); }
+  from { transform: translateX(-50%) rotate(-12deg); }
+  to   { transform: translateX(-50%) rotate(12deg); }
 }
 </style>
