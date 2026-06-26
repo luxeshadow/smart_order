@@ -223,51 +223,43 @@ onMounted(fetchBalance)
 
 .app-bar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: 65px;
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(12px);
+  background: white;
   display: flex;
   align-items: center;
   padding: 0 15px;
   z-index: 2000;
-  border-bottom: 1px solid rgba(255,255,255,.3);
+  border-bottom: 1px solid #f1f1f1;
 }
 
 .back-btn {
   width: 45px;
   height: 45px;
-  background: white;
+  background-color: #f8f9fa;
   border: 1px solid #eee;
   border-radius: 14px;
-  transition: .2s;
+  padding: 4px;
+  transition: all 0.2s ease;
 }
 
-.back-btn:hover {
-  transform: scale(1.05);
+.app-bar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #2d3436;
 }
 
-.spacer {
-  width: 40px;
-}
+.spacer { width: 40px; }
 
 #roulette-root {
-  position: relative;
-  overflow: hidden;
-
   font-family: "Jura", sans-serif;
-
-  background:
-    radial-gradient(circle at top,
-      #fffdf8 0%,
-      #fff8ef 100%);
-
+  background-color: #ffffff;
   color: #334155;
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 24px;
-  margin-top: 85px;
+  margin-top: 85px; 
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
@@ -278,65 +270,43 @@ onMounted(fetchBalance)
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
-  border-bottom: 1px solid #ececec;
-  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
 }
 
-.title-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-.balance-badge {
-  font-size: 13px;
-  color: #64748b;
-}
-
-.balance-badge .amount {
-  color: #ff6f00;
-  font-weight: 900;
-  font-size: 16px;
-}
+.title-label { font-size: 13px; font-weight: 600; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; }
+.balance-badge { font-size: 13px; color: #64748b; }
+.balance-badge .amount { color: #ff5e00; font-weight: 700; font-size: 15px; }
 
 .bet-container {
   text-align: center;
-  margin-bottom: 30px;
-}
-
-.bet-container label {
-  font-weight: 700;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+  color: #1e293b;
 }
 
 .bet-container input {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 2px solid #ffe0b2;
-  background: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
   width: 130px;
+  font-size: 1.1rem;
   text-align: center;
-  font-size: 18px;
   font-weight: bold;
-  margin-left: 12px;
+  margin-left: 10px;
   outline: none;
-  transition: .25s;
 }
-
 .bet-container input:focus {
-  border-color: #ff9800;
-  box-shadow: 0 0 15px rgba(255,152,0,.25);
+  border-color: #ff5e00;
 }
-
-/* ---------------------- */
-/* ROUE */
-/* ---------------------- */
 
 .wrapper {
   --items: 12;
   --slice-angle: calc(360deg / var(--items));
-  --wheel-radius: min(40vw, 190px);
+  --wheel-radius: min(38vw, 180px);
   --wheel-size: calc(var(--wheel-radius) * 2);
   --wheel-padding: 18%;
   --item-radius: calc(var(--wheel-radius) - var(--wheel-padding));
@@ -347,233 +317,108 @@ onMounted(fetchBalance)
   margin: auto;
 }
 
-/* ---------------------- */
-/* BOUTON CENTRAL */
-/* ---------------------- */
-
 .controls {
   position: absolute;
   z-index: 100;
   inset: 0;
   margin: auto;
-
-  width: 74px;
-  height: 74px;
+  width: 50px;
+  height: 50px;
+  background: #ffffff;
+  border: 3px solid #ff5e00;
   border-radius: 50%;
-
-  background:
-    radial-gradient(circle at 30% 30%,
-      #ffffff,
-      #ffe082 40%,
-      #ffb300 75%,
-      #ff6f00 100%
-    );
-
-  border: 5px solid white;
-
-  box-shadow:
-    0 0 20px rgba(255,215,0,.8),
-    0 0 40px rgba(255,152,0,.5),
-    inset 0 4px 12px rgba(255,255,255,.7);
-
-  animation: pulse 2s infinite;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .controls button {
+  cursor: pointer;
+  background: transparent;
+  border: none;
   width: 100%;
   height: 100%;
-  border: none;
-  background: transparent;
-  color: white;
+  color: #ff5e00;
   display: grid;
   place-items: center;
-  cursor: pointer;
 }
-
-.controls button svg {
-  width: 32px;
-  height: 32px;
-}
-
-.controls button:hover:not(:disabled) {
-  transform: scale(1.1);
-}
-
-.controls button:disabled {
-  opacity: .6;
-}
-
-/* ---------------------- */
-/* AIGUILLE */
-/* ---------------------- */
+.controls button:hover:not(:disabled) { transform: scale(1.1); }
+.controls button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .controls::before {
   content: '';
   position: absolute;
-  top: -28px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
-
-  border-left: 16px solid transparent;
-  border-right: 16px solid transparent;
-  border-bottom: 32px solid #ff1744;
-
-  filter:
-    drop-shadow(0 0 6px rgba(255,23,68,.8))
-    drop-shadow(0 0 15px rgba(255,23,68,.5));
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid #ff5e00;
+  z-index: 101;
 }
 
 .controls.ticking::before {
-  animation: marker-tick .08s infinite alternate;
+  animation: marker-tick 400ms ease-in-out infinite alternate;
 }
-
-/* ---------------------- */
-/* DISQUE */
-/* ---------------------- */
 
 .wheel {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  overflow: hidden;
-
-  border: 10px solid #ffd54f;
-
-  background:
-    radial-gradient(circle at center,
-      rgba(255,255,255,.9) 0%,
-      rgba(255,255,255,.2) 20%,
-      transparent 21%
-    ),
-
-    repeating-conic-gradient(
-      from calc(0deg - (var(--slice-angle) / 2)),
-      #fff8e1 0deg var(--slice-angle),
-      #ff9800 var(--slice-angle) calc(var(--slice-angle) * 2)
-    );
-
-  box-shadow:
-    0 0 15px rgba(255,215,0,.8),
-    0 0 35px rgba(255,140,0,.7),
-    0 0 60px rgba(255,94,0,.35),
-    inset 0 0 25px rgba(255,255,255,.35);
-
-  transition: transform 4s cubic-bezier(.1,.85,.15,1);
+  border: 4px solid #ff5e00;
+  box-shadow: 0 10px 25px rgba(255, 94, 0, 0.15);
+  
+  /* Conic-gradient synchronisé avec le décalage de -90° (début parfait centré) */
+  background: repeating-conic-gradient(
+    from calc(0deg - (var(--slice-angle) / 2)),
+    #fff3e0 0deg var(--slice-angle),
+    #ffb74d var(--slice-angle) calc(var(--slice-angle) * 2)
+  );
+  transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
   will-change: transform;
+  z-index: 1;
 }
-
-/* LEDs */
-
-.wheel::before {
-  content: "";
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-
-  background:
-    repeating-conic-gradient(
-      #ffd700 0deg 2deg,
-      transparent 2deg 8deg
-    );
-
-  animation: led-spin 8s linear infinite;
-  z-index: -1;
-}
-
-.wheel::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.5);
-}
-
-/* ---------------------- */
-/* CASES */
-/* ---------------------- */
 
 .slice-item {
   position: absolute;
-
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e65100;
   offset-path: circle(var(--item-radius) at 50% 50%);
   offset-rotate: auto;
   offset-distance: var(--offset-dist);
-
-  width: 42px;
-  height: 42px;
-
+  width: 40px;
+  height: 40px;
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  color: white;
-  font-size: 18px;
-  font-weight: 900;
-
-  text-shadow:
-    0 2px 4px rgba(0,0,0,.4),
-    0 0 10px rgba(255,255,255,.4);
+  justify-content: center;
 }
 
+/* Redressement propre pour que les textes pointent tous verticalement vers le haut de la case */
 .slice-text {
-  transform: rotate(90deg);
+  display: inline-block;
+  transform: rotate(90deg); 
   white-space: nowrap;
 }
 
-.slice-item.skull {
-  font-size: 24px;
-}
+.slice-item.skull { font-size: 1.2rem; }
 
 .message {
   text-align: center;
   font-weight: bold;
-  font-size: 1.2rem;
-  margin-top: 35px;
+  font-size: 1.15rem;
+  margin-top: 25px;
   min-height: 32px;
 }
 
 .debug-info {
-  text-align: center;
-  margin-top: 20px;
-  color: #94a3b8;
-  font-size: .9rem;
-}
-
-/* ---------------------- */
-/* ANIMATIONS */
-/* ---------------------- */
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.08);
-  }
-
-  100% {
-    transform: scale(1);
-  }
+  text-align: center; 
+  margin-top: 15px; 
+  color: #94a3b8; 
+  font-size: 0.95rem;
 }
 
 @keyframes marker-tick {
-  from {
-    transform: translateX(-50%) rotate(-10deg);
-  }
-
-  to {
-    transform: translateX(-50%) rotate(10deg);
-  }
-}
-
-@keyframes led-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: translateX(-50%) rotate(-10deg); }
+  to   { transform: translateX(-50%) rotate(10deg); }
 }
 </style>
