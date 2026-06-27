@@ -9,14 +9,14 @@ export interface RouletteSlice {
 export const ROULETTE_SLICES: RouletteSlice[] = [
   { type: 'skull', label: '💀', mult: 0 },
   { type: 'win', label: '1.25x', mult: 1.25 },
-  { type: 'skull', label: '💀', mult: 0 },
+  { type: 'skull', label: '💣', mult: 0 },
   { type: 'win', label: '1.5x', mult: 1.5 },
   { type: 'skull', label: '💀', mult: 0 },
   { type: 'win', label: '2x', mult: 2 },
-  { type: 'skull', label: '💀', mult: 0 },
+  { type: 'skull', label: '💣', mult: 0 },
   { type: 'win', label: '1.25x', mult: 1.25 },
   { type: 'skull', label: '💀', mult: 0 },
   { type: 'win', label: '1.75x', mult: 1.75 },
-  { type: 'skull', label: '💀', mult: 0 },
+  { type: 'skull', label: '💣', mult: 0 },
   { type: 'win', label: '5x', mult: 5 }
 ]

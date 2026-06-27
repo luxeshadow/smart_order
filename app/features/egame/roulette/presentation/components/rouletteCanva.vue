@@ -104,11 +104,7 @@ const spinWheel = async () => {
 
   const serverWinningIndex = result.winningIndex
   const extraTurns = (Math.floor(Math.random() * 5) + 6) * 360
-  
-  // Angle requis pour amener la case correspondante sous le pointeur
   const targetRotation = (total - serverWinningIndex) * sliceAngle
-
-  // On arrondit par rapport à l'angle accumulé précédent
   const currentBaseRotation = Math.ceil(currentRotation.value / 360) * 360
   currentRotation.value = currentBaseRotation + extraTurns + targetRotation
 
@@ -120,7 +116,6 @@ const spinWheel = async () => {
 
     debugInfo.value = { winning: serverWinningIndex, detected: detectedIndex }
 
-    // 3. Traitement des résultats
     if (!result.isWin) {
       msgText.value = `💀 Perdu ${bet} XOF`
       msgColor.value = "#ef4444"
@@ -128,7 +123,6 @@ const spinWheel = async () => {
       return
     }
 
-    // Lecture sécurisée du son de victoire avant l'explosion de confettis
     try {
       const audio = new Audio(AppAudio.Win_Ringtone)
       audio.play()
