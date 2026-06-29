@@ -26,9 +26,8 @@ export const useToast = () => {
           background: "white",
           color: "#1a1a1a",
           borderRadius: "12px",
-          border: "2px solid #c9c9c9",
-          padding: "12px 20px",
-         
+          border: "1px solid #c9c9c9",
+          padding: "10px 16px",
           maxWidth: "calc(100% - 30px)",
           width: "fit-content",
           display: "inline-block" 
