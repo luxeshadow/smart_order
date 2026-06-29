@@ -26,7 +26,7 @@ export const useToast = () => {
           background: "white",
           color: "#1a1a1a",
           borderRadius: "12px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          border: "2px solid #c9c9c9",
           padding: "12px 20px",
          
           maxWidth: "calc(100% - 30px)",
