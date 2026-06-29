@@ -1,7 +1,7 @@
 export const useToast = () => {
   const showToast = (
-    text: string, 
-    icon: string = 'fi-rr-info', 
+    text: string,
+    icon: string = 'fi-rr-info',
     type: 'success' | 'error' | 'normal' = 'normal',
     color: string = '#1a1a1a'
   ) => {
@@ -30,7 +30,8 @@ export const useToast = () => {
           padding: "10px 16px",
           maxWidth: "calc(100% - 30px)",
           width: "fit-content",
-          display: "inline-block" 
+          display: "inline-block",
+          boxShadow: "none"
         }
       }).showToast();
     } else {
