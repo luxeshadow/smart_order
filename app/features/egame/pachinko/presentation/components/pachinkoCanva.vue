@@ -256,7 +256,7 @@ onMounted(async () => {
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
-    <!-- Arène du jeu : Grille de Briques Réalistes -->
+    <!-- Arène du jeu : Mur de Briques Plates avec Rainures -->
     <div class="arena-container">
       <div class="mult-overlay">
         <div class="mult-val" :style="{ color: isPlaying && currentLevel > 0 ? AppColor.status.success : AppColor.tertiary.base }">
@@ -267,7 +267,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="brick-grid-arena">
+      <div class="brick-wall">
         <div
           v-for="r in [...Array(ROWS).keys()].reverse()"
           :key="r"
@@ -280,7 +280,7 @@ onMounted(async () => {
           <div
             v-for="c in COLS"
             :key="c - 1"
-            class="brick-cell"
+            class="flat-brick"
             :class="{
               safe: gridRevealed[r]?.[c - 1] === 'safe',
               boom: gridRevealed[r]?.[c - 1] === 'boom',
@@ -288,6 +288,9 @@ onMounted(async () => {
             }"
             @click="selectBrick(r, c - 1)"
           >
+            <!-- Ligne de séparation interne (rainure de brique) -->
+            <div class="brick-groove" />
+
             <span v-if="gridRevealed[r]?.[c - 1] === 'safe'" class="icon-pop">🍄</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'boom'" class="icon-pop">💣</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'revealed-bomb'" class="dimmed">💣</span>
@@ -408,10 +411,7 @@ onMounted(async () => {
 .arena-container {
   position: relative;
   background: v-bind('AppColor.surface.off');
-  border-left: 2px solid v-bind('AppColor.surface.bone'); 
-  border-bottom: 2px solid v-bind('AppColor.surface.bone');
-  border-top: 1px solid v-bind('AppColor.surface.smoke');
-  border-right: 1px solid v-bind('AppColor.surface.smoke');
+  border: 1px solid v-bind('AppColor.surface.bone');
   border-radius: 16px;
   margin-bottom: 16px;
   padding: 55px 12px 12px 12px;
@@ -428,32 +428,35 @@ onMounted(async () => {
   padding: 4px 10px;
   border-radius: 8px;
   border: 1px solid v-bind('AppColor.surface.bone');
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 .mult-val { font-size: 1.3rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.3px; }
 .mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: v-bind('AppColor.tertiary.soft'); font-weight: 700; margin-top: 1px; }
 
-/* Grille de Briques */
-.brick-grid-arena {
+/* 🧱 DESIGN BRIQUE PLAT 2D AVEC RAINURES DE MORTIER 🧱 */
+.brick-wall {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* La rainure horizontale entre les rangées de briques */
+  gap: 3px;
+  background: v-bind('AppColor.surface.bone'); /* Couleur du mortier/joint */
+  padding: 3px;
+  border-radius: 8px;
   width: 100%;
 }
 
 .brick-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  opacity: 0.4;
+  /* La rainure verticale entre chaque brique */
+  gap: 3px;
+  opacity: 0.45;
   pointer-events: none;
-  transition: all 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 
 .brick-row.active {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1.01);
 }
 
 .brick-row.completed {
@@ -461,70 +464,72 @@ onMounted(async () => {
   pointer-events: none;
 }
 
-/* 🧱 BRIQUE AVEC COULEURS D'ACCENT/PRIMARY 🧱 */
-.brick-cell {
+.flat-brick {
   position: relative;
   width: 100%;
-  height: 44px;
-  background: linear-gradient(135deg, v-bind('AppColor.primary.base') 0%, v-bind('AppColor.primary.dark') 100%);
-  border-radius: 6px;
-  border: 1px solid v-bind('AppColor.primary.dark');
+  height: 42px;
+  /* Couleur plate unie de la brique sans degradé 3D */
+  background: v-bind('AppColor.primary.base');
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  box-shadow: 
-    inset 2px 2px 0px rgba(255, 255, 255, 0.4),
-    inset -2px -2px 0px rgba(0, 0, 0, 0.3),
-    0 3px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.15s ease;
+  overflow: hidden;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
 }
 
-.brick-row.active .brick-cell:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.08);
-  box-shadow: 
-    inset 2px 2px 0px rgba(255, 255, 255, 0.6),
-    inset -2px -2px 0px rgba(0, 0, 0, 0.4),
-    0 5px 10px rgba(0, 0, 0, 0.15);
+/* Rainure horizontale interne pour donner le look de vrai motif de brique */
+.brick-groove {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: v-bind('AppColor.primary.dark');
+  opacity: 0.4;
+  pointer-events: none;
 }
 
-.brick-cell:active {
-  transform: translateY(1px);
-  box-shadow: 
-    inset 1px 1px 0px rgba(0, 0, 0, 0.5),
-    inset -1px -1px 0px rgba(255, 255, 255, 0.2);
+.brick-row.active .flat-brick:hover {
+  background: v-bind('AppColor.primary.accent');
 }
 
-/* États révélés */
-.brick-cell.safe {
-  background: linear-gradient(135deg, v-bind('AppColor.status.success') 0%, #388e3c 100%);
-  border-color: #2e7d32;
-  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.4), inset -1px -1px 0px rgba(0, 0, 0, 0.3);
+/* États après clic / révélation */
+.flat-brick.safe {
+  background: v-bind('AppColor.status.success');
 }
 
-.brick-cell.boom {
-  background: linear-gradient(135deg, v-bind('AppColor.status.error') 0%, #d32f2f 100%);
-  border-color: #c62828;
-  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.4), inset -1px -1px 0px rgba(0, 0, 0, 0.3);
+.flat-brick.safe .brick-groove {
+  background: #2e7d32;
 }
 
-.brick-cell.revealed {
+.flat-brick.boom {
+  background: v-bind('AppColor.status.error');
+}
+
+.flat-brick.boom .brick-groove {
+  background: #c62828;
+}
+
+.flat-brick.revealed {
   background: v-bind('AppColor.surface.smoke');
-  border-color: v-bind('AppColor.surface.bone');
-  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.08);
+}
+
+.flat-brick.revealed .brick-groove {
+  background: v-bind('AppColor.surface.bone');
 }
 
 .icon-pop {
-  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  z-index: 2;
 }
 
-.dimmed { opacity: 0.45; }
-
-@keyframes popIn {
-  0% { transform: scale(0); }
-  100% { transform: scale(1); }
+.dimmed { 
+  position: relative;
+  z-index: 2;
+  opacity: 0.45; 
 }
 
 /* Saisie & Contrôles */
@@ -543,12 +548,11 @@ onMounted(async () => {
   font-size: 16px; 
   font-weight: 700; 
   outline: none; 
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 .ctrl-input:focus { 
   background: v-bind('AppColor.surface.pure');
   border-color: v-bind('AppColor.primary.base');
-  box-shadow: 0 0 0 3px rgba(255, 94, 0, 0.1);
 }
 
 .chip-row { display: flex; gap: 6px; margin-top: 8px; }
@@ -581,22 +585,19 @@ onMounted(async () => {
   font-size: 15px; 
   font-weight: 700; 
   cursor: pointer; 
-  transition: all 0.2s ease; 
+  transition: opacity 0.2s ease; 
 }
-.btn-main:active { transform: scale(0.99); }
-.btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-main:active { opacity: 0.9; }
+.btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-start-safe {
   background: v-bind('AppColor.primary.base'); 
   color: v-bind('AppColor.surface.pure');
-  box-shadow: 0 4px 12px rgba(255, 94, 0, 0.25);
 }
-.btn-start-safe:hover:not(:disabled) { background: v-bind('AppColor.primary.dark'); }
 
 .btn-cashout-safe {
   background: v-bind('AppColor.status.success');
   color: v-bind('AppColor.surface.pure');
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
 }
 
 .msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 16px; font-weight: 600; }
