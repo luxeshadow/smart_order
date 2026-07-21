@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
@@ -9,166 +9,95 @@ import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'
 import { Failure } from '@/core/errors/failure'
 import { AppAudio } from '@/core/constants/app_audios'
-import { PACHINKO_BUCKETS } from '@/core/constants/pachinko_game'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { PlayPachinkoGameUseCase } from '../../application/usecases/play_pachinko_game_usecase'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
 
-declare global {
-  interface Window { Matter?: any }
-}
+const ROWS = 8
+const COLS = 6
+const BASE_MULT = 1.25
+const STEP_MULT = 0.25
 
-const MATTER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js'
 const router = useRouter()
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
 const gameStore = usePachinkoGameStore()
+
 const { user } = storeToRefs(authStore)
 const { mainBalance } = storeToRefs(transactionStore)
+
 const { showToast } = useToast()
 const { triggerConfetti } = useConfetti()
 
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(new ShowMyPrincipalBalanceRepositoryImpl())
 const playPachinkoUseCase = new PlayPachinkoGameUseCase(new PlayPachinkoGameRepositoryImpl())
 
-const matterContainer = ref<HTMLElement | null>(null)
-const betInput = ref(500)
-const message = ref('Lancez la bille !')
-const messageColor = ref('#64748b')
-const activeBucket = ref<number | null>(null)
+// États du jeu
+const betInput = ref<number>(500)
+const isPlaying = ref<boolean>(false)
+const currentLevel = ref<number>(0)
+const currentBet = ref<number>(0)
+const statusMessage = ref<string>('Place ta mise pour démarrer !')
+const messageColor = ref<string>('#fcdc00')
 
-let engine: any
-let render: any
-let runner: any
-let matter: any
-let currentBall: any = null
-let targetIndex: number | null = null
-let audioContext: AudioContext | null = null
+// Matrice du plateau : gridConfig[row][col]
+const gridConfig = ref<string[][]>([])
+const gridRevealed = ref<string[][]>([])
 
-const formatBalance = (value: number | null) => value === null || value === undefined ? '0' : Math.floor(value).toLocaleString('fr-FR')
+const formatBalance = (val: number | null) => {
+  if (val === null || val === undefined) return '0'
+  return Math.floor(val).toLocaleString('fr-FR')
+}
 
 const fetchBalance = async () => {
   if (!user.value?.id) return
   const result = await getBalanceUseCase.execute({ userId: user.value.id })
-  if (!(result instanceof Failure)) transactionStore.updateAllBalances(result)
+  if (!(result instanceof Failure)) {
+    transactionStore.updateAllBalances(result)
+  }
 }
 
-const loadMatter = () => new Promise<void>((resolve, reject) => {
-  if (window.Matter) return resolve()
-  const script = document.createElement('script')
-  script.src = MATTER_CDN
-  script.onload = () => window.Matter ? resolve() : reject(new Error('Matter.js indisponible'))
-  script.onerror = () => reject(new Error('Chargement de Matter.js impossible'))
-  document.head.appendChild(script)
-})
-
-const playDingSound = () => {
-  try {
-    audioContext ||= new AudioContext()
-    if (audioContext.state === 'suspended') void audioContext.resume()
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-    oscillator.connect(gain)
-    gain.connect(audioContext.destination)
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(350 + Math.random() * 200, audioContext.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.08)
-    gain.gain.setValueAtTime(0.08, audioContext.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08)
-    oscillator.start()
-    oscillator.stop(audioContext.currentTime + 0.08)
-  } catch {}
+// Initialisation d'une grille vide sécurisée
+const initEmptyGrid = () => {
+  gridRevealed.value = Array.from({ length: ROWS }, () => Array(COLS).fill(''))
 }
 
-const initMatter = () => {
-  if (!matterContainer.value || !window.Matter) return
-  matter = window.Matter
-  const { Engine, Render, Runner, Bodies, Composite, Events, Body } = matter
-  const width = matterContainer.value.clientWidth
-  const height = matterContainer.value.clientHeight
+const updateStatusMessage = () => {
+  const currentMult = (BASE_MULT + currentLevel.value * STEP_MULT).toFixed(2)
+  const chances = currentLevel.value < 3 ? '3/6 (50%)' : '2/6 (33%)'
+  const modeName = currentLevel.value < 3 ? 'Normal' : 'Hard ⚠️'
 
-  engine = Engine.create({ gravity: { y: 0.8 }, positionIterations: 10, velocityIterations: 10 })
-  render = Render.create({ element: matterContainer.value, engine, options: { width, height, wireframes: false, background: 'transparent' } })
-  runner = Runner.create()
-  Render.run(render)
-  Runner.run(runner, engine)
+  if (currentLevel.value === 0) {
+    statusMessage.value = `Étage 1 (x${currentMult}) | Mode ${modeName} [Chances: ${chances}]`
+  } else {
+    const gainActuel = (currentBet.value * (BASE_MULT + (currentLevel.value - 1) * STEP_MULT)).toFixed(2)
+    statusMessage.value = `Étage ${currentLevel.value + 1} (x${currentMult}) | Gains: ${gainActuel} $ [Chances: ${chances}]`
+  }
+  messageColor.value = '#fcdc00'
+}
 
-  const pins: any[] = []
-  const pinRows = 8
-  const pinSpacingX = 26
-  const pinSpacingY = 28
-  for (let row = 0; row < pinRows; row++) {
-    const pinsInRow = row + 3
-    const rowY = 45 + row * pinSpacingY
-    const startX = width / 2 - ((pinsInRow - 1) * pinSpacingX) / 2
-    for (let column = 0; column < pinsInRow; column++) {
-      pins.push(Bodies.circle(startX + column * pinSpacingX, rowY, 3.8, {
-        isStatic: true, label: 'pin', restitution: 0.4, friction: 0.1, render: { fillStyle: '#94a3b8' }
-      }))
+// Mélange des éléments d'une ligne
+const shuffle = (array: string[]): string[] => {
+  const arr = [...array]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const temp = arr[i]
+    if (temp !== undefined && arr[j] !== undefined) {
+      arr[i] = arr[j]!
+      arr[j] = temp
     }
   }
-  Composite.add(engine.world, pins)
-
-  Events.on(engine, 'collisionStart', (event: any) => {
-    event.pairs.forEach((pair: any) => {
-      if (pair.bodyA.label === 'pin' || pair.bodyB.label === 'pin') playDingSound()
-    })
-  })
-
-  // 🎯 GUIDAGE PHYSIQUE PROGRESSIF ET INVISIBLE
-  Events.on(engine, 'beforeUpdate', () => {
-    if (!currentBall || targetIndex === null) return
-
-    const bucketCount = PACHINKO_BUCKETS.length
-    const bucketWidth = 26
-    const totalGridWidth = bucketCount * bucketWidth
-    const gridStartX = (width - totalGridWidth) / 2
-    
-    // Position X exacte du centre du bac cible
-    const targetX = gridStartX + (targetIndex + 0.5) * bucketWidth
-    const deltaX = targetX - currentBall.position.x
-
-    // Plus la bille descend, plus la force d'attraction devient forte mais fluide
-    const progress = Math.min(1, Math.max(0, (currentBall.position.y - 45) / (height - 90)))
-    
-    // Application d'une force corrective très douce qui s'intensifie légèrement
-    const attractionForce = deltaX * 0.00008 * (1 + progress * 2)
-    Body.applyForce(currentBall, currentBall.position, { x: attractionForce, y: 0 })
-  })
+  return arr
 }
 
-const finishRound = async (result: any, bet: number) => {
-  if (!currentBall || !engine) return
-  matter.Composite.remove(engine.world, currentBall)
-  currentBall = null
-  targetIndex = null
+// Démarrage de la partie
+const startGame = async () => {
+  if (isPlaying.value) return
 
-  activeBucket.value = result.winningIndex
-  gameStore.finishGame(result.winningIndex)
-
-  const bucket = PACHINKO_BUCKETS[result.winningIndex]
-
-  if (!result.isWin || result.gains === 0) {
-    message.value = `💀 Perdu ${bet.toLocaleString('fr-FR')} XOF`
-    messageColor.value = '#ef4444'
-  } else {
-    try { void new Audio(AppAudio.Win_Ringtone).play() } catch {}
-    triggerConfetti()
-    showToast(`+${result.gains.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
-    message.value = `🎉 Gagné ! ${bucket?.label || ''} → +${result.gains.toLocaleString('fr-FR')} XOF`
-    messageColor.value = '#22c55e'
-  }
-
-  await fetchBalance()
-}
-
-const launchBall = async () => {
-  if (gameStore.isPlaying || !engine || !matterContainer.value) return
-  
   const bet = Number(betInput.value)
-  if (Number.isNaN(bet) || bet < 500) {
-    message.value = '❌ Mise minimale 500 XOF'
+  if (isNaN(bet) || bet < 10) {
+    statusMessage.value = '❌ Mise minimale 10 XOF'
     messageColor.value = '#ef4444'
     return
   }
@@ -176,113 +105,213 @@ const launchBall = async () => {
   await fetchBalance()
   const balance = mainBalance.value || 0
   if (bet > balance) {
-    message.value = '❌ Solde insuffisant'
+    statusMessage.value = '❌ Solde insuffisant'
     messageColor.value = '#ef4444'
     return
   }
 
-  // 1. Appel serveur
-  const result = await playPachinkoUseCase.execute({ userId: user.value?.id || '', betAmount: bet })
-  if (result instanceof Failure) {
-    message.value = `❌ ${result.message}`
-    messageColor.value = '#ef4444'
-    return
-  }
-
-  gameStore.startGame()
+  // Enregistrement du jeu et déduction de la mise
   transactionStore.updateBalance(balance - bet)
-  activeBucket.value = null
-  targetIndex = result.winningIndex // On enregistre l'index cible pour la physique
-  
-  message.value = 'Bille en cours...'
-  messageColor.value = '#ff5e00'
+  currentBet.value = bet
+  currentLevel.value = 0
+  isPlaying.value = true
 
-  const width = matterContainer.value.clientWidth
-  const { Bodies, Composite, Body } = matter
+  // Génération de la configuration secrète de la grille
+  const generatedConfig: string[][] = []
+  for (let r = 0; r < ROWS; r++) {
+    const bombs = r < 3 ? 3 : 4
+    const safes = COLS - bombs
+    const rowItems: string[] = [
+      ...Array(bombs).fill('bomb'),
+      ...Array(safes).fill('safe')
+    ]
+    generatedConfig[r] = shuffle(rowItems)
+  }
+  gridConfig.value = generatedConfig
 
-  // 2. Position de départ légèrement pré-orientée vers la cible
-  const bucketCount = PACHINKO_BUCKETS.length
-  const bucketWidth = 26
-  const totalGridWidth = bucketCount * bucketWidth
-  const gridStartX = (width - totalGridWidth) / 2
-  const targetX = gridStartX + (targetIndex + 0.5) * bucketWidth
-  const startX = width / 2 + (targetX - width / 2) * 0.25
+  initEmptyGrid()
+  gameStore.startGame()
+  updateStatusMessage()
+}
 
-  currentBall = Bodies.circle(startX, 15, 7.5, {
-    restitution: 0.35,
-    friction: 0.08,
-    frictionAir: 0.01,
-    density: 0.02,
-    label: 'ball',
-    render: { fillStyle: '#fbbf24', strokeStyle: '#d97706', lineWidth: 1.5 }
-  })
+// Clic sur une brique
+const selectBrick = async (row: number, col: number) => {
+  if (!isPlaying.value || row !== currentLevel.value) return
 
-  Composite.add(engine.world, currentBall)
+  const rowData = gridConfig.value[row]
+  if (!rowData) return
 
-  // 3. Attendre l'atterrissage final
-  const interval = window.setInterval(() => {
-    if (!currentBall) return window.clearInterval(interval)
-    const height = matterContainer.value?.clientHeight || 0
+  const item = rowData[col]
+  if (!item) return
 
-    if (currentBall.position.y >= height - 35) {
-      window.clearInterval(interval)
-      void finishRound(result, bet)
+  const targetRowRevealed = gridRevealed.value[row]
+  if (!targetRowRevealed) return
+
+  if (item === 'bomb') {
+    // 💣 PERDU !
+    targetRowRevealed[col] = 'boom'
+    revealRow(row)
+
+    statusMessage.value = 'BOOM ! Perdu !'
+    messageColor.value = '#ef4444'
+
+    await endGame(false, 0)
+  } else {
+    // 🍄 Brique Sécurisée !
+    targetRowRevealed[col] = 'safe'
+    currentLevel.value++
+
+    if (currentLevel.value < ROWS) {
+      updateStatusMessage()
+    } else {
+      // Victoire Maximale
+      const maxMult = BASE_MULT + (ROWS - 1) * STEP_MULT
+      const totalWin = Math.floor(currentBet.value * maxMult)
+
+      statusMessage.value = `🎉 Victoire Maximale ! Gain : ${totalWin.toLocaleString('fr-FR')} XOF`
+      messageColor.value = '#22c55e'
+
+      await endGame(true, totalWin)
     }
-  }, 16)
+  }
+}
+
+// Révéler les autres cases d'un étage après explosion
+const revealRow = (row: number) => {
+  const currentRowRevealed = gridRevealed.value[row]
+  const currentRowConfig = gridConfig.value[row]
+
+  if (!currentRowRevealed || !currentRowConfig) return
+
+  for (let c = 0; c < COLS; c++) {
+    if (!currentRowRevealed[c]) {
+      currentRowRevealed[c] = currentRowConfig[c] === 'bomb' ? 'revealed-bomb' : 'revealed-safe'
+    }
+  }
+}
+
+// Encaissement manuel
+const cashout = async () => {
+  if (!isPlaying.value || currentLevel.value === 0) return
+
+  const finalMult = BASE_MULT + (currentLevel.value - 1) * STEP_MULT
+  const winAmount = Math.floor(currentBet.value * finalMult)
+
+  statusMessage.value = `🎉 Encaissement réussi ! Gain : ${winAmount.toLocaleString('fr-FR')} XOF`
+  messageColor.value = '#22c55e'
+
+  await endGame(true, winAmount)
+}
+
+// Fin de la partie et synchronisation Supabase
+const endGame = async (isWin: boolean, winAmount: number) => {
+  isPlaying.value = false
+
+  // Validation finale dans Supabase via le Repository
+  await playPachinkoUseCase.execute({
+    userId: user.value?.id || '',
+    betAmount: currentBet.value, // Ex: 500 XOF
+    winAmount: isWin ? winAmount : 0, // Gain calculé par le jeu Mario
+    isWin
+  } as any)
+
+  if (isWin && winAmount > 0) {
+    try { void new Audio(AppAudio.Win_Ringtone).play() } catch {}
+    triggerConfetti()
+    showToast(`+${winAmount.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
+  }
+
+  gameStore.finishGame(0)
+  await fetchBalance()
 }
 
 onMounted(async () => {
   await fetchBalance()
-  try { await loadMatter(); await nextTick(); initMatter() }
-  catch { message.value = 'Erreur de chargement.'; messageColor.value = '#ef4444' }
-})
-
-onBeforeUnmount(() => {
-  if (render) matter.Render.stop(render)
-  if (runner) matter.Runner.stop(runner)
-  if (engine) matter.Composite.clear(engine.world, false)
+  initEmptyGrid()
 })
 </script>
 
 <template>
-  <div class="pachinko-root">
+  <div class="mario-root">
+    <!-- Navbar -->
     <nav class="app-bar">
       <button class="back-btn" aria-label="Retour" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left" />
       </button>
     </nav>
-    <div class="game-card">
-      <header class="header">
-        <span class="title">Pachinko Game</span>
-        <span class="balance-box">Solde : <strong>{{ formatBalance(mainBalance) }}</strong> XOF</span>
-      </header>
 
-      <div class="bet-area">
-        <label for="pachinko-bet">Mise :</label>
-        <input id="pachinko-bet" v-model.number="betInput" type="number" min="500" :disabled="gameStore.isPlaying">
+    <!-- Game Container -->
+    <div class="game-card">
+      <div class="stats-panel">
+        <div class="stat-box">
+          Solde
+          <span>{{ formatBalance(mainBalance) }} XOF</span>
+        </div>
+        <div class="stat-box">
+          Gain Potentiel
+          <span>
+            {{
+              isPlaying && currentLevel > 0
+                ? Math.floor(currentBet * (BASE_MULT + (currentLevel - 1) * STEP_MULT)).toLocaleString('fr-FR')
+                : '0'
+            }}
+            XOF
+          </span>
+        </div>
       </div>
 
-      <section class="arena">
-        <div class="emitter" />
-        <div ref="matterContainer" class="matter-container" />
-        <div class="buckets-container">
-          <div 
-            v-for="(bucket, index) in PACHINKO_BUCKETS" 
-            :key="`${bucket.label}-${index}`" 
-            class="bucket" 
-            :class="{ active: activeBucket === index }" 
-            :style="{ backgroundColor: bucket.color }"
+      <div class="controls">
+        <input
+          id="bet-input"
+          v-model.number="betInput"
+          type="number"
+          min="10"
+          step="10"
+          inputmode="decimal"
+          :disabled="isPlaying"
+        >
+        <button class="btn-start" :disabled="isPlaying" @click="startGame">
+          Miser
+        </button>
+      </div>
+
+      <button class="btn-cashout" :disabled="!isPlaying || currentLevel === 0" @click="cashout">
+        Encaisser
+      </button>
+
+      <div class="status-msg" :style="{ color: messageColor }">
+        {{ statusMessage }}
+      </div>
+
+      <!-- Grille de Jeu -->
+      <div class="grid">
+        <div
+          v-for="r in [...Array(ROWS).keys()].reverse()"
+          :key="r"
+          class="row"
+          :class="{
+            active: isPlaying && currentLevel === r,
+            completed: isPlaying && currentLevel > r,
+          }"
+        >
+          <div
+            v-for="c in COLS"
+            :key="c - 1"
+            class="brick"
+            :class="{
+              safe: gridRevealed[r]?.[c - 1] === 'safe',
+              boom: gridRevealed[r]?.[c - 1] === 'boom',
+              revealed: gridRevealed[r]?.[c - 1]?.startsWith('revealed'),
+            }"
+            @click="selectBrick(r, c - 1)"
           >
-            {{ bucket.label }}
+            <span v-if="gridRevealed[r]?.[c - 1] === 'safe'">🍄</span>
+            <span v-else-if="gridRevealed[r]?.[c - 1] === 'boom'">💣</span>
+            <span v-else-if="gridRevealed[r]?.[c - 1] === 'revealed-bomb'" class="dimmed">💣</span>
+            <span v-else-if="gridRevealed[r]?.[c - 1] === 'revealed-safe'" class="dimmed">🍄</span>
           </div>
         </div>
-      </section>
-
-      <p class="output-msg" :style="{ color: messageColor }">{{ message }}</p>
-
-      <button class="play-btn" :disabled="gameStore.isPlaying" @click="launchBall">
-        {{ gameStore.isPlaying ? 'BILLE EN COURS…' : 'LÂCHER LA BILLE' }}
-      </button>
+      </div>
     </div>
   </div>
 </template>
@@ -290,33 +319,197 @@ onBeforeUnmount(() => {
 <style scoped>
 @import url('https://fonts.bunny.net/css?family=jura:300,600,800');
 
+:root {
+  --mario-red: #e52521;
+  --brick-brown: #b84418;
+  --brick-border: #702808;
+  --gold-yellow: #fcdc00;
+  --sky-blue: #5c94fc;
+}
 
-.app-bar { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 65px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #f1f1f1; }
-.back-btn { width: 45px; height: 45px; border: 1px solid #eee; border-radius: 14px; background: #f8f9fa; color: #334155; font-size: 20px; cursor: pointer; }
+.mario-root {
+  min-height: 100vh;
+  padding: 85px 16px 120px;
+  background-color: #5c94fc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Jura", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
 
-.game-card { width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 28px; background: #fff; box-shadow: 0 20px 40px -18px #3341552b; }
-.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
-.title { color: #64748b; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
-.balance-box { color: #64748b; font-size: 12px; }
-.balance-box strong { color: #ff5e00; font-size: 15px; }
+.app-bar {
+  position: fixed;
+  z-index: 30;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 65px;
+  padding: 10px 15px;
+  background: #fff;
+  border-bottom: 1px solid #f1f1f1;
+}
 
-.bet-area { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; color: #64748b; font-size: 14px; font-weight: 600; }
-.bet-area input { width: 140px; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; color: #334155; font: inherit; font-size: 16px; font-weight: 800; text-align: center; }
+.back-btn {
+  width: 45px;
+  height: 45px;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  background: #f8f9fa;
+  color: #334155;
+  font-size: 20px;
+  cursor: pointer;
+}
 
-.arena { position: relative; overflow: hidden; padding: 15px; border: 1px solid #e2e8f0; border-radius: 20px; background: radial-gradient(circle at center, #fff7ed 0%, #f8fafc 100%); }
-.emitter { position: relative; z-index: 2; width: 32px; height: 12px; margin: 0 auto 5px; border-radius: 4px; background: #475569; }
-.matter-container { width: 100%; height: 340px; position: relative; }
-.matter-container :deep(canvas) { display: block; }
+.game-card {
+  background-color: #000;
+  border: 3px solid #fff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
 
-.buckets-container { position: absolute; z-index: 10; bottom: 15px; left: 50%; display: flex; width: 234px; transform: translateX(-50%); }
-.bucket { display: flex; width: 26px; height: 38px; align-items: center; justify-content: center; border: 1px solid #ffffff80; color: #fff; box-shadow: 0 4px 8px #0003; font-size: 9px; font-weight: 800; transform-origin: center bottom; }
-.bucket:first-child { border-radius: 6px 0 0 6px; }
-.bucket:last-child { border-radius: 0 6px 6px 0; }
-.bucket.active { animation: impact .5s ease-out; outline: 2px solid #fbbf24; }
+.stats-panel {
+  display: flex;
+  justify-content: space-between;
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #444;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
 
-.output-msg { min-height: 24px; margin: 20px 0; text-align: center; font-size: 16px; font-weight: 700; }
-.play-btn { width: 100%; padding: 16px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #ff7a00, #ff5e00); color: #fff; box-shadow: 0 10px 25px -5px #ff5e0070; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
-.play-btn:disabled { cursor: not-allowed; background: #94a3b8; box-shadow: none; }
+.stat-box span {
+  display: block;
+  color: #fcdc00;
+  font-size: 1.1rem;
+  margin-top: 2px;
+}
 
-@keyframes impact { 35% { transform: scale(1.3, .5); } 65% { transform: scale(.85, 1.25); } }
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+input[type="number"] {
+  width: 60%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-weight: bold;
+  background: #fff;
+  color: #000;
+}
+
+button {
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  touch-action: manipulation;
+}
+
+.btn-start {
+  background-color: #28a745;
+  color: white;
+  width: 40%;
+}
+
+.btn-cashout {
+  background-color: #fcdc00;
+  color: #000;
+  width: 100%;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #111;
+  padding: 8px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  opacity: 0.35;
+  pointer-events: none;
+  width: 100%;
+}
+
+.row.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.row.completed {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.brick {
+  width: 100%;
+  height: 48px;
+  background-color: #b84418;
+  border: 2px solid #702808;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.3), inset -1px -1px 0px rgba(0, 0, 0, 0.4);
+}
+
+.brick.safe {
+  background-color: #28a745;
+  border-color: #1e7e34;
+  box-shadow: none;
+}
+
+.brick.boom {
+  background-color: #e52521;
+  border-color: #8b0000;
+  box-shadow: none;
+}
+
+.brick.revealed {
+  background-color: #333;
+  border-color: #222;
+  box-shadow: none;
+}
+
+.dimmed {
+  opacity: 0.5;
+}
+
+.status-msg {
+  text-align: center;
+  margin-bottom: 10px;
+  min-height: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
 </style>
