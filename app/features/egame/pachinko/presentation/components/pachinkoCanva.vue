@@ -42,6 +42,7 @@ let runner: any
 let matter: any
 let currentBall: any = null
 let targetIndex: number | null = null
+let isSettlingInTarget = false
 let audioContext: AudioContext | null = null
 
 const formatBalance = (value: number | null) => value === null || value === undefined ? '00,000,000' : Math.floor(value).toLocaleString('fr-FR')
@@ -116,8 +117,22 @@ const initMatter = () => {
     if (!currentBall || targetIndex === null) return
     const gridStartX = (width - 234) / 2
     const desiredX = gridStartX + (targetIndex + .5) * 26
-    const steering = (desiredX - currentBall.position.x) * .0000022
-    Body.applyForce(currentBall, currentBall.position, { x: steering + (Math.random() - .5) * .00008, y: 0 })
+    const distance = desiredX - currentBall.position.x
+
+    // La physique reste visible entre les clous, mais le résultat serveur
+    // guide réellement la bille vers la sortie qui sera créditée.
+    if (currentBall.position.y > 115) {
+      const velocityX = Math.max(-2.4, Math.min(2.4, distance * .045))
+      Body.setVelocity(currentBall, { x: velocityX, y: currentBall.velocity.y })
+    }
+
+    // À l'entrée des sorties, on verrouille le couloir pour éviter tout
+    // décalage entre la case visible et le gain calculé côté serveur.
+    if (!isSettlingInTarget && currentBall.position.y >= height - 62) {
+      isSettlingInTarget = true
+      Body.setPosition(currentBall, { x: desiredX, y: currentBall.position.y })
+      Body.setVelocity(currentBall, { x: 0, y: Math.max(currentBall.velocity.y, 2) })
+    }
   })
 }
 
@@ -172,6 +187,7 @@ const launchBall = async () => {
   transactionStore.updateBalance(balance - bet)
   activeBucket.value = null
   targetIndex = result.winningIndex
+  isSettlingInTarget = false
   message.value = 'Bille lancée...'
   messageColor.value = '#ff5e00'
   const width = matterContainer.value.clientWidth
