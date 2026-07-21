@@ -14,7 +14,6 @@ export class PlayRouletteGameUseCase implements UseCase<RouletteResult, PlayRoul
     this.repository = repository
   }
 
-  // Remplacement de void par RouletteResult ici aussi
   async execute(param: PlayRouletteGameParam): Promise<RouletteResult | Failure> {
     // 1. Validation des paramètres d'entrée
     const validationError = PlayRouletteGameValidator.validate(param)
@@ -22,8 +21,6 @@ export class PlayRouletteGameUseCase implements UseCase<RouletteResult, PlayRoul
     if (validationError) {
       return new DatabaseFailure(validationError)
     }
-
-    // 2. Exécution de l'action via le Repository
     const result = await this.repository.playRouletteGame(param)
     
     return result

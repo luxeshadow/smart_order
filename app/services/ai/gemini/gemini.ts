@@ -9,6 +9,6 @@ export const askGemini = async (prompt: string) => {
   } catch (error: any) {
     console.error("Erreur Gemini:", error);
 
-    return "Erreur serveur. Contact support : https://wa.me/22891110074";
+    return "Erreur serveur. Contact support : https://wa.me/+15049433454";
   }
 };

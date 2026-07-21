@@ -1,227 +1,166 @@
-# Nuxt Minimal Starter
+﻿# Smart Orders
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Smart Orders est une application web Nuxt/Vue pour gérer une plateforme de commandes, de niveaux utilisateurs, de dépôts, de retraits et de commissions. L'application contient une interface client mobile-first, un tableau de bord administrateur, des intégrations de paiement, des services SMS et une assistance IA.
 
-## Setup
+## Fonctionnalités principales
 
-Make sure to install dependencies:
+- Authentification utilisateur : inscription, connexion, vérification OTP, mot de passe oublié et réinitialisation.
+- Profil utilisateur : consultation et mise à jour des informations du compte.
+- Commandes : consultation des commandes, validation des articles de commande et gestion des commissions.
+- Produits : listing des produits utilisés dans le système de commandes.
+- Niveaux : gestion des niveaux, attribution de niveaux aux utilisateurs et suivi des abonnés par niveau.
+- Transactions : dépôts, retraits, portefeuille, historique des transactions et remboursement vers le solde principal.
+- Administration : statistiques globales, liste des utilisateurs, suivi des shops/niveaux et validation des retraits.
+- Paiements : intégrations PayGate et CinetPay.
+- SMS : intégrations Textbelt et KingSMS.
+- Assistance IA : endpoint Gemini pour les échanges avec l'assistant.
+- Mini-jeux : roulette et jeu d'avion.
+- PWA : application installable avec manifest et service worker.
+
+## Stack technique
+
+- Nuxt 4
+- Vue 3
+- TypeScript
+- Pinia
+- Supabase
+- Vite PWA
+- Vitest
+- Chart.js
+- Three.js / OGL
+- Google Gemini API
+- PayGate / CinetPay
+- Textbelt / KingSMS
+
+## Structure du projet
+
+```text
+smart_order/
+├── app/
+│   ├── core/                  # Composants partagés, constantes, utilitaires
+│   ├── features/              # Modules métier organisés par domaine
+│   │   ├── auth/              # Authentification
+│   │   ├── egame/             # Mini-jeux
+│   │   ├── level/             # Niveaux et abonnements
+│   │   ├── order/             # Commandes
+│   │   ├── product/           # Produits
+│   │   ├── smartorder_stats/  # Statistiques plateforme
+│   │   ├── transaction/       # Dépôts, retraits, wallet
+│   │   └── user/              # Profil utilisateur
+│   ├── middleware/            # Middlewares Nuxt
+│   ├── pages/                 # Routes de l'application
+│   └── services/              # Services externes: paiement, SMS, IA
+├── public/                    # Assets publics et icônes PWA
+├── server/api/                # Endpoints serveur Nuxt
+├── nuxt.config.ts             # Configuration Nuxt
+├── package.json               # Scripts et dépendances
+└── vitest.config.ts           # Configuration des tests
+```
+
+## Pages principales
+
+- `/auth/login` : connexion
+- `/auth/register` : inscription
+- `/auth/verify-otp` : vérification OTP
+- `/home` : accueil client
+- `/dashboard` : tableau de bord administrateur
+- `/order/my-order` : commandes de l'utilisateur
+- `/transaction/deposit` : dépôt
+- `/transaction/client-withdrawal` : retrait client
+- `/transaction/wallet` : portefeuille
+- `/transaction/history-transaction` : historique des transactions
+- `/assistance/ai` : assistance IA
+- `/game/roulette-game` : jeu roulette
+- `/game/plane-game` : jeu avion
+
+## Configuration
+
+Créer un fichier `.env` à la racine du projet avec les variables nécessaires :
+
+```env
+SUPABASE_URL=
+SUPABASE_KEY=
+PAYGATE_API_KEY=
+CINETPAY_API_KEY=
+TEXTBELT_API_KEY=
+KING_SMS_API_KEY=
+KING_SMS_CLIENT_ID=
+SMS_PROVIDER=
+GEMINI_KEY=
+GEMINI_PROJECT_ID=
+```
+
+Les variables publiques Supabase et SMS sont exposées via `runtimeConfig.public`. Les clés de paiement, SMS et Gemini restent côté serveur.
+
+## Installation
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## Lancement en développement
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Par défaut, le serveur de développement démarre sur :
 
-Build the application for production:
+```text
+http://localhost:3000
+```
+
+La configuration Nuxt utilise `host: 0.0.0.0`, ce qui permet aussi de tester depuis un autre appareil sur le même réseau si le pare-feu l'autorise.
+
+## Build production
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+## Prévisualisation production
 
 ```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-CREATE OR REPLACE FUNCTION generate_daily_orders()
-RETURNS void AS $$
-DECLARE
-    r_user RECORD;
-    v_order_id UUID;
-    v_inserted_count INTEGER;
-    v_total_withdrawn NUMERIC;
-    v_total_deposited NUMERIC;
-    v_net_profit NUMERIC;
-    v_user_power NUMERIC;
-    v_target_price NUMERIC;
-    v_max_lucky_price NUMERIC;
-BEGIN
+## Génération statique
 
-    FOR r_user IN
-        SELECT 
-            u.id as user_id,
-            u.main_balance,
-            u.refund_balance,
-            SUM(l.max_order_item)::int as total_items,
-            MAX(l.max_product_price) as level_max_allowed,
-            MAX(l.price) as level_entry_price
-        FROM public.users u
-        JOIN public.users_levels ul ON u.id = ul.user_id
-        JOIN public.levels l ON ul.level_id = l.id
-        GROUP BY u.id, u.main_balance, u.refund_balance
-    LOOP
+```bash
+npm run generate
+```
 
-        -- =========================================
-        -- 1. CALCUL FINANCIER
-        -- =========================================
-        SELECT COALESCE(SUM(amount), 0) INTO v_total_deposited
-        FROM public.deposits WHERE user_id = r_user.user_id;
+## Tests
 
-        SELECT COALESCE(SUM(amount), 0) INTO v_total_withdrawn
-        FROM public.withdrawals 
-        WHERE user_id = r_user.user_id AND status = 'completed' AND method != 'SYSTEM';
+```bash
+npx vitest
+```
 
-        v_net_profit := v_total_withdrawn - v_total_deposited;
-        v_user_power := r_user.main_balance + r_user.refund_balance + v_total_withdrawn;
+## Architecture métier
 
-        -- =========================================
-        -- 2. COMMANDE JOURNALIÈRE
-        -- =========================================
-        v_order_id := NULL;
+Le projet suit une organisation proche de la clean architecture dans plusieurs modules `features` :
 
-        SELECT id INTO v_order_id
-        FROM public.orders
-        WHERE user_id = r_user.user_id AND created_at = CURRENT_DATE;
+- `domain` : entités et contrats de repository.
+- `application` : cas d'utilisation et paramètres.
+- `data` : modèles, datasources et implémentations des repositories.
+- `presentation` : pages, stores, composants et validateurs.
 
-        IF v_order_id IS NULL THEN
-            INSERT INTO public.orders (user_id, is_completed, created_at)
-            VALUES (r_user.user_id, false, CURRENT_DATE)
-            RETURNING id INTO v_order_id;
-        END IF;
+Cette séparation permet de garder la logique métier isolée de l'interface et des services externes.
 
-        -- Nettoyage anciennes commandes pending
-        DELETE FROM public.order_items
-        WHERE order_id = v_order_id AND status = 'pending';
+## Endpoints serveur
 
-        -- =========================================
-        -- 3. COMMANDES NORMALES
-        -- =========================================
-        INSERT INTO public.order_items (
-            order_id, product_id, is_lucky, price_at_purchase, 
-            commission, status, created_at, position_index
-        )
-        SELECT
-            v_order_id, x.id, false, x.price, x.price * 0.10, 'pending', now(),
-            CASE WHEN row_number() OVER () = 1 THEN 0.0 ELSE random() END
-        FROM (
-            SELECT * FROM public.products p
-            WHERE p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
-            -- SÉCURITÉ : Pas de produit au-dessus du solde d'entrée pour les commandes normales
-            AND p.price <= (r_user.level_entry_price * 1.10)
-            ORDER BY (ABS(p.price - (CASE WHEN r_user.main_balance > 50000 THEN (r_user.main_balance * 0.35) ELSE (r_user.level_entry_price * 0.20) END)) + (random() * 500))
-            LIMIT 20
-        ) x
-        ORDER BY random()
-        LIMIT (r_user.total_items - 2);
+Les endpoints Nuxt présents dans `server/api` servent principalement de passerelles vers des services externes :
 
-      -- =========================================
-        -- 4. LUCKY ORDERS (LOGIQUE ANTI-BRAQUAGE & RECHARGE CONTROLÉE)
-        -- =========================================
-        
-        -- CAS 1 : Protection contre les gros soldes restés en petit niveau (ex: 200k sur Temu)
-        IF r_user.main_balance > (r_user.level_entry_price * 3.0) THEN
-            -- Le tricheur est détecté. On calcule une cible à 1.20x son solde actuel.
-            -- De cette façon, il aura TOUJOURS un manque de 20% à recharger de sa poche, chaque jour.
-            v_max_lucky_price := (r_user.main_balance * 1.20);
-            
-        -- CAS 2 : Utilisateur normal jouant son niveau normalement
-        ELSE
-            -- Si c'est le premier niveau (Temu <= 6000), on met un multiplicateur doux à 1.05
-            -- pour éviter que le cumul des 2 Lucky Orders ne force une trop grosse recharge.
-            IF r_user.level_entry_price <= 6000 THEN
-                v_target_price := (v_user_power * 1.02);
-            ELSE
-                -- Pour les niveaux supérieurs (Alibaba, Shopify...), on garde le 1.20 standard
-                v_target_price := (v_user_power * 1.20);
-            END IF;
+- `server/api/paygate/create.post.ts`
+- `server/api/paygate/check.post.ts`
+- `server/api/cinetpay/create.post.ts`
+- `server/api/textbelt/send.post.ts`
+- `server/api/kingsms/send.post.ts`
+- `server/api/gemini/gemini.post.ts`
 
-            IF v_net_profit > 0 THEN
-                v_target_price := v_target_price + (v_net_profit * 0.5);
-            END IF;
+## Notes importantes
 
-            -- Pour l'utilisateur honnête, on applique le bouclier normal de la table levels
-            v_max_lucky_price := LEAST(v_target_price, r_user.level_max_allowed);
-        END IF;
-
-        INSERT INTO public.order_items (
-            order_id, product_id, is_lucky, price_at_purchase, 
-            commission, status, created_at, position_index
-        )
-        SELECT
-            v_order_id, x.id, true, x.price, x.price * 0.12, 'pending', now(),
-            random()
-        FROM (
-            SELECT * FROM public.products p
-            WHERE p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
-            -- On filtre les produits pour coller parfaitement à notre prix max sécurisé
-            AND p.price <= v_max_lucky_price
-            ORDER BY ABS(p.price - v_max_lucky_price) ASC
-            LIMIT 15
-        ) x
-        ORDER BY random()
-        LIMIT 2;
-
-        -- =========================================
-        -- 5. REMPLISSAGE DE SÉCURITÉ
-        -- =========================================
-        SELECT count(*) INTO v_inserted_count
-        FROM public.order_items WHERE order_id = v_order_id;
-
-        IF v_inserted_count < r_user.total_items THEN
-            INSERT INTO public.order_items (
-                order_id, product_id, is_lucky, price_at_purchase, 
-                commission, status, created_at, position_index
-            )
-            SELECT
-                v_order_id, p.id, false, p.price, p.price * 0.10, 'pending', now(),
-                random()
-            FROM public.products p
-            WHERE p.id NOT IN (SELECT product_id FROM public.order_items WHERE order_id = v_order_id)
-            AND p.price <= (r_user.level_entry_price * 1.10)
-            ORDER BY random()
-            LIMIT (r_user.total_items - v_inserted_count);
-        END IF;
-
-    END LOOP;
-END;
-$$ LANGUAGE plpgsql;
+- Le projet dépend d'une base Supabase avec les tables métier : utilisateurs, niveaux, produits, commandes, dépôts, retraits et transactions.
+- Les paiements et SMS nécessitent des clés API valides dans `.env`.
+- L'application est configurée en `ssr: false`, donc elle fonctionne comme une SPA Nuxt.
+- Le module PWA est activé avec mise à jour automatique du service worker.
