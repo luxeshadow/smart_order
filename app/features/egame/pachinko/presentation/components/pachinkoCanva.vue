@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
@@ -15,6 +15,11 @@ import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/dat
 import { PlayPachinkoGameUseCase } from '../../application/usecases/play_pachinko_game_usecase'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
 
+declare global {
+  interface Window { Matter?: any }
+}
+
+const MATTER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js'
 const router = useRouter()
 const authStore = useAuthStore()
 const transactionStore = useTransactionStore()
@@ -23,24 +28,23 @@ const { user } = storeToRefs(authStore)
 const { mainBalance } = storeToRefs(transactionStore)
 const { showToast } = useToast()
 const { triggerConfetti } = useConfetti()
-
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(new ShowMyPrincipalBalanceRepositoryImpl())
 const playPachinkoUseCase = new PlayPachinkoGameUseCase(new PlayPachinkoGameRepositoryImpl())
 
+const matterContainer = ref<HTMLElement | null>(null)
 const betInput = ref(500)
 const message = ref('Lancez la bille !')
 const messageColor = ref('#64748b')
-const ballVisible = ref(false)
-const ballTarget = ref('50%')
 const activeBucket = ref<number | null>(null)
-const pins = Array.from({ length: 36 })
+let engine: any
+let render: any
+let runner: any
+let matter: any
+let currentBall: any = null
+let targetIndex: number | null = null
+let audioContext: AudioContext | null = null
 
-const ballStyle = computed(() => ({ '--target-x': ballTarget.value }))
-
-const formatBalance = (value: number | null) => {
-  if (value === null || value === undefined) return '00,000,000'
-  return Math.floor(value).toLocaleString('fr-FR')
-}
+const formatBalance = (value: number | null) => value === null || value === undefined ? '00,000,000' : Math.floor(value).toLocaleString('fr-FR')
 
 const fetchBalance = async () => {
   if (!user.value?.id) return
@@ -48,116 +52,188 @@ const fetchBalance = async () => {
   if (!(result instanceof Failure)) transactionStore.updateAllBalances(result)
 }
 
-const playWinSound = () => {
-  try { new Audio(AppAudio.Win_Ringtone).play() } catch { /* audio may be blocked by the browser */ }
+const loadMatter = () => new Promise<void>((resolve, reject) => {
+  if (window.Matter) return resolve()
+  const script = document.createElement('script')
+  script.src = MATTER_CDN
+  script.onload = () => window.Matter ? resolve() : reject(new Error('Matter.js indisponible'))
+  script.onerror = () => reject(new Error('Chargement de Matter.js impossible'))
+  document.head.appendChild(script)
+})
+
+const playDingSound = () => {
+  try {
+    audioContext ||= new AudioContext()
+    if (audioContext.state === 'suspended') void audioContext.resume()
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    oscillator.connect(gain)
+    gain.connect(audioContext.destination)
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(380 + Math.random() * 280, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(110, audioContext.currentTime + .1)
+    gain.gain.setValueAtTime(.12, audioContext.currentTime)
+    gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + .12)
+    oscillator.start()
+    oscillator.stop(audioContext.currentTime + .12)
+  } catch { /* le navigateur peut bloquer le son */ }
+}
+
+const initMatter = () => {
+  if (!matterContainer.value || !window.Matter) return
+  matter = window.Matter
+  const { Engine, Render, Runner, Bodies, Composite, Events, Body } = matter
+  const width = matterContainer.value.clientWidth
+  const height = matterContainer.value.clientHeight
+  engine = Engine.create({ gravity: { y: .8 }, positionIterations: 8, velocityIterations: 8 })
+  render = Render.create({ element: matterContainer.value, engine, options: { width, height, wireframes: false, background: 'transparent' } })
+  runner = Runner.create()
+  Render.run(render)
+  Runner.run(runner, engine)
+
+  const pins: any[] = []
+  const pinRows = 8
+  const pinSpacingX = 26
+  const pinSpacingY = 28
+  for (let row = 0; row < pinRows; row++) {
+    const pinsInRow = row + 3
+    const rowY = 40 + row * pinSpacingY
+    const startX = width / 2 - ((pinsInRow - 1) * pinSpacingX) / 2
+    for (let column = 0; column < pinsInRow; column++) {
+      pins.push(Bodies.circle(startX + column * pinSpacingX + (Math.random() - .5), rowY + (Math.random() - .5), 3.8, {
+        isStatic: true, label: 'pin', restitution: .5, friction: .15, render: { fillStyle: '#94a3b8' }
+      }))
+    }
+  }
+  Composite.add(engine.world, pins)
+
+  Events.on(engine, 'collisionStart', (event: any) => {
+    event.pairs.forEach((pair: any) => {
+      if (pair.bodyA.label === 'pin' || pair.bodyB.label === 'pin') playDingSound()
+    })
+  })
+  Events.on(engine, 'beforeUpdate', () => {
+    if (!currentBall || targetIndex === null) return
+    const gridStartX = (width - 234) / 2
+    const desiredX = gridStartX + (targetIndex + .5) * 26
+    const steering = (desiredX - currentBall.position.x) * .0000022
+    Body.applyForce(currentBall, currentBall.position, { x: steering + (Math.random() - .5) * .00008, y: 0 })
+  })
+}
+
+const finishRound = async (result: any, bet: number) => {
+  if (!currentBall || !engine) return
+  const landedBall = currentBall
+  currentBall = null
+  matter.Composite.remove(engine.world, landedBall)
+  activeBucket.value = null
+  await nextTick()
+  activeBucket.value = result.winningIndex
+  gameStore.finishGame(result.winningIndex)
+
+  if (!result.isWin) {
+    message.value = `💀 Perdu ${bet.toLocaleString('fr-FR')} XOF (Multiplicateur x0)`
+    messageColor.value = '#ef4444'
+  } else {
+    try { void new Audio(AppAudio.Win_Ringtone).play() } catch { /* navigateur */ }
+    triggerConfetti()
+    showToast(`+${result.gains.toLocaleString('fr-FR')}`, 'fi-rr-check', 'success')
+    message.value = `🎉 Gagné ! ${PACHINKO_BUCKETS[result.winningIndex]?.label} → +${result.gains.toLocaleString('fr-FR')} XOF`
+    messageColor.value = '#22c55e'
+  }
+  targetIndex = null
+  await fetchBalance()
 }
 
 const launchBall = async () => {
-  if (gameStore.isPlaying) return
+  if (gameStore.isPlaying || !engine || !matterContainer.value) return
   const bet = Number(betInput.value)
   if (Number.isNaN(bet) || bet < 500) {
-    message.value = 'Mise minimale 500 XOF'
+    message.value = '❌ Mise minimale 500 XOF'
     messageColor.value = '#ef4444'
     return
   }
-
   await fetchBalance()
   const balance = mainBalance.value || 0
   if (bet > balance) {
-    message.value = 'Solde insuffisant'
+    message.value = '❌ Solde insuffisant'
     messageColor.value = '#ef4444'
     showToast('Solde insuffisant', 'fi-rr-info', 'error')
     return
   }
-
   const result = await playPachinkoUseCase.execute({ userId: user.value?.id || '', betAmount: bet })
   if (result instanceof Failure) {
-    message.value = result.message
+    message.value = `❌ ${result.message}`
     messageColor.value = '#ef4444'
-    showToast(result.message, 'fi-rr-cross', 'error')
     return
   }
 
   gameStore.startGame()
   transactionStore.updateBalance(balance - bet)
   activeBucket.value = null
-  ballTarget.value = `${((result.winningIndex + 0.5) / PACHINKO_BUCKETS.length) * 100}%`
-  ballVisible.value = true
-  message.value = 'La bille est en route...'
+  targetIndex = result.winningIndex
+  message.value = 'Bille lancée...'
   messageColor.value = '#ff5e00'
+  const width = matterContainer.value.clientWidth
+  const { Bodies, Body, Composite } = matter
+  currentBall = Bodies.circle(width / 2 + (Math.random() - .5) * 12, 15, 7.5, {
+    restitution: .5, friction: .2, frictionAir: .012, density: .02, label: 'ball',
+    render: { fillStyle: '#fbbf24', strokeStyle: '#d97706', lineWidth: 1 }
+  })
+  Body.applyForce(currentBall, currentBall.position, { x: (Math.random() - .5) * .003, y: 0 })
+  Composite.add(engine.world, currentBall)
 
-  window.setTimeout(async () => {
-    ballVisible.value = false
-    activeBucket.value = result.winningIndex
-    gameStore.finishGame(result.winningIndex)
-
-    if (!result.isWin) {
-      message.value = `Perdu ${bet.toLocaleString('fr-FR')} XOF`
-      messageColor.value = '#ef4444'
-    } else {
-      playWinSound()
-      triggerConfetti()
-      showToast(`+${result.gains.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
-      message.value = `Gagné ${PACHINKO_BUCKETS[result.winningIndex]?.label} → +${result.gains.toLocaleString('fr-FR')} XOF`
-      messageColor.value = '#22c55e'
+  const interval = window.setInterval(() => {
+    if (!currentBall) return window.clearInterval(interval)
+    const width = matterContainer.value?.clientWidth || 0
+    const height = matterContainer.value?.clientHeight || 0
+    if (currentBall.position.x < -15 || currentBall.position.x > width + 15 || currentBall.position.y >= height - 12) {
+      window.clearInterval(interval)
+      void finishRound(result, bet)
     }
-    await fetchBalance()
-  }, 2400)
+  }, 16)
 }
 
-onMounted(fetchBalance)
+onMounted(async () => {
+  await fetchBalance()
+  try { await loadMatter(); await nextTick(); initMatter() }
+  catch (error) { message.value = 'Impossible de charger le plateau Pachinko.'; messageColor.value = '#ef4444' }
+})
+
+onBeforeUnmount(() => {
+  if (render) matter.Render.stop(render)
+  if (runner) matter.Runner.stop(runner)
+  if (engine) matter.Composite.clear(engine.world, false)
+})
 </script>
 
 <template>
   <div class="pachinko-root">
-    <nav class="app-bar">
-      <button class="back-btn" aria-label="Retour" @click="router.back()"><i class="fi fi-rr-arrow-small-left" /></button>
-    </nav>
-
-    <div class="top-bar">
-      <span class="title-label">Pachinko</span>
-      <span class="balance-badge">Solde Principal : <strong>{{ formatBalance(mainBalance) }}</strong> XOF</span>
-    </div>
-
-    <div class="bet-container">
-      <label for="pachinko-bet">Mise (Min 500) :</label>
-      <input id="pachinko-bet" v-model.number="betInput" type="number" min="500" :disabled="gameStore.isPlaying">
-    </div>
-
-    <section class="board" aria-label="Plateau de Pachinko">
-      <div class="emitter" />
-      <div class="pin-grid">
-        <i v-for="(_, index) in pins" :key="index" class="pin" :class="`pin-${index}`" />
-      </div>
-      <div v-if="ballVisible" class="ball" :style="ballStyle" />
-      <div class="buckets">
-        <div v-for="(bucket, index) in PACHINKO_BUCKETS" :key="bucket.label + index" class="bucket" :class="{ active: activeBucket === index }" :style="{ backgroundColor: bucket.color }">
-          {{ bucket.label }}
+    <nav class="app-bar"><button class="back-btn" aria-label="Retour" @click="router.back()"><i class="fi fi-rr-arrow-small-left" /></button></nav>
+    <div class="game-card">
+      <header class="header"><span class="title">Pachinko - Precision Alignment</span><span class="balance-box">Solde : <strong>{{ formatBalance(mainBalance) }}</strong> XOF</span></header>
+      <div class="bet-area"><label for="pachinko-bet">Mise :</label><input id="pachinko-bet" v-model.number="betInput" type="number" min="500" :disabled="gameStore.isPlaying"></div>
+      <section class="arena">
+        <div class="emitter" />
+        <div ref="matterContainer" class="matter-container" />
+        <div class="buckets-container">
+          <div v-for="(bucket, index) in PACHINKO_BUCKETS" :key="`${bucket.label}-${index}`" class="bucket" :class="{ active: activeBucket === index }" :style="{ backgroundColor: bucket.color }">{{ bucket.label }}</div>
         </div>
-      </div>
-    </section>
-
-    <p class="message" :style="{ color: messageColor }">{{ message }}</p>
-    <button class="launch-btn" :disabled="gameStore.isPlaying" @click="launchBall">
-      {{ gameStore.isPlaying ? 'BILLE EN COURS…' : 'LÂCHER LA BILLE' }}
-    </button>
+      </section>
+      <p class="output-msg" :style="{ color: messageColor }">{{ message }}</p>
+      <button class="play-btn" :disabled="gameStore.isPlaying" @click="launchBall">{{ gameStore.isPlaying ? 'BILLE EN COURS…' : 'LÂCHER LA BILLE' }}</button>
+      <p class="system-log">Alignement physique : 1 sortie = 1 bloc de 26px</p>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.pachinko-root { min-height: 100vh; max-width: 500px; margin: 0 auto; padding: 85px 20px 120px; color: #334155; background: #fff; font-family: Jura, sans-serif; user-select: none; }
-.app-bar { position: fixed; z-index: 20; top: 0; right: 0; left: 0; height: 65px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #f1f1f1; }
-.back-btn { width: 45px; height: 45px; border: 1px solid #eee; border-radius: 14px; background: #f8f9fa; color: #334155; font-size: 20px; }
-.top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
-.title-label { color: #64748b; font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
-.balance-badge { color: #64748b; font-size: 12px; }.balance-badge strong { color: #ff5e00; font-size: 14px; }
-.bet-container { margin: 20px 0; text-align: center; font-weight: 600; }.bet-container input { width: 130px; margin-left: 8px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 9px; text-align: center; font-weight: 700; }
-.board { position: relative; height: 410px; overflow: hidden; border: 3px solid #ff5e00; border-radius: 24px; background: radial-gradient(circle at top, #fff7ed, #f8fafc 64%); }
-.emitter { position: absolute; top: 12px; left: calc(50% - 18px); width: 36px; height: 12px; border-radius: 4px; background: #475569; }.emitter::after { content: ''; position: absolute; left: 13px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: #fbbf24; }
-.pin-grid { position: absolute; top: 56px; left: 8%; right: 8%; bottom: 58px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(5, 1fr); align-items: center; }.pin { justify-self: center; width: 9px; height: 9px; border-radius: 50%; background: #94a3b8; box-shadow: 0 2px 2px #94a3b880; }.pin:nth-child(odd) { transform: translateX(18px); }.pin:nth-child(-n+4), .pin:nth-last-child(-n+4) { opacity: .65; }
-.ball { position: absolute; top: 24px; left: calc(50% - 10px); z-index: 4; width: 20px; height: 20px; border: 2px solid #d97706; border-radius: 50%; background: #fbbf24; box-shadow: 0 3px 8px #d9770688; animation: drop-ball 2.35s cubic-bezier(.38,.03,.65,.96) forwards; }
-.buckets { position: absolute; right: 8px; bottom: 10px; left: 8px; display: grid; grid-template-columns: repeat(9, 1fr); gap: 2px; }.bucket { display: grid; min-height: 44px; place-items: center; border-radius: 5px; color: #fff; font-size: 11px; font-weight: 800; box-shadow: 0 2px 4px #0002; }.bucket.active { animation: impact .55s ease-out; outline: 3px solid #fbbf24; }
-.message { min-height: 28px; margin: 20px 0 14px; text-align: center; font-weight: 800; }.launch-btn { width: 100%; padding: 16px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #ff7a00, #ff5e00); color: #fff; font: inherit; font-weight: 800; letter-spacing: .5px; box-shadow: 0 8px 16px #ff5e0040; }.launch-btn:disabled { background: #94a3b8; box-shadow: none; }
-@keyframes drop-ball { 0% { transform: translate(0, 0); } 18% { transform: translate(-38px, 74px); } 38% { transform: translate(42px, 145px); } 58% { transform: translate(-26px, 218px); } 76% { transform: translate(30px, 282px); } 100% { left: calc(var(--target-x) - 10px); transform: translate(0, 340px); } }
-@keyframes impact { 40% { transform: scale(1.23, .72); } 70% { transform: scale(.9, 1.12); } }
+@import url('https://fonts.bunny.net/css?family=jura:300,600,800');
+.pachinko-root { min-height: 100vh; padding: 85px 16px 120px; background: #fff; font-family: Jura, sans-serif; }.app-bar { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 65px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #f1f1f1; }.back-btn { width: 45px; height: 45px; border: 1px solid #eee; border-radius: 14px; background: #f8f9fa; color: #334155; font-size: 20px; }
+.game-card { width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 28px; background: #fff; box-shadow: 0 20px 40px -18px #3341552b; }.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }.title { color: #64748b; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }.balance-box { color: #64748b; font-size: 12px; }.balance-box strong { color: #ff5e00; font-size: 15px; }
+.bet-area { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; color: #64748b; font-size: 14px; font-weight: 600; }.bet-area input { width: 140px; padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; color: #334155; font: inherit; font-size: 16px; font-weight: 800; text-align: center; }
+.arena { position: relative; overflow: hidden; padding: 15px; border: 1px solid #e2e8f0; border-radius: 20px; background: radial-gradient(circle at center, #fff7ed 0%, #f8fafc 100%); }.emitter { position: relative; z-index: 2; width: 32px; height: 12px; margin: 0 auto 5px; border-radius: 4px; background: #475569; }.matter-container { width: 100%; height: 340px; position: relative; }.matter-container :deep(canvas) { display: block; }
+.buckets-container { position: absolute; z-index: 10; bottom: 15px; left: 50%; display: flex; width: 234px; transform: translateX(-50%); }.bucket { display: flex; width: 26px; height: 38px; align-items: center; justify-content: center; border: 1px solid #ffffff80; color: #fff; box-shadow: 0 4px 8px #0003; font-size: 9px; font-weight: 800; transform-origin: center bottom; }.bucket:first-child { border-radius: 6px 0 0 6px; }.bucket:last-child { border-radius: 0 6px 6px 0; }.bucket.active { animation: impact .5s ease-out; outline: 2px solid #fbbf24; }
+.output-msg { min-height: 24px; margin: 20px 0; text-align: center; font-size: 16px; font-weight: 700; }.play-btn { width: 100%; padding: 16px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #ff7a00, #ff5e00); color: #fff; box-shadow: 0 10px 25px -5px #ff5e0070; font: inherit; font-size: 16px; font-weight: 800; }.play-btn:disabled { cursor: not-allowed; background: #94a3b8; box-shadow: none; }.system-log { margin-top: 12px; color: #94a3b8; text-align: center; font-size: 11px; }
+@keyframes impact { 35% { transform: scale(1.3, .5); } 65% { transform: scale(.85, 1.25); } }
 </style>
