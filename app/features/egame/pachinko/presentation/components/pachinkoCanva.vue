@@ -43,6 +43,7 @@ let render: any
 let runner: any
 let matter: any
 let currentBall: any = null
+let targetIndex: number | null = null
 let audioContext: AudioContext | null = null
 
 const formatBalance = (value: number | null) => value === null || value === undefined ? '0' : Math.floor(value).toLocaleString('fr-FR')
@@ -73,7 +74,7 @@ const playDingSound = () => {
     oscillator.type = 'sine'
     oscillator.frequency.setValueAtTime(350 + Math.random() * 200, audioContext.currentTime)
     oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.08)
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime)
+    gain.gain.setValueAtTime(0.08, audioContext.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08)
     oscillator.start()
     oscillator.stop(audioContext.currentTime + 0.08)
@@ -83,11 +84,11 @@ const playDingSound = () => {
 const initMatter = () => {
   if (!matterContainer.value || !window.Matter) return
   matter = window.Matter
-  const { Engine, Render, Runner, Bodies, Composite, Events } = matter
+  const { Engine, Render, Runner, Bodies, Composite, Events, Body } = matter
   const width = matterContainer.value.clientWidth
   const height = matterContainer.value.clientHeight
 
-  engine = Engine.create({ gravity: { y: 0.9 }, positionIterations: 8, velocityIterations: 8 })
+  engine = Engine.create({ gravity: { y: 0.8 }, positionIterations: 10, velocityIterations: 10 })
   render = Render.create({ element: matterContainer.value, engine, options: { width, height, wireframes: false, background: 'transparent' } })
   runner = Runner.create()
   Render.run(render)
@@ -103,7 +104,7 @@ const initMatter = () => {
     const startX = width / 2 - ((pinsInRow - 1) * pinSpacingX) / 2
     for (let column = 0; column < pinsInRow; column++) {
       pins.push(Bodies.circle(startX + column * pinSpacingX, rowY, 3.8, {
-        isStatic: true, label: 'pin', restitution: 0.5, friction: 0.1, render: { fillStyle: '#94a3b8' }
+        isStatic: true, label: 'pin', restitution: 0.4, friction: 0.1, render: { fillStyle: '#94a3b8' }
       }))
     }
   }
@@ -114,12 +115,34 @@ const initMatter = () => {
       if (pair.bodyA.label === 'pin' || pair.bodyB.label === 'pin') playDingSound()
     })
   })
+
+  // 🎯 GUIDAGE PHYSIQUE PROGRESSIF ET INVISIBLE
+  Events.on(engine, 'beforeUpdate', () => {
+    if (!currentBall || targetIndex === null) return
+
+    const bucketCount = PACHINKO_BUCKETS.length
+    const bucketWidth = 26
+    const totalGridWidth = bucketCount * bucketWidth
+    const gridStartX = (width - totalGridWidth) / 2
+    
+    // Position X exacte du centre du bac cible
+    const targetX = gridStartX + (targetIndex + 0.5) * bucketWidth
+    const deltaX = targetX - currentBall.position.x
+
+    // Plus la bille descend, plus la force d'attraction devient forte mais fluide
+    const progress = Math.min(1, Math.max(0, (currentBall.position.y - 45) / (height - 90)))
+    
+    // Application d'une force corrective très douce qui s'intensifie légèrement
+    const attractionForce = deltaX * 0.00008 * (1 + progress * 2)
+    Body.applyForce(currentBall, currentBall.position, { x: attractionForce, y: 0 })
+  })
 }
 
 const finishRound = async (result: any, bet: number) => {
   if (!currentBall || !engine) return
   matter.Composite.remove(engine.world, currentBall)
   currentBall = null
+  targetIndex = null
 
   activeBucket.value = result.winningIndex
   gameStore.finishGame(result.winningIndex)
@@ -158,7 +181,7 @@ const launchBall = async () => {
     return
   }
 
-  // 1. Appel serveur de sécurisation du gain
+  // 1. Appel serveur
   const result = await playPachinkoUseCase.execute({ userId: user.value?.id || '', betAmount: bet })
   if (result instanceof Failure) {
     message.value = `❌ ${result.message}`
@@ -169,37 +192,34 @@ const launchBall = async () => {
   gameStore.startGame()
   transactionStore.updateBalance(balance - bet)
   activeBucket.value = null
+  targetIndex = result.winningIndex // On enregistre l'index cible pour la physique
+  
   message.value = 'Bille en cours...'
   messageColor.value = '#ff5e00'
 
   const width = matterContainer.value.clientWidth
   const { Bodies, Composite, Body } = matter
 
-  // 2. CALCUL D'ORIENTATION NATURELLE DE DEPART
-  // On calcule la position X cible théorique
+  // 2. Position de départ légèrement pré-orientée vers la cible
   const bucketCount = PACHINKO_BUCKETS.length
   const bucketWidth = 26
   const totalGridWidth = bucketCount * bucketWidth
   const gridStartX = (width - totalGridWidth) / 2
-  const targetX = gridStartX + (result.winningIndex + 0.5) * bucketWidth
-  
-  // Calcul du petit décalage initial (subtil et 100% physique)
-  const offsetFromCenter = (targetX - (width / 2)) * 0.18
+  const targetX = gridStartX + (targetIndex + 0.5) * bucketWidth
+  const startX = width / 2 + (targetX - width / 2) * 0.25
 
-  currentBall = Bodies.circle(width / 2 + offsetFromCenter, 15, 7.5, {
-    restitution: 0.5,
-    friction: 0.05,
-    frictionAir: 0.008,
-    density: 0.015,
+  currentBall = Bodies.circle(startX, 15, 7.5, {
+    restitution: 0.35,
+    friction: 0.08,
+    frictionAir: 0.01,
+    density: 0.02,
     label: 'ball',
     render: { fillStyle: '#fbbf24', strokeStyle: '#d97706', lineWidth: 1.5 }
   })
 
-  // Micro-impulsion au lâcher
-  Body.applyForce(currentBall, currentBall.position, { x: offsetFromCenter * 0.0001, y: 0 })
   Composite.add(engine.world, currentBall)
 
-  // 3. Suivi de la chute sans aucune téléportation
+  // 3. Attendre l'atterrissage final
   const interval = window.setInterval(() => {
     if (!currentBall) return window.clearInterval(interval)
     const height = matterContainer.value?.clientHeight || 0
@@ -270,7 +290,7 @@ onBeforeUnmount(() => {
 <style scoped>
 @import url('https://fonts.bunny.net/css?family=jura:300,600,800');
 
-.pachinko-root { min-height: 100vh; padding: 85px 16px 120px; background: #fff; font-family: Jura, sans-serif; }
+
 .app-bar { position: fixed; z-index: 30; top: 0; right: 0; left: 0; height: 65px; padding: 10px 15px; background: #fff; border-bottom: 1px solid #f1f1f1; }
 .back-btn { width: 45px; height: 45px; border: 1px solid #eee; border-radius: 14px; background: #f8f9fa; color: #334155; font-size: 20px; cursor: pointer; }
 
