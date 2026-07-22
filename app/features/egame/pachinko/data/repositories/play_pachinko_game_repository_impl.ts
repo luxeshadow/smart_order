@@ -6,9 +6,14 @@ import type { PlayPachinkoGameRepository } from '../../domain/repository/play_pa
 import { PlayPachinkoGameRemoteDatasource } from '../datasources/play_pachinko_game_remote_datasource'
 import { PachinkoResultModel } from '../models/pachinko_result_model'
 
-// On étend le paramètre pour transmettre les gains réels du mini-jeu Mario
+// Table des multiplicateurs maximaux autorisés par niveau (4 bombes / 2 champignons)
+const BASE_MULT = 1.25
+const STEP_MULT = 0.25
+const MAX_ROWS = 8
+const ABSOLUTE_MAX_MULT = BASE_MULT + (MAX_ROWS - 1) * STEP_MULT // Max x3.00
+
 export interface PlayMarioGameParam extends PlayPachinkoGameParam {
-  winAmount?: number
+  levelReached?: number // On envoie uniquement l'étage atteint (0 à 8)
   isWin?: boolean
 }
 
@@ -24,20 +29,27 @@ export class PlayPachinkoGameRepositoryImpl implements PlayPachinkoGameRepositor
       const user = await this.datasource.getUserData(param.userId)
       const currentBalance = Number(user.main_balance)
 
-      // 1. Déduction de la mise
+      // 1. Vérification du solde
       if (currentBalance < param.betAmount) {
         throw new DatabaseException('Solde insuffisant.')
       }
 
-      // 2. Récupération des valeurs issues de la partie Mario
-      const gains = param.winAmount ?? 0
-      const isWin = param.isWin ?? (gains > 0)
+      // 2. Sécurisation : Calcul Strict du Gain Côté Serveur
+      let gains = 0
+      const isWin = Boolean(param.isWin)
+      const level = Math.min(MAX_ROWS, Math.max(0, param.levelReached ?? 0))
 
-      // 3. Calcul et mise à jour du nouveau solde : Ancien solde - Mise + Gain
+      if (isWin && level > 0) {
+        const mult = BASE_MULT + (level - 1) * STEP_MULT
+        // Le serveur valide et calcule le gain reel : impossible d'injecter un montant arbitraire
+        gains = Math.floor(param.betAmount * Math.min(mult, ABSOLUTE_MAX_MULT))
+      }
+
+      // 3. Mise à jour sécurisée du solde
       const newBalance = currentBalance - param.betAmount + gains
       await this.datasource.updateMainBalance(param.userId, newBalance)
 
-      // 4. Si c'est un gain, enregistrement du dépôt
+      // 4. Inscription du gain
       if (isWin && gains > 0) {
         await this.datasource.insertWinningDeposit(param.userId, user.phone_number || '00000000', gains)
       }

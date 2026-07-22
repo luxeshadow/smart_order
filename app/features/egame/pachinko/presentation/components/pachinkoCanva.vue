@@ -17,6 +17,8 @@ import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pac
 
 const ROWS = 8
 const COLS = 6
+const BOMBS_PER_ROW = 4 // 💣 4 Bombes
+const SAFES_PER_ROW = 2 // 🍄 2 Champignons
 const BASE_MULT = 1.25
 const STEP_MULT = 0.25
 
@@ -42,7 +44,7 @@ const currentBet = ref<number>(0)
 const statusMessage = ref<string>('Choisissez votre mise et lancez la partie')
 const messageColor = ref<string>(AppColor.tertiary.soft)
 
-// Matrice du plateau : gridConfig[row][col]
+// Matrice secrète et révélée
 const gridConfig = ref<string[][]>([])
 const gridRevealed = ref<string[][]>([])
 
@@ -78,9 +80,8 @@ const setQuickBet = (amount: number) => {
 }
 
 const updateStatusMessage = () => {
-  const chances = currentLevel.value < 3 ? '50%' : '33%'
   if (currentLevel.value === 0) {
-    statusMessage.value = `Étage 1 (x${nextMultiplier.value.toFixed(2)}) • Chance de succès : ${chances}`
+    statusMessage.value = `Étage 1 (x${nextMultiplier.value.toFixed(2)}) • Chance de succès : 33%`
     messageColor.value = AppColor.tertiary.base
   } else {
     const currentWin = Math.floor(currentBet.value * currentMultiplier.value)
@@ -125,13 +126,12 @@ const startGame = async () => {
   currentLevel.value = 0
   isPlaying.value = true
 
+  // Génération : STRICTEMENT 4 BOMBES & 2 CHAMPIGNONS PAR ÉTAGE
   const generatedConfig: string[][] = []
   for (let r = 0; r < ROWS; r++) {
-    const bombs = r < 3 ? 3 : 4
-    const safes = COLS - bombs
     const rowItems: string[] = [
-      ...Array(bombs).fill('bomb'),
-      ...Array(safes).fill('safe')
+      ...Array(BOMBS_PER_ROW).fill('bomb'),
+      ...Array(SAFES_PER_ROW).fill('safe')
     ]
     generatedConfig[r] = shuffle(rowItems)
   }
@@ -167,13 +167,11 @@ const selectBrick = async (row: number, col: number) => {
     if (currentLevel.value < ROWS) {
       updateStatusMessage()
     } else {
-      const maxMult = BASE_MULT + (ROWS - 1) * STEP_MULT
-      const totalWin = Math.floor(currentBet.value * maxMult)
-
+      const totalWin = Math.floor(currentBet.value * (BASE_MULT + (ROWS - 1) * STEP_MULT))
       statusMessage.value = `🎉 Victoire Maximale ! Gain : ${totalWin.toLocaleString('fr-FR')} XOF`
       messageColor.value = AppColor.status.success
 
-      await endGame(true, totalWin)
+      await endGame(true, currentLevel.value)
     }
   }
 }
@@ -195,37 +193,30 @@ const cashout = async () => {
   if (!isPlaying.value || currentLevel.value === 0) return
 
   const winAmount = Math.floor(currentBet.value * currentMultiplier.value)
-
   statusMessage.value = `🎉 Encaissement réussi ! Gain : ${winAmount.toLocaleString('fr-FR')} XOF`
   messageColor.value = AppColor.status.success
 
-  await endGame(true, winAmount)
+  await endGame(true, currentLevel.value)
 }
 
-const endGame = async (isWin: boolean, winAmount: number) => {
+const endGame = async (isWin: boolean, levelReached: number) => {
   isPlaying.value = false
 
+  const winAmount = isWin && levelReached > 0 ? Math.floor(currentBet.value * currentMultiplier.value) : 0
+
   if (isWin && winAmount > 0) {
-    try {
-      void new Audio(AppAudio.Win_Ringtone).play()
-    } catch {}
+    try { void new Audio(AppAudio.Win_Ringtone).play() } catch {}
     triggerConfetti()
     showToast(`+${winAmount.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
-
-    await playPachinkoUseCase.execute({
-      userId: user.value?.id || '',
-      betAmount: currentBet.value,
-      winAmount,
-      isWin: true
-    } as any)
-  } else {
-    await playPachinkoUseCase.execute({
-      userId: user.value?.id || '',
-      betAmount: currentBet.value,
-      winAmount: 0,
-      isWin: false
-    } as any)
   }
+
+  // On transmet l'étage atteint pour validation par le serveur
+  await playPachinkoUseCase.execute({
+    userId: user.value?.id || '',
+    betAmount: currentBet.value,
+    levelReached: isWin ? levelReached : 0,
+    isWin
+  } as any)
 
   gameStore.finishGame(0)
   await fetchBalance()
@@ -239,7 +230,7 @@ onMounted(async () => {
 
 <template>
   <div id="crash-root">
-    <!-- Barre d'application fixe -->
+    <!-- App Bar -->
     <nav class="app-bar">
       <button class="back-btn" aria-label="Retour" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left" />
@@ -250,13 +241,13 @@ onMounted(async () => {
       <div class="spacer" />
     </nav>
 
-    <!-- En-tête : Titre & Solde -->
+    <!-- Header Balance -->
     <div class="top-bar">
-      <span class="title-label">Déminage à Étagères</span>
+      <span class="title-label">Déminage à Étagères (4 Bombes)</span>
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
-    <!-- Arène de Jeu : Alignée sur ton design d'origine -->
+    <!-- Arena Container -->
     <div class="arena-container">
       <div class="mult-overlay">
         <div class="mult-val" :style="{ color: isPlaying && currentLevel > 0 ? AppColor.status.success : AppColor.tertiary.base }">
@@ -302,7 +293,7 @@ onMounted(async () => {
       {{ statusMessage }}
     </div>
 
-    <!-- Section de Saisie & Actions -->
+    <!-- Controls & Inputs -->
     <div class="controls-section">
       <div class="ctrl-box">
         <span class="ctrl-label">Montant de la mise (XOF)</span>
@@ -333,7 +324,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Boutons d'Action -->
+    <!-- Action Buttons -->
     <div class="btn-row">
       <button
         v-if="!isPlaying || currentLevel === 0"
@@ -358,7 +349,6 @@ onMounted(async () => {
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Barre d'application fixe */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -390,7 +380,6 @@ onMounted(async () => {
 }
 .spacer { width: 45px; }
 
-/* Container Principal */
 #crash-root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: v-bind('AppColor.surface.pure');
@@ -405,7 +394,6 @@ onMounted(async () => {
 .balance-badge { font-size: 13px; color: v-bind('AppColor.tertiary.soft'); }
 .balance-badge .amount { color: v-bind('AppColor.tertiary.pure'); font-weight: 700; }
 
-/* Arène de Jeu - Clean & Épurée */
 .arena-container {
   position: relative;
   background: v-bind('AppColor.surface.off');
@@ -418,7 +406,6 @@ onMounted(async () => {
   padding: 55px 10px 10px 10px;
 }
 
-/* Multiplicateur Flottant */
 .mult-overlay { 
   position: absolute; 
   top: 10px; 
@@ -434,7 +421,6 @@ onMounted(async () => {
 .mult-val { font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
 .mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: v-bind('AppColor.tertiary.soft'); font-weight: 700; }
 
-/* Wall de Briques Style Mario */
 .mario-wall {
   display: flex;
   flex-direction: column;
@@ -465,7 +451,6 @@ onMounted(async () => {
   pointer-events: none;
 }
 
-/* Brique Terracotta Mario */
 .mario-brick {
   position: relative;
   width: 100%;
@@ -500,7 +485,6 @@ onMounted(async () => {
   transform: translateY(1px);
 }
 
-/* États après clic */
 .mario-brick.safe {
   background-color: v-bind('AppColor.status.success');
   border-color: #2e7d32;
@@ -536,7 +520,6 @@ onMounted(async () => {
   100% { transform: scale(1); }
 }
 
-/* Saisie & Contrôles */
 .controls-section { margin-bottom: 20px; }
 .ctrl-box { display: flex; flex-direction: column; }
 .ctrl-label { font-size: 11px; color: v-bind('AppColor.tertiary.soft'); font-weight: 600; margin-bottom: 8px; }
@@ -579,7 +562,6 @@ onMounted(async () => {
 }
 .chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* Boutons d'Action */
 .btn-row { display: flex; gap: 12px; margin-bottom: 16px; }
 .btn-main { 
   flex: 1; 
