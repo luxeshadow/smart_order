@@ -39,7 +39,7 @@ const betInput = ref<number>(500)
 const isPlaying = ref<boolean>(false)
 const currentLevel = ref<number>(0)
 const currentBet = ref<number>(0)
-const statusMessage = ref<string>('Choisissez votre mise et lancez la partie')
+const statusMessage = ref<string>('Tape sur les briques pour monter !')
 const messageColor = ref<string>(AppColor.tertiary.soft)
 
 // Matrice du plateau : gridConfig[row][col]
@@ -84,7 +84,7 @@ const updateStatusMessage = () => {
     messageColor.value = AppColor.tertiary.base
   } else {
     const currentWin = Math.floor(currentBet.value * currentMultiplier.value)
-    statusMessage.value = `Étage ${currentLevel.value + 1} (x${nextMultiplier.value.toFixed(2)}) • Gains actuels : ${currentWin.toLocaleString('fr-FR')} XOF`
+    statusMessage.value = `Étage ${currentLevel.value + 1} (x${nextMultiplier.value.toFixed(2)}) • Gains : ${currentWin.toLocaleString('fr-FR')} XOF`
     messageColor.value = AppColor.status.success
   }
 }
@@ -156,7 +156,7 @@ const selectBrick = async (row: number, col: number) => {
     targetRowRevealed[col] = 'boom'
     revealRow(row)
 
-    statusMessage.value = '💥 BOOM ! Vous avez sauté sur une bombe.'
+    statusMessage.value = '💥 BOOM ! Une bombe était cachée.'
     messageColor.value = AppColor.status.error
 
     await endGame(false, 0)
@@ -245,18 +245,18 @@ onMounted(async () => {
         <i class="fi fi-rr-arrow-small-left" />
       </button>
       <div class="app-bar-title">
-        Mario Bricks
+        Super Mario World
       </div>
       <div class="spacer" />
     </nav>
 
     <!-- En-tête : Titre & Solde -->
     <div class="top-bar">
-      <span class="title-label">Déminage à Étagères</span>
+      <span class="title-label">Mur de Briques Mario</span>
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
-    <!-- Arène du jeu : Mur de Briques Plates avec Rainures -->
+    <!-- Arène de Jeu : Vrai Mur de Briques Mario Rétro -->
     <div class="arena-container">
       <div class="mult-overlay">
         <div class="mult-val" :style="{ color: isPlaying && currentLevel > 0 ? AppColor.status.success : AppColor.tertiary.base }">
@@ -267,7 +267,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="brick-wall">
+      <div class="mario-wall">
         <div
           v-for="r in [...Array(ROWS).keys()].reverse()"
           :key="r"
@@ -275,12 +275,13 @@ onMounted(async () => {
           :class="{
             active: isPlaying && currentLevel === r,
             completed: isPlaying && currentLevel > r,
+            'offset-row': r % 2 === 1
           }"
         >
           <div
             v-for="c in COLS"
             :key="c - 1"
-            class="flat-brick"
+            class="mario-brick"
             :class="{
               safe: gridRevealed[r]?.[c - 1] === 'safe',
               boom: gridRevealed[r]?.[c - 1] === 'boom',
@@ -288,10 +289,9 @@ onMounted(async () => {
             }"
             @click="selectBrick(r, c - 1)"
           >
-            <!-- Ligne de séparation interne (rainure de brique) -->
-            <div class="brick-groove" />
-
-            <span v-if="gridRevealed[r]?.[c - 1] === 'safe'" class="icon-pop">🍄</span>
+            <!-- Affichage du point d'interrogation emblématique ou du contenu -->
+            <span v-if="!gridRevealed[r]?.[c - 1]" class="question-mark">?</span>
+            <span v-else-if="gridRevealed[r]?.[c - 1] === 'safe'" class="icon-pop">🍄</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'boom'" class="icon-pop">💣</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'revealed-bomb'" class="dimmed">💣</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'revealed-safe'" class="dimmed">🍄</span>
@@ -407,51 +407,51 @@ onMounted(async () => {
 .balance-badge { font-size: 13px; color: v-bind('AppColor.tertiary.soft'); }
 .balance-badge .amount { color: v-bind('AppColor.tertiary.pure'); font-weight: 700; }
 
-/* Arène de Jeu */
+/* Arène de Jeu (Fond Ciel Mario Rétro) */
 .arena-container {
   position: relative;
-  background: v-bind('AppColor.surface.off');
-  border: 1px solid v-bind('AppColor.surface.bone');
-  border-radius: 16px;
+  background: #5c94fc; /* Le vrai bleu ciel de Super Mario NES */
+  border: 3px solid #000000;
+  border-radius: 12px;
   margin-bottom: 16px;
-  padding: 55px 12px 12px 12px;
+  padding: 55px 10px 10px 10px;
+  overflow: hidden;
 }
 
 /* Multiplicateur Flottant */
 .mult-overlay { 
   position: absolute; 
   top: 10px; 
-  left: 14px; 
+  left: 10px; 
   pointer-events: none; 
-  z-index: 4; 
-  background: v-bind('AppColor.surface.pure');
+  z-index: 10; 
+  background: #ffffff;
   padding: 4px 10px;
   border-radius: 8px;
-  border: 1px solid v-bind('AppColor.surface.bone');
+  border: 2px solid #000000;
 }
-.mult-val { font-size: 1.3rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.3px; }
-.mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: v-bind('AppColor.tertiary.soft'); font-weight: 700; margin-top: 1px; }
+.mult-val { font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
+.mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: #666; font-weight: 700; }
 
-/* 🧱 DESIGN BRIQUE PLAT 2D AVEC RAINURES DE MORTIER 🧱 */
-.brick-wall {
+/* 🧱 VRAI MUR DE BRIQUES MARIO 🧱 */
+.mario-wall {
   display: flex;
   flex-direction: column;
-  /* La rainure horizontale entre les rangées de briques */
-  gap: 3px;
-  background: v-bind('AppColor.surface.bone'); /* Couleur du mortier/joint */
-  padding: 3px;
-  border-radius: 8px;
+  gap: 4px;
+  background: #000000; /* Mortier noir entre les briques */
+  padding: 4px;
+  border-radius: 6px;
+  border: 2px solid #000000;
   width: 100%;
 }
 
 .brick-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  /* La rainure verticale entre chaque brique */
-  gap: 3px;
-  opacity: 0.45;
+  gap: 4px;
+  opacity: 0.4;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .brick-row.active {
@@ -460,76 +460,79 @@ onMounted(async () => {
 }
 
 .brick-row.completed {
-  opacity: 0.85;
+  opacity: 0.8;
   pointer-events: none;
 }
 
-.flat-brick {
+/* 🍄 BRIQUE INDIVIDUELLE STYLE MARIO NES 🍄 */
+.mario-brick {
   position: relative;
   width: 100%;
   height: 42px;
-  /* Couleur plate unie de la brique sans degradé 3D */
-  background: v-bind('AppColor.primary.base');
+  /* Couleur brique officielle Mario (#b84418 / Terracotta Rétro) */
+  background-color: #b84418;
+  border: 2px solid #000000;
+  border-radius: 3px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  overflow: hidden;
-  border-radius: 2px;
-  transition: background-color 0.15s ease;
+  font-weight: 800;
+  color: #fcdc00; /* Jaune or Mario */
+  box-shadow: inset 2px 2px 0px #fc9838, inset -2px -2px 0px #702808;
+  transition: transform 0.1s ease, background-color 0.15s ease;
 }
 
-/* Rainure horizontale interne pour donner le look de vrai motif de brique */
-.brick-groove {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: v-bind('AppColor.primary.dark');
-  opacity: 0.4;
-  pointer-events: none;
+/* Question mark stylisé */
+.question-mark {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fcdc00;
+  text-shadow: 2px 2px 0px #000;
 }
 
-.brick-row.active .flat-brick:hover {
-  background: v-bind('AppColor.primary.accent');
+.brick-row.active .mario-brick:hover {
+  background-color: #d85420;
+  transform: scale(1.03);
 }
 
-/* États après clic / révélation */
-.flat-brick.safe {
-  background: v-bind('AppColor.status.success');
+.mario-brick:active {
+  transform: scale(0.96);
 }
 
-.flat-brick.safe .brick-groove {
-  background: #2e7d32;
+/* États après clic */
+.mario-brick.safe {
+  background-color: #28a745;
+  box-shadow: inset 2px 2px 0px #5cd675, inset -2px -2px 0px #155724;
 }
 
-.flat-brick.boom {
-  background: v-bind('AppColor.status.error');
+.mario-brick.boom {
+  background-color: #e52521;
+  box-shadow: inset 2px 2px 0px #ff6b68, inset -2px -2px 0px #800c0a;
 }
 
-.flat-brick.boom .brick-groove {
-  background: #c62828;
-}
-
-.flat-brick.revealed {
-  background: v-bind('AppColor.surface.smoke');
-}
-
-.flat-brick.revealed .brick-groove {
-  background: v-bind('AppColor.surface.bone');
+.mario-brick.revealed {
+  background-color: #702808;
+  box-shadow: inset 1px 1px 0px #381404;
 }
 
 .icon-pop {
   position: relative;
   z-index: 2;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .dimmed { 
   position: relative;
   z-index: 2;
-  opacity: 0.45; 
+  opacity: 0.4; 
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); }
+  100% { transform: scale(1.1); }
 }
 
 /* Saisie & Contrôles */
@@ -593,11 +596,13 @@ onMounted(async () => {
 .btn-start-safe {
   background: v-bind('AppColor.primary.base'); 
   color: v-bind('AppColor.surface.pure');
+  box-shadow: 0 4px 12px rgba(255, 94, 0, 0.25);
 }
 
 .btn-cashout-safe {
   background: v-bind('AppColor.status.success');
   color: v-bind('AppColor.surface.pure');
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
 }
 
 .msg { text-align: center; font-size: 12px; min-height: 18px; margin-bottom: 16px; font-weight: 600; }
