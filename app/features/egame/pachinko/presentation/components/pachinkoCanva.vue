@@ -39,7 +39,7 @@ const betInput = ref<number>(500)
 const isPlaying = ref<boolean>(false)
 const currentLevel = ref<number>(0)
 const currentBet = ref<number>(0)
-const statusMessage = ref<string>('Tape sur les briques pour monter !')
+const statusMessage = ref<string>('Choisissez votre mise et lancez la partie')
 const messageColor = ref<string>(AppColor.tertiary.soft)
 
 // Matrice du plateau : gridConfig[row][col]
@@ -84,7 +84,7 @@ const updateStatusMessage = () => {
     messageColor.value = AppColor.tertiary.base
   } else {
     const currentWin = Math.floor(currentBet.value * currentMultiplier.value)
-    statusMessage.value = `Étage ${currentLevel.value + 1} (x${nextMultiplier.value.toFixed(2)}) • Gains : ${currentWin.toLocaleString('fr-FR')} XOF`
+    statusMessage.value = `Étage ${currentLevel.value + 1} (x${nextMultiplier.value.toFixed(2)}) • Gains actuels : ${currentWin.toLocaleString('fr-FR')} XOF`
     messageColor.value = AppColor.status.success
   }
 }
@@ -245,18 +245,18 @@ onMounted(async () => {
         <i class="fi fi-rr-arrow-small-left" />
       </button>
       <div class="app-bar-title">
-        Super Mario World
+        Mario Bricks
       </div>
       <div class="spacer" />
     </nav>
 
     <!-- En-tête : Titre & Solde -->
     <div class="top-bar">
-      <span class="title-label">Mur de Briques Mario</span>
+      <span class="title-label">Déminage à Étagères</span>
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
-    <!-- Arène de Jeu : Vrai Mur de Briques Mario Rétro -->
+    <!-- Arène de Jeu : Alignée sur ton design d'origine -->
     <div class="arena-container">
       <div class="mult-overlay">
         <div class="mult-val" :style="{ color: isPlaying && currentLevel > 0 ? AppColor.status.success : AppColor.tertiary.base }">
@@ -275,7 +275,6 @@ onMounted(async () => {
           :class="{
             active: isPlaying && currentLevel === r,
             completed: isPlaying && currentLevel > r,
-            'offset-row': r % 2 === 1
           }"
         >
           <div
@@ -289,7 +288,6 @@ onMounted(async () => {
             }"
             @click="selectBrick(r, c - 1)"
           >
-            <!-- Affichage du point d'interrogation emblématique ou du contenu -->
             <span v-if="!gridRevealed[r]?.[c - 1]" class="question-mark">?</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'safe'" class="icon-pop">🍄</span>
             <span v-else-if="gridRevealed[r]?.[c - 1] === 'boom'" class="icon-pop">💣</span>
@@ -360,7 +358,7 @@ onMounted(async () => {
 <style scoped>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Barre d'application */
+/* Barre d'application fixe */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -407,15 +405,17 @@ onMounted(async () => {
 .balance-badge { font-size: 13px; color: v-bind('AppColor.tertiary.soft'); }
 .balance-badge .amount { color: v-bind('AppColor.tertiary.pure'); font-weight: 700; }
 
-/* Arène de Jeu (Fond Ciel Mario Rétro) */
+/* Arène de Jeu - Clean & Épurée */
 .arena-container {
   position: relative;
-  background: #5c94fc; /* Le vrai bleu ciel de Super Mario NES */
-  border: 3px solid #000000;
+  background: v-bind('AppColor.surface.off');
+  border-left: 2px solid v-bind('AppColor.surface.bone'); 
+  border-bottom: 2px solid v-bind('AppColor.surface.bone');
+  border-top: 1px solid v-bind('AppColor.surface.smoke');
+  border-right: 1px solid v-bind('AppColor.surface.smoke');
   border-radius: 12px;
   margin-bottom: 16px;
   padding: 55px 10px 10px 10px;
-  overflow: hidden;
 }
 
 /* Multiplicateur Flottant */
@@ -425,33 +425,34 @@ onMounted(async () => {
   left: 10px; 
   pointer-events: none; 
   z-index: 10; 
-  background: #ffffff;
+  background: v-bind('AppColor.surface.pure');
   padding: 4px 10px;
   border-radius: 8px;
-  border: 2px solid #000000;
+  border: 1px solid v-bind('AppColor.surface.bone');
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
 }
 .mult-val { font-size: 1.2rem; font-weight: 800; line-height: 1.1; }
-.mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: #666; font-weight: 700; }
+.mult-sub { font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; color: v-bind('AppColor.tertiary.soft'); font-weight: 700; }
 
-/* 🧱 VRAI MUR DE BRIQUES MARIO 🧱 */
+/* Wall de Briques Style Mario */
 .mario-wall {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: #000000; /* Mortier noir entre les briques */
-  padding: 4px;
-  border-radius: 6px;
-  border: 2px solid #000000;
+  gap: 5px;
+  background: v-bind('AppColor.surface.smoke');
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid v-bind('AppColor.surface.bone');
   width: 100%;
 }
 
 .brick-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-  opacity: 0.4;
+  gap: 5px;
+  opacity: 0.35;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .brick-row.active {
@@ -460,62 +461,62 @@ onMounted(async () => {
 }
 
 .brick-row.completed {
-  opacity: 0.8;
+  opacity: 0.75;
   pointer-events: none;
 }
 
-/* 🍄 BRIQUE INDIVIDUELLE STYLE MARIO NES 🍄 */
+/* Brique Terracotta Mario */
 .mario-brick {
   position: relative;
   width: 100%;
   height: 42px;
-  /* Couleur brique officielle Mario (#b84418 / Terracotta Rétro) */
   background-color: #b84418;
-  border: 2px solid #000000;
-  border-radius: 3px;
+  border: 1px solid #702808;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   font-weight: 800;
-  color: #fcdc00; /* Jaune or Mario */
-  box-shadow: inset 2px 2px 0px #fc9838, inset -2px -2px 0px #702808;
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.3), inset -1px -1px 0px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease, filter 0.15s ease;
 }
 
-/* Question mark stylisé */
 .question-mark {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 900;
   color: #fcdc00;
-  text-shadow: 2px 2px 0px #000;
+  text-shadow: 1px 1px 0px #000;
 }
 
 .brick-row.active .mario-brick:hover {
-  background-color: #d85420;
-  transform: scale(1.03);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
 .mario-brick:active {
-  transform: scale(0.96);
+  transform: translateY(1px);
 }
 
 /* États après clic */
 .mario-brick.safe {
-  background-color: #28a745;
-  box-shadow: inset 2px 2px 0px #5cd675, inset -2px -2px 0px #155724;
+  background-color: v-bind('AppColor.status.success');
+  border-color: #2e7d32;
+  box-shadow: none;
 }
 
 .mario-brick.boom {
-  background-color: #e52521;
-  box-shadow: inset 2px 2px 0px #ff6b68, inset -2px -2px 0px #800c0a;
+  background-color: v-bind('AppColor.status.error');
+  border-color: #c62828;
+  box-shadow: none;
 }
 
 .mario-brick.revealed {
-  background-color: #702808;
-  box-shadow: inset 1px 1px 0px #381404;
+  background-color: v-bind('AppColor.surface.bone');
+  border-color: v-bind('AppColor.surface.smoke');
+  box-shadow: none;
 }
 
 .icon-pop {
@@ -532,7 +533,7 @@ onMounted(async () => {
 
 @keyframes popIn {
   0% { transform: scale(0); }
-  100% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 /* Saisie & Contrôles */
@@ -590,7 +591,7 @@ onMounted(async () => {
   cursor: pointer; 
   transition: opacity 0.2s ease; 
 }
-.btn-main:active { opacity: 0.9; }
+.btn-main:active { transform: scale(0.99); }
 .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .btn-start-safe {
