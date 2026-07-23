@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppAudio } from '@/core/constants/app_audios'
+import { AppImage } from '@/core/constants/app_images'
 import { Failure } from '@/core/errors/failure'
 import { useAuthStore } from '@/features/auth/presentation/stores/auth_store'
 import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
@@ -13,9 +14,9 @@ import { useConfetti } from '@/core/utils/useConfetti'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
-const MarioBox = '/assets/videos/gif/mario.gif'
-const Mario_Ringtone = AppAudio?.Mario_Ringtone || '/assets/audios/ringtone/mario.mpeg'
-const bomb_Ringtone = AppAudio?.bomb_Ringtone || '/assets/audios/ringtone/bomb.mpeg'
+const MarioBox = AppImage.MarioBox
+const Mario_Ringtone = AppAudio?.Mario_Ringtone 
+const bomb_Ringtone = AppAudio?.bomb_Ringtone
 
 const ROWS = 8
 const COLS = 6
