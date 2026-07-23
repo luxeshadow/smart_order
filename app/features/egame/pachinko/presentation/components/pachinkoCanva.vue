@@ -13,7 +13,7 @@ import { useConfetti } from '@/core/utils/useConfetti'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
-const MarioBox = '/assets/videos/gif/mario_box.gif'
+const MarioBox = '/assets/videos/gif/mario.gif'
 const Mario_Ringtone = AppAudio?.Mario_Ringtone || '/assets/audios/ringtone/mario.mpeg'
 const bomb_Ringtone = AppAudio?.bomb_Ringtone || '/assets/audios/ringtone/bomb.mpeg'
 
