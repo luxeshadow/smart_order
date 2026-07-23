@@ -266,7 +266,7 @@ onMounted(async () => {
 
     <!-- Header Balance -->
     <div class="top-bar">
-      <span class="title-label">Déminage à Étagères (4 Bombes)</span>
+      <span class="title-label">Déminage à Étagères</span>
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
