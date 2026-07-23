@@ -264,16 +264,16 @@ onMounted(async () => {
       <div class="spacer" />
     </nav>
 
+    <!-- Container GIF Mario Box -->
+    <div class="mario-box-container">
+      <img :src="MarioBox" alt="Mario Box GIF" class="mario-box-gif" />
+    </div>
     <!-- Header Balance -->
     <div class="top-bar">
       <span class="title-label">Déminage à Étagères</span>
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
-    <!-- Container GIF Mario Box -->
-    <div class="mario-box-container">
-      <img :src="MarioBox" alt="Mario Box GIF" class="mario-box-gif" />
-    </div>
 
     <!-- Arena Container -->
     <div class="arena-container">
@@ -433,16 +433,16 @@ onMounted(async () => {
 
 .mario-box-gif {
   max-width: 100px;
-  height: auto;
-  object-fit: contain;
+  height: 280;
+  object-fit: cover;
   border-radius: 8px;
 }
 
 .arena-container {
   position: relative;
   background: v-bind('AppColor.surface.off');
-  border-left: 2px solid v-bind('AppColor.surface.bone'); 
-  border-bottom: 2px solid v-bind('AppColor.surface.bone');
+  border-left: 1px solid v-bind('AppColor.surface.bone'); 
+  border-bottom: 1px solid v-bind('AppColor.surface.bone');
   border-top: 1px solid v-bind('AppColor.surface.smoke');
   border-right: 1px solid v-bind('AppColor.surface.smoke');
   border-radius: 12px;
