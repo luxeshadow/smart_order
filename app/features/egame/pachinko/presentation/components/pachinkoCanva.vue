@@ -425,10 +425,10 @@ onMounted(async () => {
 
 .mario-banner {
   width: 100%;
-  height: 90px;
+  height: 100px;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   overflow: hidden;
   margin-bottom: 12px;
   border-radius: 16px;
@@ -437,9 +437,9 @@ onMounted(async () => {
 .mario-banner-gif {
   width: 100%;
   height: auto;
-  min-height: 160px;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center bottom;
+  transform: translateY(25px) scale(1.15);
 }
 
 .arena-container {
