@@ -12,13 +12,13 @@ import { useToast } from '@/core/utils/useToast'
 import { useConfetti } from '@/core/utils/useConfetti'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
-import { PlayPachinkoGameUseCase } from '../../application/usecases/play_pachinko_game_usecase'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
+const MarioBox = '/assets/videos/gif/mario_box.gif'
+const Mario_Ringtone = AppAudio?.Mario_Ringtone || '/assets/audios/ringtone/mario.mpeg'
+const bomb_Ringtone = AppAudio?.bomb_Ringtone || '/assets/audios/ringtone/bomb.mpeg'
 
 const ROWS = 8
 const COLS = 6
-const BOMBS_PER_ROW = 4 // 💣 4 Bombes
-const SAFES_PER_ROW = 2 // 🍄 2 Champignons
 const BASE_MULT = 1.25
 const STEP_MULT = 0.25
 
@@ -34,18 +34,19 @@ const { showToast } = useToast()
 const { triggerConfetti } = useConfetti()
 
 const getBalanceUseCase = new ShowMyPrincipalBalanceUseCase(new ShowMyPrincipalBalanceRepositoryImpl())
-const playPachinkoUseCase = new PlayPachinkoGameUseCase(new PlayPachinkoGameRepositoryImpl())
+const pachinkoRepository = new PlayPachinkoGameRepositoryImpl()
 
 // États du jeu
 const betInput = ref<number>(500)
 const isPlaying = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
 const currentLevel = ref<number>(0)
 const currentBet = ref<number>(0)
+const activeSessionId = ref<string | null>(null)
 const statusMessage = ref<string>('Choisissez votre mise et lancez la partie')
 const messageColor = ref<string>(AppColor.tertiary.soft)
 
-// Matrice secrète et révélée
-const gridConfig = ref<string[][]>([])
+// Matrice révélée uniquement côté client
 const gridRevealed = ref<string[][]>([])
 
 const formatBalance = (val: number | null) => {
@@ -81,7 +82,7 @@ const setQuickBet = (amount: number) => {
 
 const updateStatusMessage = () => {
   if (currentLevel.value === 0) {
-    statusMessage.value = `Étage 1 (x${nextMultiplier.value.toFixed(2)}) • Chance de succès : 33%`
+    statusMessage.value = `Étage 1 (x${nextMultiplier.value.toFixed(2)})`
     messageColor.value = AppColor.tertiary.base
   } else {
     const currentWin = Math.floor(currentBet.value * currentMultiplier.value)
@@ -90,21 +91,9 @@ const updateStatusMessage = () => {
   }
 }
 
-const shuffle = (array: string[]): string[] => {
-  const arr = [...array]
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const temp = arr[i]
-    if (temp !== undefined && arr[j] !== undefined) {
-      arr[i] = arr[j]!
-      arr[j] = temp
-    }
-  }
-  return arr
-}
-
+// 1. Démarrage sécurisé via Supabase RPC + Audio Mario
 const startGame = async () => {
-  if (isPlaying.value) return
+  if (isPlaying.value || isLoading.value) return
 
   const bet = Number(betInput.value)
   if (isNaN(bet) || bet < 100) {
@@ -121,104 +110,137 @@ const startGame = async () => {
     return
   }
 
-  transactionStore.updateBalance(balance - bet)
+  isLoading.value = true
+  statusMessage.value = 'Initialisation de la partie...'
+
+  const result = await pachinkoRepository.startGame(user.value?.id || '', bet)
+
+  if (result instanceof Failure) {
+    statusMessage.value = `❌ ${result.message}`
+    messageColor.value = AppColor.status.error
+    isLoading.value = false
+    return
+  }
+
+  // 🔊 Audio au chargement/démarrage du jeu
+  try {
+    void new Audio(Mario_Ringtone).play()
+  } catch (err) {
+    console.warn('Erreur de lecture audio Mario:', err)
+  }
+
+  // Mise à jour locale de la session et du solde
+  activeSessionId.value = result.session_id
+  transactionStore.updateBalance(result.new_balance)
   currentBet.value = bet
   currentLevel.value = 0
   isPlaying.value = true
-
-  // Génération : STRICTEMENT 4 BOMBES & 2 CHAMPIGNONS PAR ÉTAGE
-  const generatedConfig: string[][] = []
-  for (let r = 0; r < ROWS; r++) {
-    const rowItems: string[] = [
-      ...Array(BOMBS_PER_ROW).fill('bomb'),
-      ...Array(SAFES_PER_ROW).fill('safe')
-    ]
-    generatedConfig[r] = shuffle(rowItems)
-  }
-  gridConfig.value = generatedConfig
+  isLoading.value = false
 
   initEmptyGrid()
   gameStore.startGame()
   updateStatusMessage()
 }
 
+// 2. Sélection d'une brique + Audio Bombe en cas de défaite
 const selectBrick = async (row: number, col: number) => {
-  if (!isPlaying.value || row !== currentLevel.value) return
+  if (!isPlaying.value || isLoading.value || row !== currentLevel.value || !activeSessionId.value) return
 
-  const rowData = gridConfig.value[row]
+  isLoading.value = true
+  const result = await pachinkoRepository.revealBrick(activeSessionId.value, user.value?.id || '', col)
+
+  if (result instanceof Failure) {
+    statusMessage.value = `❌ ${result.message}`
+    messageColor.value = AppColor.status.error
+    isLoading.value = false
+    return
+  }
+
   const targetRowRevealed = gridRevealed.value[row]
-  if (!rowData || !targetRowRevealed) return
+  if (!targetRowRevealed) {
+    isLoading.value = false
+    return
+  }
 
-  const item = rowData[col]
-  if (!item) return
+  if (result.result === 'BOOM') {
+    // 🔊 Audio lors d'un impact avec une bombe
+    try {
+      void new Audio(bomb_Ringtone).play()
+    } catch (err) {
+      console.warn('Erreur de lecture audio bombe:', err)
+    }
 
-  if (item === 'bomb') {
     targetRowRevealed[col] = 'boom'
-    revealRow(row)
+    if (result.full_row) {
+      revealRowWithData(row, result.full_row)
+    }
 
     statusMessage.value = '💥 BOOM ! Une bombe était cachée.'
     messageColor.value = AppColor.status.error
 
-    await endGame(false, 0)
+    await finishLocalGame(false, 0)
   } else {
     targetRowRevealed[col] = 'safe'
-    currentLevel.value++
+    currentLevel.value = result.current_level ?? (currentLevel.value + 1)
 
-    if (currentLevel.value < ROWS) {
-      updateStatusMessage()
-    } else {
-      const totalWin = Math.floor(currentBet.value * (BASE_MULT + (ROWS - 1) * STEP_MULT))
-      statusMessage.value = `🎉 Victoire Maximale ! Gain : ${totalWin.toLocaleString('fr-FR')} XOF`
+    if (result.status === 'WON') {
+      const winAmount = result.win_amount || Math.floor(currentBet.value * currentMultiplier.value)
+      statusMessage.value = `🎉 Victoire Maximale ! Gain : ${winAmount.toLocaleString('fr-FR')} XOF`
       messageColor.value = AppColor.status.success
 
-      await endGame(true, currentLevel.value)
+      await handleWinEffects(winAmount)
+      await finishLocalGame(true, winAmount)
+    } else {
+      updateStatusMessage()
     }
   }
+
+  isLoading.value = false
 }
 
-const revealRow = (row: number) => {
+const revealRowWithData = (row: number, serverRowData: string[]) => {
   const currentRowRevealed = gridRevealed.value[row]
-  const currentRowConfig = gridConfig.value[row]
-
-  if (!currentRowRevealed || !currentRowConfig) return
+  if (!currentRowRevealed) return
 
   for (let c = 0; c < COLS; c++) {
     if (!currentRowRevealed[c]) {
-      currentRowRevealed[c] = currentRowConfig[c] === 'bomb' ? 'revealed-bomb' : 'revealed-safe'
+      currentRowRevealed[c] = serverRowData[c] === 'bomb' ? 'revealed-bomb' : 'revealed-safe'
     }
   }
 }
 
+// 3. Encaissement volontaire géré par le serveur
 const cashout = async () => {
-  if (!isPlaying.value || currentLevel.value === 0) return
+  if (!isPlaying.value || isLoading.value || currentLevel.value === 0 || !activeSessionId.value) return
 
-  const winAmount = Math.floor(currentBet.value * currentMultiplier.value)
-  statusMessage.value = `🎉 Encaissement réussi ! Gain : ${winAmount.toLocaleString('fr-FR')} XOF`
-  messageColor.value = AppColor.status.success
+  isLoading.value = true
+  const result = await pachinkoRepository.cashout(activeSessionId.value, user.value?.id || '')
 
-  await endGame(true, currentLevel.value)
-}
-
-const endGame = async (isWin: boolean, levelReached: number) => {
-  isPlaying.value = false
-
-  const winAmount = isWin && levelReached > 0 ? Math.floor(currentBet.value * currentMultiplier.value) : 0
-
-  if (isWin && winAmount > 0) {
-    try { void new Audio(AppAudio.Win_Ringtone).play() } catch {}
-    triggerConfetti()
-    showToast(`+${winAmount.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
+  if (result instanceof Failure) {
+    statusMessage.value = `❌ ${result.message}`
+    messageColor.value = AppColor.status.error
+    isLoading.value = false
+    return
   }
 
-  // On transmet l'étage atteint pour validation par le serveur
-  await playPachinkoUseCase.execute({
-    userId: user.value?.id || '',
-    betAmount: currentBet.value,
-    levelReached: isWin ? levelReached : 0,
-    isWin
-  } as any)
+  statusMessage.value = `🎉 Encaissement réussi ! Gain : ${result.win_amount.toLocaleString('fr-FR')} XOF`
+  messageColor.value = AppColor.status.success
 
-  gameStore.finishGame(0)
+  await handleWinEffects(result.win_amount)
+  await finishLocalGame(true, result.win_amount)
+  isLoading.value = false
+}
+
+const handleWinEffects = async (winAmount: number) => {
+  try { void new Audio(AppAudio.Win_Ringtone).play() } catch {}
+  triggerConfetti()
+  showToast(`+${winAmount.toLocaleString('fr-FR')} XOF`, 'fi-rr-check', 'success')
+}
+
+const finishLocalGame = async (isWin: boolean, winAmount: number) => {
+  isPlaying.value = false
+  activeSessionId.value = null
+  gameStore.finishGame(winAmount)
   await fetchBalance()
 }
 
@@ -247,6 +269,11 @@ onMounted(async () => {
       <span class="balance-badge">Solde : <strong class="amount">{{ formatBalance(mainBalance) }} XOF</strong></span>
     </div>
 
+    <!-- Container GIF Mario Box -->
+    <div class="mario-box-container">
+      <img :src="MarioBox" alt="Mario Box GIF" class="mario-box-gif" />
+    </div>
+
     <!-- Arena Container -->
     <div class="arena-container">
       <div class="mult-overlay">
@@ -264,7 +291,7 @@ onMounted(async () => {
           :key="r"
           class="brick-row"
           :class="{
-            active: isPlaying && currentLevel === r,
+            active: isPlaying && currentLevel === r && !isLoading,
             completed: isPlaying && currentLevel > r,
           }"
         >
@@ -304,20 +331,20 @@ onMounted(async () => {
             min="100"
             step="100"
             class="ctrl-input"
-            :disabled="isPlaying"
+            :disabled="isPlaying || isLoading"
           >
         </div>
         <div class="chip-row">
-          <button class="chip" :disabled="isPlaying" @click="setQuickBet(500)">
+          <button class="chip" :disabled="isPlaying || isLoading" @click="setQuickBet(500)">
             500
           </button>
-          <button class="chip" :disabled="isPlaying" @click="setQuickBet(1000)">
+          <button class="chip" :disabled="isPlaying || isLoading" @click="setQuickBet(1000)">
             1 000
           </button>
-          <button class="chip" :disabled="isPlaying" @click="setQuickBet(2500)">
+          <button class="chip" :disabled="isPlaying || isLoading" @click="setQuickBet(2500)">
             2 500
           </button>
-          <button class="chip" :disabled="isPlaying" @click="setQuickBet(5000)">
+          <button class="chip" :disabled="isPlaying || isLoading" @click="setQuickBet(5000)">
             5 000
           </button>
         </div>
@@ -329,15 +356,16 @@ onMounted(async () => {
       <button
         v-if="!isPlaying || currentLevel === 0"
         class="btn-main btn-start-safe"
-        :disabled="isPlaying"
+        :disabled="isPlaying || isLoading"
         @click="startGame"
       >
-        JOUER
+        {{ isLoading ? 'CHARGEMENT...' : 'JOUER' }}
       </button>
 
       <button
         v-else
         class="btn-main btn-cashout-safe"
+        :disabled="isLoading"
         @click="cashout"
       >
         ENCAISSER ({{ Math.floor(currentBet * currentMultiplier).toLocaleString('fr-FR') }} XOF)
@@ -393,6 +421,21 @@ onMounted(async () => {
 .title-label { font-size: 11px; font-weight: 700; color: v-bind('AppColor.tertiary.soft'); letter-spacing: 0.5px; text-transform: uppercase; }
 .balance-badge { font-size: 13px; color: v-bind('AppColor.tertiary.soft'); }
 .balance-badge .amount { color: v-bind('AppColor.tertiary.pure'); font-weight: 700; }
+
+.mario-box-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.mario-box-gif {
+  max-width: 100px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
 
 .arena-container {
   position: relative;

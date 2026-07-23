@@ -15,10 +15,11 @@ export class AppImage {
   //Gifs
   static readonly Profile = '/assets/videos/gif/profile.gif'
   static readonly EmptyBox = '/assets/videos/gif/empty_box.gif'
+  static readonly MarioBox = '/assets/videos/gif/mario.gif'
   
   //Audios
    static readonly Money_Ringtone = '/assets/audios/ringtone/money.mpeg'
-  
+    
 
   // Shops / 
   static readonly Amazon = '/assets/images/shops/Amazon.jpeg'

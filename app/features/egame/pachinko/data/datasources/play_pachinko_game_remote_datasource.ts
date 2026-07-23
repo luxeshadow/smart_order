@@ -1,48 +1,79 @@
 import { DatabaseException } from '@/core/errors/exception'
 
+export interface StartGameResult {
+  session_id: string
+  new_balance: number
+}
+
+export interface RevealBrickResult {
+  result: 'SAFE' | 'BOOM'
+  item: 'safe' | 'bomb'
+  current_level?: number
+  win_amount?: number
+  full_row?: string[]
+  status: 'IN_PROGRESS' | 'WON' | 'LOST'
+}
+
+export interface CashoutResult {
+  status: 'CASHED_OUT'
+  win_amount: number
+}
+
 export class PlayPachinkoGameRemoteDatasource {
   constructor(private readonly supabase: any) {}
 
-  async getUserData(userId: string) {
+  /**
+   * 1. Démarre la partie : débite la mise et crée la session secrète côté serveur.
+   */
+  async startGame(userId: string, betAmount: number): Promise<StartGameResult> {
     try {
-      const { data, error } = await this.supabase
-        .from('users')
-        .select('main_balance, phone_number')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw new DatabaseException(error.message)
-      return data
-    } catch (error: any) {
-      if (error instanceof DatabaseException) throw error
-      throw new DatabaseException(error.message || 'Erreur lors de la récupération des données utilisateur')
-    }
-  }
-
-  async updateMainBalance(userId: string, newBalance: number) {
-    try {
-      const { error } = await this.supabase.from('users').update({ main_balance: newBalance }).eq('id', userId)
-      if (error) throw new DatabaseException(error.message)
-    } catch (error: any) {
-      if (error instanceof DatabaseException) throw error
-      throw new DatabaseException(error.message || 'Erreur lors de la mise à jour du solde principal')
-    }
-  }
-
-  async insertWinningDeposit(userId: string, phoneNumber: string, amount: number) {
-    try {
-      const { error } = await this.supabase.from('deposits').insert({
-        user_id: userId,
-        deposit_phone_number: phoneNumber,
-        amount,
-        method: 'pachinko',
-        status: 'completed',
-        reference_id: `PK-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+      const { data, error } = await this.supabase.rpc('rpc_start_mario_game', {
+        p_user_id: userId,
+        p_bet_amount: betAmount
       })
+
       if (error) throw new DatabaseException(error.message)
+      return data as StartGameResult
     } catch (error: any) {
       if (error instanceof DatabaseException) throw error
-      throw new DatabaseException(error.message || "Erreur lors de l'enregistrement du dépôt de gain")
+      throw new DatabaseException(error.message || 'Erreur lors du démarrage de la partie.')
+    }
+  }
+
+  /**
+   * 2. Révèle une brique à un étage donné.
+   */
+  async revealBrick(sessionId: string, userId: string, col: number): Promise<RevealBrickResult> {
+    try {
+      const { data, error } = await this.supabase.rpc('rpc_reveal_brick', {
+        p_session_id: sessionId,
+        p_user_id: userId,
+        p_col: col
+      })
+
+      if (error) throw new DatabaseException(error.message)
+      return data as RevealBrickResult
+    } catch (error: any) {
+      if (error instanceof DatabaseException) throw error
+      throw new DatabaseException(error.message || 'Erreur lors de la vérification de la brique.')
+    }
+  }
+
+  /**
+   * 3. Effectue l'encaissement volontaire du joueur.
+   */
+  async cashout(sessionId: string, userId: string): Promise<CashoutResult> {
+    try {
+      const { data, error } = await this.supabase.rpc('rpc_cashout_mario_game', {
+        p_session_id: sessionId,
+        p_user_id: userId
+      })
+
+      if (error) throw new DatabaseException(error.message)
+      return data as CashoutResult
+    } catch (error: any) {
+      if (error instanceof DatabaseException) throw error
+      throw new DatabaseException(error.message || "Erreur lors de l'encaissement.")
     }
   }
 }
