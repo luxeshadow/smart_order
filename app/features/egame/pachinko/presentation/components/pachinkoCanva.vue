@@ -264,10 +264,10 @@ onMounted(async () => {
       <div class="spacer" />
     </nav>
 
-    <!-- Container GIF Mario Box -->
-    <div class="mario-box-container">
-      <img :src="MarioBox" alt="Mario Box GIF" class="mario-box-gif" />
-    </div>
+   <!-- Bannière Mario Box -->
+<div class="mario-banner">
+  <img :src="MarioBox" alt="Mario Box GIF" class="mario-banner-gif" />
+</div>
     <!-- Header Balance -->
     <div class="top-bar">
       <span class="title-label">Déminage à Étagères</span>
@@ -423,19 +423,21 @@ onMounted(async () => {
 .balance-badge { font-size: 13px; color: v-bind('AppColor.tertiary.soft'); }
 .balance-badge .amount { color: v-bind('AppColor.tertiary.pure'); font-weight: 700; }
 
-.mario-box-container {
+.mario-banner {
+  width: 100%;
+  height: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 12px;
-  width: 100%;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border-radius: 16px;
 }
 
-.mario-box-gif {
-  max-width: 100px;
-  height: 280;
+.mario-banner-gif {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
 
 .arena-container {
