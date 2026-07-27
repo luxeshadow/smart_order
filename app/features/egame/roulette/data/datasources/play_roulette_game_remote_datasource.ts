@@ -1,16 +1,30 @@
 // features/transaction/data/datasources/play_roulette_game_remote_datasource.ts
-import { DatabaseException } from '@/core/errors/exception'
 import { checkUserActiveLevel } from '@/core/utils/check_user_level'
+import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
 
 export class PlayRouletteGameRemoteDatasource {
   // Utilisation de "any" pour éviter d'importer directement le client typé de Supabase
   constructor(private supabase: any) {}
 
   /**
-   * Vérification du niveau actif avant de jouer
+   * Vérification du niveau actif avant d'autoriser la Roulette
    */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
-    return await checkUserActiveLevel(userId)
+    try {
+      const isActive = await checkUserActiveLevel(this.supabase, userId)
+
+      if (!isActive) {
+        throw new ActiveLevelRequiredException()
+      }
+
+      return true
+    } catch (error: any) {
+      if (error instanceof ActiveLevelRequiredException) throw error
+
+      throw new DatabaseException(
+        error.message || 'Erreur lors de la vérification du niveau actif.'
+      )
+    }
   }
 
   async getUserData(userId: string) {

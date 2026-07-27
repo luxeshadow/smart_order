@@ -3,5 +3,6 @@ import type { PlayPachinkoGameParam } from '../../application/params/play_pachin
 import type { PachinkoResult } from '../entities/pachinko_result'
 
 export interface PlayPachinkoGameRepository {
+  checkUserActiveLevel(userId: string): Promise<boolean | Failure>
   playPachinkoGame(param: PlayPachinkoGameParam): Promise<PachinkoResult | Failure>
 }

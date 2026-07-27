@@ -1,11 +1,11 @@
 import { useApi } from '@/core/constants/supabase_client'
-import { DatabaseException } from '@/core/errors/exception'
-import { DatabaseFailure } from '@/core/errors/failure'
+import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
+import { DatabaseFailure, ActiveLevelRequiredFailure, Failure } from '@/core/errors/failure'
 import { PlayRouletteGameRemoteDatasource } from '../datasources/play_roulette_game_remote_datasource'
 import type { PlayRouletteGameRepository } from '../../domain/repository/play_roulette_game_repository'
 import type { PlayRouletteGameParam } from '../../application/params/play_roulette_game_params'
 import { RouletteResultModel } from '../models/roulette_result_model'
-import { ROULETTE_SLICES } from '@/core/constants/roulette_game' 
+import { ROULETTE_SLICES } from '@/core/constants/roulette_game'
 
 export class PlayRouletteGameRepositoryImpl implements PlayRouletteGameRepository {
   private datasource: PlayRouletteGameRemoteDatasource
@@ -13,6 +13,23 @@ export class PlayRouletteGameRepositoryImpl implements PlayRouletteGameRepositor
   constructor() {
     const supabase = useApi()
     this.datasource = new PlayRouletteGameRemoteDatasource(supabase)
+  }
+
+  /**
+   * Vérification du niveau actif avec gestion des exceptions
+   */
+  async checkUserActiveLevel(userId: string): Promise<boolean | Failure> {
+    try {
+      return await this.datasource.checkUserActiveLevel(userId)
+    } catch (error: any) {
+      if (error instanceof ActiveLevelRequiredException) {
+        return new ActiveLevelRequiredFailure(error.message)
+      }
+      if (error instanceof DatabaseException) {
+        return new DatabaseFailure(error.message)
+      }
+      return new DatabaseFailure(error.message || 'Erreur lors de la vérification du niveau.')
+    }
   }
 
   async playRouletteGame(param: PlayRouletteGameParam): Promise<RouletteResultModel | DatabaseFailure> {
@@ -26,7 +43,6 @@ export class PlayRouletteGameRepositoryImpl implements PlayRouletteGameRepositor
         throw new DatabaseException("Solde insuffisant.")
       }
 
-      // --- LOGIQUE DE RARETÉ DU JACKPOT SÉCURISÉE ---
       let winningIndex: number = 0
       const randomRoll = Math.random() // Entre 0 et 1
 

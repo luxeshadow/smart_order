@@ -1,5 +1,5 @@
-import { DatabaseException } from '@/core/errors/exception'
 import { checkUserActiveLevel } from '@/core/utils/check_user_level'
+import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
 
 export interface StartGameResult {
   session_id: string
@@ -24,10 +24,25 @@ export class PlayPachinkoGameRemoteDatasource {
   constructor(private readonly supabase: any) {}
 
   /**
-   * Vérification du niveau actif avant de jouer
+   * Vérification du niveau actif avant de jouer.
+   * Utilise l'utilitaire réutilisable en lui transmettant l'instance Supabase de cette Datasource.
    */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
-    return await checkUserActiveLevel(userId)
+    try {
+      const isActive = await checkUserActiveLevel(this.supabase, userId)
+
+      if (!isActive) {
+        throw new ActiveLevelRequiredException()
+      }
+
+      return true
+    } catch (error: any) {
+      if (error instanceof ActiveLevelRequiredException) throw error
+
+      throw new DatabaseException(
+        error.message || 'Erreur lors de la vérification du niveau actif.'
+      )
+    }
   }
 
   /**

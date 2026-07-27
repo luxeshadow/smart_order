@@ -11,7 +11,7 @@ import { AppImage } from '@/core/constants/app_images'
 import { RegisterUseCase } from '../../application/usecases/register_usecase'
 import { RegisterRepositoryImpl } from '../../data/repositories/register_repository_impl'
 
-import { Failure } from '@/core/errors/failure'
+import { Failure, UserUnconfirmedFailure } from '@/core/errors/failure'
 import { useToast } from '../../../../core/utils/useToast'
 
 const { showToast } = useToast()
@@ -34,7 +34,6 @@ const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
 const referredBy = ref<string | null>(null)
-
 
 const loadReferral = async () => {
   const referralCode = route.query.ref as string | undefined
@@ -78,6 +77,29 @@ const handleRegister = async () => {
     })
 
     if (result instanceof Failure) {
+      // 1. Cas spécifique : Compte existant mais non encore activé
+      if (result instanceof UserUnconfirmedFailure) {
+        showToast(
+          "Compte existant non activé. Redirection vers la vérification OTP...",
+          "fi-rr-info",
+          "error"
+        )
+
+        setTimeout(() => {
+          router.push({
+            path: '/auth/verify-otp',
+            query: {
+              email: result.email
+            }
+          })
+
+          isLoading.value = false
+        }, 1500)
+
+        return
+      }
+
+      // 2. Autres échecs (Auth, Validation, etc.)
       errorMessage.value = result.message
 
       showToast(
@@ -90,6 +112,7 @@ const handleRegister = async () => {
       return
     }
 
+    // Succès classique de création de compte
     showToast(
       "Compte créé valider l'otp pour terminer !",
       "fi-rr-check",

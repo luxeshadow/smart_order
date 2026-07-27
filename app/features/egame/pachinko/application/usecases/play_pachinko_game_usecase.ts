@@ -1,5 +1,5 @@
 import type { UseCase } from '@/core/usecase/usecase'
-import { DatabaseFailure, type Failure } from '@/core/errors/failure'
+import { DatabaseFailure, Failure } from '@/core/errors/failure'
 import type { PachinkoResult } from '../../domain/entities/pachinko_result'
 import type { PlayPachinkoGameRepository } from '../../domain/repository/play_pachinko_game_repository'
 import type { PlayPachinkoGameParam } from '../params/play_pachinko_game_params'
@@ -9,8 +9,15 @@ export class PlayPachinkoGameUseCase implements UseCase<PachinkoResult, PlayPach
   constructor(private readonly repository: PlayPachinkoGameRepository) {}
 
   async execute(param: PlayPachinkoGameParam): Promise<PachinkoResult | Failure> {
+    // 1. Validation des paramètres
     const validationError = PlayPachinkoGameValidator.validate(param)
     if (validationError) return new DatabaseFailure(validationError)
+
+    // 2. Vérification du niveau actif
+    const levelCheck = await this.repository.checkUserActiveLevel(param.userId)
+    if (Failure.isFailure(levelCheck)) {
+      return levelCheck
+    }
 
     return this.repository.playPachinkoGame(param)
   }

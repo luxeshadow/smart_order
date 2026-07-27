@@ -41,3 +41,18 @@ export class ServerFailure extends Failure {
     super(message, 'SERVER_FAILURE')
   }
 }
+
+export class ActiveLevelRequiredFailure extends Failure {
+  constructor(message: string = "Vous devez avoir au moins un niveau actif pour pouvoir jouer.") {
+    super(message, 'ACTIVE_LEVEL_REQUIRED')
+  }
+}
+
+export class UserUnconfirmedFailure extends Failure {
+  constructor(
+    public email: string, 
+    message = "Un compte existe déjà avec cet e-mail mais n'a pas encore été activé."
+  ) {
+    super(message, 'USER_UNCONFIRMED')
+  }
+}

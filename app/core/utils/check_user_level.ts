@@ -1,9 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-
-export const checkUserActiveLevel = async (userId: string): Promise<boolean> => {
-  const config = useRuntimeConfig()
-  const supabase = createClient(config.public.supabaseUrl, config.public.supabaseKey)
-
+export const checkUserActiveLevel = async (supabase: any, userId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('users_levels')

@@ -5,6 +5,12 @@ export class AppException extends Error {
   }
 }
 
+export class ActiveLevelRequiredException extends Error {
+  constructor(message = "Vous devez avoir au moins un niveau actif pour jouer.") {
+    super(message)
+    this.name = 'ActiveLevelRequiredException'
+  }
+}
 
 export class AuthException extends AppException {
   constructor(message = 'Authentication error') {
@@ -29,7 +35,7 @@ export class ServerException extends AppException {
   constructor(message = 'Server error') {
     super(message)
   }
-  
+
 }
 export class UserUnconfirmedException extends Error {
   constructor(public email: string) {
