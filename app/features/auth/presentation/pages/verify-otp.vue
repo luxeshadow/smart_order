@@ -7,38 +7,64 @@ import { AppColor } from "@/core/constants/app_colors"
 import { AppImage } from "@/core/constants/app_images"
 import { useToast } from "@/core/utils/useToast"
 import { Failure } from '@/core/errors/failure'
+
+// UseCases & Repositories
 import { VerifyOtpUseCase } from '../../application/usecases/verify_otp_usecase'
 import { VerifyOtpRepositoryImpl } from '../../data/repositories/verify_otp_repository_impl'
+import { ResendOtpUseCase } from '../../application/usecases/resend_otp_usecase'
+import { ResendOtpRepositoryImpl } from '../../data/repositories/resend_otp_repository_impl'
 
 const { showToast } = useToast()
 const router = useRouter()
 const route = useRoute()
 
-const repository = new VerifyOtpRepositoryImpl()
-const verifyOtpUseCase = new VerifyOtpUseCase(repository)
+// Instanciation des UseCases
+const verifyOtpUseCase = new VerifyOtpUseCase(new VerifyOtpRepositoryImpl())
+const resendOtpUseCase = new ResendOtpUseCase(new ResendOtpRepositoryImpl())
 
 // Récupération des paramètres de l'URL
 const email = computed(() => (route.query.email as string) || "")
-const type = computed(() => (route.query.type as string) || "registration") // 'registration' ou 'email_change'
+const type = computed(() => (route.query.type as string) || "registration")
 
 const otpCode = ref("")
 const isLoading = ref(false)
+const isResending = ref(false)
 
-// Gestion du Timer
+// 1. Timer d'expiration globale du code (10 minutes)
 const initialTimer = 600 
 const timer = ref(initialTimer)
-const canResend = ref(false)
+
+// 2. Timer de rechargement du bouton "Renvoyer" (60 secondes)
+const RESEND_COOLDOWN = 60
+const resendCooldownTimer = ref(0)
+const canResend = ref(true)
+
 let interval: any = null
+let cooldownInterval: any = null
 
 const startTimer = () => {
-  canResend.value = false
   timer.value = initialTimer
   if (interval) clearInterval(interval)
   interval = setInterval(() => {
-    if (timer.value > 0) timer.value--
-    else {
-      canResend.value = true
+    if (timer.value > 0) {
+      timer.value--
+    } else {
       clearInterval(interval)
+    }
+  }, 1000)
+}
+
+const startResendCooldown = () => {
+  canResend.value = false
+  resendCooldownTimer.value = RESEND_COOLDOWN
+  if (cooldownInterval) clearInterval(cooldownInterval)
+
+  cooldownInterval = setInterval(() => {
+    if (resendCooldownTimer.value > 0) {
+      resendCooldownTimer.value--
+    } else {
+      canResend.value = true
+      clearInterval(cooldownInterval)
     }
   }, 1000)
 }
@@ -49,6 +75,7 @@ const formatTimer = computed(() => {
   return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
 })
 
+// Vérification de l'OTP
 const handleVerify = async () => {
   if (otpCode.value.length < 6) {
     showToast("Veuillez entrer le code à 6 chiffres", "fi-rr-info", "error")
@@ -70,12 +97,9 @@ const handleVerify = async () => {
       showToast("Vérification réussie !", "fi-rr-check", "success")
       
       setTimeout(() => {
-        // REDIRECTION CONDITIONNELLE
         if (type.value === 'email_change') {
-          // Si c'était un changement d'email, on retourne au profil
           router.push("/auth/profile")
         } else {
-          // Si c'était une inscription, on va au login
           router.push("/auth/login")
         }
         isLoading.value = false
@@ -87,22 +111,49 @@ const handleVerify = async () => {
   }
 }
 
-const handleResend = () => {
-  if (!canResend.value) return
-  showToast("Un nouveau code a été envoyé", "fi-rr-refresh", "success")
-  startTimer()
+// Renvoi réel de l'OTP avec vérification du quota (Max 2 par 24h)
+const handleResend = async () => {
+  if (!canResend.value || isResending.value) return
+
+  if (!email.value) {
+    showToast("Adresse e-mail introuvable", "fi-rr-cross-circle", "error")
+    return
+  }
+
+  isResending.value = true
+
+  try {
+    const result = await resendOtpUseCase.execute({ email: email.value })
+
+    if (result instanceof Failure) {
+      // Affiche l'erreur si le quota (2 renvois / 24h) est dépassé ou autre problème
+      showToast(result.message, "fi-rr-time-out", "error")
+    } else {
+      showToast("Un nouveau code vous a été envoyé", "fi-rr-refresh", "success")
+      
+      // Réinitialise le timer d'expiration globale et démarre le cooldown du bouton
+      startTimer()
+      startResendCooldown()
+    }
+  } catch (error) {
+    showToast("Impossible de renvoyer le code pour le moment", "fi-rr-shield-exclamation", "error")
+  } finally {
+    isResending.value = false
+  }
 }
 
 onMounted(() => {
   if (!email.value) {
     showToast("Session expirée", "fi-rr-info", "error")
     router.push(type.value === 'email_change' ? "/auth/profile" : "/auth/register")
+    return
   }
   startTimer()
 })
 
 onUnmounted(() => {
   if (interval) clearInterval(interval)
+  if (cooldownInterval) clearInterval(cooldownInterval)
 })
 </script>
 
@@ -142,17 +193,27 @@ onUnmounted(() => {
         />
 
         <div class="timer-container">
-          <p v-if="!canResend" class="timer-text">
+          <p v-if="timer > 0" class="timer-text">
             Le code expire dans <span class="time">{{ formatTimer }}</span>
           </p>
-          <button
-            v-else
-            @click="handleResend"
-            class="resend-btn"
-            :style="{ color: AppColor.primary.base }"
-          >
-            <i class="fi fi-rr-refresh"></i> Renvoyer le code
-          </button>
+
+          <!-- Bouton de renvoi avec gestion des états -->
+          <div class="resend-wrapper">
+            <button
+              v-if="canResend"
+              @click="handleResend"
+              class="resend-btn"
+              :disabled="isResending"
+              :style="{ color: AppColor.primary.base }"
+            >
+              <i class="fi fi-rr-refresh" :class="{ 'spin-icon': isResending }"></i>
+              <span>{{ isResending ? 'Envoi en cours...' : 'Renvoyer le code' }}</span>
+            </button>
+
+            <span v-else class="cooldown-text">
+              Renvoyer disponible dans {{ resendCooldownTimer }}s
+            </span>
+          </div>
         </div>
       </div>
 
@@ -169,6 +230,24 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.cooldown-text {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.resend-wrapper {
+  margin-top: 8px;
+}
+
 /* App Bar Style */
 .app-bar {
   position: fixed;

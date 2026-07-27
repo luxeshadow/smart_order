@@ -29,4 +29,11 @@ export class ServerException extends AppException {
   constructor(message = 'Server error') {
     super(message)
   }
+  
+}
+export class UserUnconfirmedException extends Error {
+  constructor(public email: string) {
+    super("Un compte existe déjà avec cet e-mail mais n'a pas encore été activé.")
+    this.name = 'UserUnconfirmedException'
+  }
 }

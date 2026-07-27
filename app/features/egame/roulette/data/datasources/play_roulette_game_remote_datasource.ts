@@ -1,9 +1,17 @@
 // features/transaction/data/datasources/play_roulette_game_remote_datasource.ts
 import { DatabaseException } from '@/core/errors/exception'
+import { checkUserActiveLevel } from '@/core/utils/check_user_level'
 
 export class PlayRouletteGameRemoteDatasource {
   // Utilisation de "any" pour éviter d'importer directement le client typé de Supabase
   constructor(private supabase: any) {}
+
+  /**
+   * Vérification du niveau actif avant de jouer
+   */
+  async checkUserActiveLevel(userId: string): Promise<boolean> {
+    return await checkUserActiveLevel(userId)
+  }
 
   async getUserData(userId: string) {
     try {

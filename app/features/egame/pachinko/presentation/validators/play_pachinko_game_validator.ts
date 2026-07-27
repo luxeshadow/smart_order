@@ -1,7 +1,9 @@
 import type { PlayPachinkoGameParam } from '../../application/params/play_pachinko_game_params'
 
 export class PlayPachinkoGameValidator {
+  
   static validate(params: PlayPachinkoGameParam): string | null {
+
     if (!params.userId) return "L'identifiant de l'utilisateur est obligatoire."
     if (params.betAmount === undefined || params.betAmount === null) return 'Le montant de la mise est obligatoire.'
 

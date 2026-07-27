@@ -24,6 +24,12 @@ export class UserAlreadyExistsFailure extends Failure {
   }
 }
 
+export class ValidatorFailure extends Failure {
+  constructor(message: string) {
+    super(message, 'VALIDATOR_FAILURE')
+  }
+}
+
 export class DatabaseFailure extends Failure {
   constructor(message: string) {
     super(message, 'DATABASE_FAILURE')

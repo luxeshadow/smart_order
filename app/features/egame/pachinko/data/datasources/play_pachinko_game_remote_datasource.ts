@@ -1,4 +1,5 @@
 import { DatabaseException } from '@/core/errors/exception'
+import { checkUserActiveLevel } from '@/core/utils/check_user_level'
 
 export interface StartGameResult {
   session_id: string
@@ -21,6 +22,13 @@ export interface CashoutResult {
 
 export class PlayPachinkoGameRemoteDatasource {
   constructor(private readonly supabase: any) {}
+
+  /**
+   * Vérification du niveau actif avant de jouer
+   */
+  async checkUserActiveLevel(userId: string): Promise<boolean> {
+    return await checkUserActiveLevel(userId)
+  }
 
   /**
    * 1. Démarre la partie
@@ -46,7 +54,6 @@ export class PlayPachinkoGameRemoteDatasource {
       )
     }
   }
-
 
   /**
    * 2. Révèle une brique
@@ -79,7 +86,6 @@ export class PlayPachinkoGameRemoteDatasource {
       )
     }
   }
-
 
   /**
    * 3. Cashout

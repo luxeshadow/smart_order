@@ -2,7 +2,7 @@ import type { UseCase } from '@/core/usecase/usecase'
 import type { WalletRepository } from '../../domain/repository/wallet_repository'
 import type { Wallet } from '../../domain/entities/wallet'
 import type { WalletConfigParam } from '../params/wallet_params'
-import { Failure, DatabaseFailure } from '@/core/errors/failure'
+import { Failure, DatabaseFailure,ValidatorFailure } from '@/core/errors/failure'
 import { WalletValidator } from '../../presentation/validators/wallet_validator'
 
 export class CreateWalletUseCase implements UseCase<Wallet, WalletConfigParam> {
@@ -13,7 +13,7 @@ export class CreateWalletUseCase implements UseCase<Wallet, WalletConfigParam> {
     const validationError = WalletValidator.validate(param)
 
     if (validationError) {
-      return new DatabaseFailure(validationError)
+      return new ValidatorFailure(validationError)
     }
 
     try {

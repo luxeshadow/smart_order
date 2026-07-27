@@ -14,6 +14,7 @@ import { useConfetti } from '@/core/utils/useConfetti'
 import { ShowMyPrincipalBalanceUseCase } from '~/features/transaction/application/usecases/show_my_principal_balance_usecase'
 import { ShowMyPrincipalBalanceRepositoryImpl } from '~/features/transaction/data/repositories/show_my_principal_balance_repository_impl'
 import { PlayPachinkoGameRepositoryImpl } from '../../data/repositories/play_pachinko_game_repository_impl'
+
 const MarioBox = AppImage.MarioBox
 const Mario_Ringtone = AppAudio?.Mario_Ringtone 
 const bomb_Ringtone = AppAudio?.bomb_Ringtone
@@ -22,6 +23,11 @@ const ROWS = 8
 const COLS = 6
 const BASE_MULT = 1.25
 const STEP_MULT = 0.25
+
+// ⚙️ OPTION AMOVIBLE :
+// false = Seule la case cliquée s'affiche
+// true  = Révèle toute la ligne si le joueur perd (comportement original)
+const REVEAL_FULL_ROW_ON_LOSE = false
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -172,7 +178,9 @@ const selectBrick = async (row: number, col: number) => {
     }
 
     targetRowRevealed[col] = 'boom'
-    if (result.full_row) {
+
+    // Révèle toute la ligne uniquement si l'option est activée (REVEAL_FULL_ROW_ON_LOSE = true)
+    if (REVEAL_FULL_ROW_ON_LOSE && result.full_row) {
       revealRowWithData(row, result.full_row)
     }
 
