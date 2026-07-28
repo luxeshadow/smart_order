@@ -8,61 +8,11 @@ export class RegisterRemoteDatasource {
   async register(param: RegisterPayload): Promise<UserModel> {
     const emailClean = param.email.trim().toLowerCase()
 
-    const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email: emailClean,
-      password: param.password
-    })
-
-    if (authError) {
-      const isAlreadyRegistered = authError.message
-        .toLowerCase()
-        .includes('already registered') || authError.message.toLowerCase().includes('already exists')
-
-      if (isAlreadyRegistered) {
-        const { error: resendError } = await this.supabase.auth.resend({
-          type: 'signup',
-          email: emailClean
-        })
-
-        if (resendError) {
-          throw new UserAlreadyExistsException('Un compte actif existe déjà avec cette adresse e-mail.')
-        }
-
-        throw new UserUnconfirmedException(emailClean)
-      }
-
-      throw new AuthException(authError.message)
-    }
-
-    const user = authData?.user
-    if (!user) {
-      throw new AuthException("Erreur lors de la création de l'identifiant.")
-    }
-
-    const isEmailConfirmed = !!user.email_confirmed_at
-    const hasEmptyIdentities = user.identities && user.identities.length === 0
-
-    if (isEmailConfirmed) {
-      throw new UserAlreadyExistsException('Un compte actif existe déjà avec cette adresse e-mail.')
-    }
-
-    if (hasEmptyIdentities || !isEmailConfirmed) {
-
-      await this.supabase.auth.resend({
-        type: 'signup',
-        email: emailClean
-      })
-
-      throw new UserUnconfirmedException(emailClean)
-    }
-
-    const userId = user.id
-
+    // 1. Vérifier si le numéro de téléphone est déjà pris dans public.users
     const { data: phoneUser, error: phoneCheckError } = await this.supabase
       .from('users')
       .select('id')
       .eq('phone_number', param.phoneNumber)
-      .neq('id', userId)
       .maybeSingle()
 
     if (phoneCheckError) {
@@ -72,8 +22,32 @@ export class RegisterRemoteDatasource {
     if (phoneUser) {
       throw new UserAlreadyExistsException('Ce numéro de téléphone est déjà utilisé par un autre compte.')
     }
+
+    // 2. Inscription dans Supabase Auth
+    const { data: authData, error: authError } = await this.supabase.auth.signUp({
+      email: emailClean,
+      password: param.password
+    })
+
+    if (authError) {
+      const isAlreadyRegistered = authError.message.toLowerCase().includes('already registered') || 
+                                  authError.message.toLowerCase().includes('already exists')
+
+      if (isAlreadyRegistered) {
+        throw new UserAlreadyExistsException('Un compte existe déjà avec cette adresse e-mail.')
+      }
+
+      throw new AuthException(authError.message)
+    }
+
+    const user = authData?.user
+    if (!user) {
+      throw new AuthException("Erreur lors de la création du compte.")
+    }
+
+    // 3. Insérer le profil dans public.users D'ABORD
     const userModel = new UserModel({
-      id: userId,
+      id: user.id,
       username: param.userName,
       email: emailClean,
       phoneNumber: param.phoneNumber,
@@ -81,18 +55,24 @@ export class RegisterRemoteDatasource {
       referredBy: param.referredBy
     })
 
-    const { data, error: upsertError } = await this.supabase
+    const { data: userData, error: upsertError } = await this.supabase
       .from('users')
       .upsert(userModel.toSupabase(), { onConflict: 'id' })
       .select()
-      .single()
+      .maybeSingle()
 
-    if (upsertError || !data) {
+    if (upsertError) {
       throw new DatabaseException(
-        upsertError?.message || 'Erreur lors de la création du profil utilisateur.'
+        upsertError.message || 'Erreur lors de la création du profil utilisateur dans la base de données.'
       )
     }
 
-    return UserModel.fromSupabase(data)
+    // 4. MAINTENANT, si l'email nécessite confirmation, on informe l'application
+    const isEmailConfirmed = !!user.email_confirmed_at
+    if (!isEmailConfirmed) {
+      throw new UserUnconfirmedException(emailClean)
+    }
+
+    return UserModel.fromSupabase(userData)
   }
 }

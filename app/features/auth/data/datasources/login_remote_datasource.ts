@@ -9,16 +9,15 @@ export class LoginRemoteDatasource {
     try {
       const emailClean = param.email.trim().toLowerCase()
 
+      // 1. Authentification Supabase Auth
       const { data: authData, error: authError } = await this.supabase.auth.signInWithPassword({
         email: emailClean,
         password: param.password,
       })
 
-      // 1. Gestion des erreurs d'authentification
       if (authError || !authData.user || !authData.session) {
         const msg = authError?.message?.toLowerCase() || ''
 
-        // Si l'e-mail n'est pas confirmé, on lève l'exception dédiée SANS refaire d'appel Supabase
         if (msg.includes("email not confirmed")) {
           throw new UserUnconfirmedException(emailClean)
         }
@@ -28,15 +27,19 @@ export class LoginRemoteDatasource {
 
       const token = authData.session.access_token
 
-      // 2. Récupération du profil utilisateur (exactement comme dans ton ancien code)
+      // 2. Récupération sécurisée du profil dans public.users
       const { data: userData, error: userError } = await this.supabase
         .from('users')
         .select('*')
         .eq('id', authData.user.id)
-        .single()
+        .maybeSingle()
 
-      if (userError || !userData) {
-        throw new DatabaseException("Impossible de récupérer le profil utilisateur.")
+      if (userError) {
+        throw new DatabaseException(userError.message)
+      }
+
+      if (!userData) {
+        throw new DatabaseException("Le profil utilisateur n'existe pas dans la base de données.")
       }
 
       return UserModel.fromSupabase(
