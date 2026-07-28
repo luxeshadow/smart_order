@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '@/core/components/client/mobile/Button.vue'
-import Input from '@/core/components/client/mobile/Input.vue'
 import { AppColor } from "@/core/constants/app_colors"
 import { AppImage } from "@/core/constants/app_images"
 import { useToast } from "@/core/utils/useToast"
@@ -26,7 +25,13 @@ const resendOtpUseCase = new ResendOtpUseCase(new ResendOtpRepositoryImpl())
 const email = computed(() => (route.query.email as string) || "")
 const type = computed(() => (route.query.type as string) || "registration")
 
-const otpCode = ref("")
+// Tableau de 6 carreaux
+const otpDigits = ref<string[]>(['', '', '', '', '', ''])
+const inputRefs = ref<HTMLInputElement[]>([])
+
+// Reconstitue le code OTP sous forme de chaîne de caractères
+const otpCode = computed(() => otpDigits.value.join(''))
+
 const isLoading = ref(false)
 const isResending = ref(false)
 
@@ -86,6 +91,55 @@ const formatTimer = computed(() => {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 })
 
+// --- GESTION DE LA SAISIE CARREAU PAR CARREAU ---
+const handleInput = (index: number, event: Event) => {
+  const input = event.target as HTMLInputElement
+  const value = input.value.slice(-1) // Garde uniquement le dernier caractère entré
+
+  // Ne garder que les chiffres
+  if (!/^\d*$/.test(value)) {
+    otpDigits.value[index] = ''
+    return
+  }
+
+  otpDigits.value[index] = value
+
+  // Passer automatiquement au carreau suivant si un chiffre est saisi
+  if (value && index < 5) {
+    nextTick(() => {
+      inputRefs.value[index + 1]?.focus()
+    })
+  }
+}
+
+const handleKeyDown = (index: number, event: KeyboardEvent) => {
+  // Reculer sur la touche Retour arrière (Backspace) si la case est vide
+  if (event.key === 'Backspace' && !otpDigits.value[index] && index > 0) {
+    inputRefs.value[index - 1]?.focus()
+  }
+}
+
+const handlePaste = (event: ClipboardEvent) => {
+  event.preventDefault()
+  const pastedData = event.clipboardData?.getData('text').trim() || ''
+
+  // Si la chaîne collée contient des chiffres
+  if (/^\d+$/.test(pastedData)) {
+    const digits = pastedData.slice(0, 6).split('')
+    digits.forEach((digit, index) => {
+      if (index < 6) {
+        otpDigits.value[index] = digit
+      }
+    })
+
+    // Placer le focus sur le dernier champ rempli ou le suivant
+    const targetIndex = Math.min(digits.length, 5)
+    nextTick(() => {
+      inputRefs.value[targetIndex]?.focus()
+    })
+  }
+}
+
 // Vérification de l'OTP
 const handleVerify = async () => {
   if (otpCode.value.length < 6) {
@@ -123,7 +177,7 @@ const handleVerify = async () => {
   }
 }
 
-// Renvoi réel de l'OTP avec vérification du quota
+// Renvoi réel de l'OTP
 const handleResend = async () => {
   if (!canResend.value || isResending.value) return
 
@@ -161,6 +215,11 @@ onMounted(() => {
     return
   }
   startOrRestoreTimer()
+
+  // Focus automatique sur le premier carreau au chargement
+  nextTick(() => {
+    inputRefs.value[0]?.focus()
+  })
 })
 
 onUnmounted(() => {
@@ -193,17 +252,24 @@ onUnmounted(() => {
       </header>
 
       <div class="form-group">
-        <Input
-          id="otp-code"
-          label="Code de validation*"
-          type="text"
-          v-model="otpCode"
-          icon="fi-rr-shield-check"
-          placeholder="Ex: 755843"
-          maxlength="6"
-        />
+        <!-- Grille des 6 carreaux OTP -->
+        <div class="otp-boxes-container" @paste="handlePaste">
+          <input
+            v-for="(digit, index) in otpDigits"
+            :key="index"
+            ref="inputRefs"
+            type="text"
+            inputmode="numeric"
+            maxlength="1"
+            class="otp-box"
+            :class="{ 'has-value': otpDigits[index] !== '' }"
+            v-model="otpDigits[index]"
+            @input="handleInput(index, $event)"
+            @keydown="handleKeyDown(index, $event)"
+          />
+        </div>
 
-        <!-- Zone alignée sur une même ligne baseline -->
+        <!-- Zone d'action de renvoi -->
         <div class="resend-line">
           <button
             @click="handleResend"
@@ -234,6 +300,41 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* --- CARREAUX OTP --- */
+.otp-boxes-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.otp-box {
+  width: 50px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1.5px solid #e5e7eb;
+  background-color: #f9fafb;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.otp-box:focus {
+  border-color: v-bind('AppColor.primary.base');
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.otp-box.has-value {
+  border-color: v-bind('AppColor.primary.base');
+  background-color: #ffffff;
+}
+
+/* Animations et reste du style */
 .spin-icon {
   animation: spin 1s linear infinite;
 }
@@ -243,7 +344,6 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-/* Alignement parfait sur la même ligne baseline */
 .resend-line {
   display: flex;
   align-items: center;
@@ -275,7 +375,7 @@ onUnmounted(() => {
   color: #6b7280;
 }
 
-/* App Bar Style */
+/* App Bar */
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -312,7 +412,7 @@ onUnmounted(() => {
 
 .spacer { width: 45px; }
 
-/* Page & Card Style */
+/* Page & Card */
 .otp-page {
   display: flex;
   justify-content: center;
@@ -388,7 +488,7 @@ onUnmounted(() => {
   color: v-bind('AppColor.primary.base');
 }
 
-/* Responsive */
+/* Responsive Mobile */
 @media (max-width: 600px) {
   .otp-page {
     background-color: white;
@@ -399,6 +499,11 @@ onUnmounted(() => {
     box-shadow: none;
     border-radius: 0;
     padding: 20px 0;
+  }
+  .otp-box {
+    width: 44px;
+    height: 50px;
+    font-size: 18px;
   }
 }
 </style>

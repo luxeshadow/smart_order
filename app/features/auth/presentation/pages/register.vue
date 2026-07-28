@@ -77,12 +77,11 @@ const handleRegister = async () => {
     })
 
     if (result instanceof Failure) {
-      // 1. Cas spécifique : Compte existant mais non encore activé
       if (result instanceof UserUnconfirmedFailure) {
         showToast(
-          "Compte existant non activé. Redirection vers la vérification OTP...",
+          "Un compte existe déjà avec cet e-mail. Un nouveau code OTP vous a été envoyé.",
           "fi-rr-info",
-          "error"
+          "normal"
         )
 
         setTimeout(() => {
@@ -99,7 +98,6 @@ const handleRegister = async () => {
         return
       }
 
-      // 2. Autres échecs (Auth, Validation, etc.)
       errorMessage.value = result.message
 
       showToast(
@@ -112,9 +110,8 @@ const handleRegister = async () => {
       return
     }
 
-    // Succès classique de création de compte
     showToast(
-      "Compte créé valider l'otp pour terminer !",
+      "Inscription réussie ! Veuillez valider le code OTP envoyé par e-mail.",
       "fi-rr-check",
       "success"
     )
@@ -141,6 +138,41 @@ const handleRegister = async () => {
   }
 }
 </script>
+
+<template>
+  <div class="register-page">
+    <div class="auth-card">
+      <div class="logo-container">
+        <img :src="AppImage.Logo" alt="Logo" class="app-logo" />
+      </div>
+
+      <header class="header-content">
+        <p class="subtitle">Créez votre compte en quelques secondes</p>
+      </header>
+
+      <div class="form-group">
+        <Input id="user" label="Nom d'utilisateur*" v-model="form.userName" icon="fi-rr-user" />
+        <Input id="email" label="Email*" v-model="form.email" icon="fi-rr-at" />
+
+        <Input id="phone" label="Téléphone*" type="tel" v-model="form.phoneNumber" icon="fi-rr-phone-call" />
+
+        <Input id="pass" label="Mot de passe*" type="password" v-model="form.password" icon="fi-rr-lock" />
+
+        <Input id="confirm-pass" label="Confirmer le mot de passe*" type="password" v-model="form.confirmPassword"
+          icon="fi-rr-lock" />
+      </div>
+
+      <Button label="S'inscrire" :loading="isLoading" @click="handleRegister" />
+
+      <div class="footer-link">
+        <span>Déjà membre ?</span>
+        <NuxtLink to="/auth/login" class="login-link" :style="{ color: AppColor.primary.base }">
+          Se connecter
+        </NuxtLink>
+      </div>
+    </div>
+  </div>
+</template>
 
 <template>
   <div class="register-page">
