@@ -1,5 +1,5 @@
 import { UserModel } from '../models/user_model'
-import { AuthException, DatabaseException, UserAlreadyExistsException,UserUnconfirmedException } from '@/core/errors/exception'
+import { AuthException, DatabaseException, UserAlreadyExistsException, UserUnconfirmedException } from '@/core/errors/exception'
 import type { RegisterPayload } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
@@ -14,23 +14,20 @@ export class RegisterRemoteDatasource {
       password: param.password
     })
 
-    // 2. Gestion de l'erreur "User already registered"
+    // 2. Gestion des erreurs d'authentification directes
     if (authError) {
       const isAlreadyRegistered = authError.message
         .toLowerCase()
         .includes('already registered') || authError.message.toLowerCase().includes('already exists')
 
       if (isAlreadyRegistered) {
-        // L'utilisateur existe déjà dans Supabase Auth.
-        // On déclenche le renvoi de l'OTP
+        // Envoi/Renvoi de l'OTP
         const { error: resendError } = await this.supabase.auth.resend({
           type: 'signup',
           email: emailClean
         })
 
         if (resendError) {
-          // Si le renvoi échoue parce qu'il a DÉJÀ confirmé son email,
-          // Supabase Auth renvoie une erreur -> Le compte est donc ACTIF.
           throw new UserAlreadyExistsException(
             'Un compte actif existe déjà avec cette adresse e-mail.'
           )
@@ -42,7 +39,7 @@ export class RegisterRemoteDatasource {
       throw new AuthException(authError.message)
     }
 
-    // 3. Cas où l'utilisateur existe déjà dans Auth mais réessaie de s'inscrire (Identités multiples Supabase)
+    // 3. Cas des identités vides (Compte déjà existant non confirmé dans Supabase Auth)
     if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
       await this.supabase.auth.resend({
         type: 'signup',
@@ -58,24 +55,44 @@ export class RegisterRemoteDatasource {
 
     const userId = authData.user.id
 
-    // 4. Vérification si le profil existe déjà dans la table 'users'
-    const { data: existingUser, error: checkError } = await this.supabase
+    // 4. VERIFICATION EN BDD : Est-ce que le profil utilisateur existe DÉJÀ par ID ou par Email ?
+    const { data: existingProfile, error: profileCheckError } = await this.supabase
+      .from('users')
+      .select('id, phone_number, email')
+      .or(`id.eq.${userId},email.eq.${emailClean}`)
+      .maybeSingle()
+
+    if (profileCheckError) {
+      throw new DatabaseException(profileCheckError.message)
+    }
+
+    // Si le profil existe déjà en BDD, c'est que l'utilisateur avait déjà tenté de s'inscrire sans valider son OTP !
+    if (existingProfile) {
+      // Renvoi du code OTP
+      await this.supabase.auth.resend({
+        type: 'signup',
+        email: emailClean
+      })
+
+      throw new UserUnconfirmedException(emailClean)
+    }
+
+    // 5. Vérification séparée pour le numéro de téléphone (s'il appartient à un AUTRE compte)
+    const { data: phoneUser, error: phoneCheckError } = await this.supabase
       .from('users')
       .select('id')
       .eq('phone_number', param.phoneNumber)
       .maybeSingle()
 
-    if (checkError) {
-      throw new DatabaseException(checkError.message)
+    if (phoneCheckError) {
+      throw new DatabaseException(phoneCheckError.message)
     }
 
-    if (existingUser) {
+    if (phoneUser) {
       throw new UserAlreadyExistsException(
         'Ce numéro de téléphone est déjà utilisé.'
       )
     }
-
-    // 5. Insertion du profil dans la BDD
     const userModel = new UserModel({
       id: userId,
       username: param.userName,
@@ -92,6 +109,14 @@ export class RegisterRemoteDatasource {
       .single()
 
     if (insertError || !data) {
+      if (insertError?.code === '23505' || insertError?.message?.includes('duplicate key')) {
+        await this.supabase.auth.resend({
+          type: 'signup',
+          email: emailClean
+        })
+        throw new UserUnconfirmedException(emailClean)
+      }
+
       throw new DatabaseException(
         insertError?.message ||
         'Erreur lors de la création du profil utilisateur.'
