@@ -4,13 +4,12 @@ import Input from '@/core/components/client/mobile/Input.vue'
 import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import { LoginUseCase } from '../../application/usecases/login_usecase'
-import { LoginRepositoryImpl } from '../../data/repositories/login_repository_impl'
+import { LoginRepositoryImpl} from '../../data/repositories/login_repository_impl'
 import { Failure } from '@/core/errors/failure'
 import { useToast } from '../../../../core/utils/useToast'
 import { useAuthStore } from '../stores/auth_store'
 
 const { showToast } = useToast()
-
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -27,28 +26,42 @@ const isLoading = ref(false)
 
 const handleLogin = async () => {
   if (!form.value.email || !form.value.password) {
-    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error",)
+    showToast("Veuillez remplir tous les champs", "fi-rr-info", "error")
     return
   }
 
   isLoading.value = true
 
   try {
-    // Appel du UseCase avec uniquement l'email
     const result = await loginUseCase.execute({
       email: form.value.email,
       password: form.value.password
     })
 
     if (result instanceof Failure) {
-      showToast(result.message, 'fi-rr-cross-circle', 'error',)
+      if (result instanceof UserUnconfirmedFailure) {
+        showToast("Veuillez valider votre code de confirmation", "fi-rr-time-out", "error")
+        
+        setTimeout(() => {
+          router.push({
+            path: '/auth/verify-otp',
+            query: { 
+              email: result.email,
+              type: 'registration'
+            }
+          })
+          isLoading.value = false
+        }, 1200)
+        return
+      }
+
+      showToast(result.message, 'fi-rr-cross-circle', 'error')
       isLoading.value = false
       return
     }
-
-
+    
     authStore.setUser(result)
-    showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success",)
+    showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success")
 
     setTimeout(() => {
       if (result.role === 'admin') {
@@ -61,11 +74,10 @@ const handleLogin = async () => {
 
   } catch (error) {
     isLoading.value = false
-    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error",)
+    showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error")
   }
 }
 </script>
-
 <template>
   <div class="login-page">
     <div class="auth-card">

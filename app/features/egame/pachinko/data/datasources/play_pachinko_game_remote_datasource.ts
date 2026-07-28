@@ -24,15 +24,14 @@ export class PlayPachinkoGameRemoteDatasource {
   constructor(private readonly supabase: any) {}
 
   /**
-   * Vérification du niveau actif avant de jouer.
-   * Utilise l'utilitaire réutilisable en lui transmettant l'instance Supabase de cette Datasource.
+   * Vérification isolée du niveau actif
    */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
     try {
       const isActive = await checkUserActiveLevel(this.supabase, userId)
 
       if (!isActive) {
-        throw new ActiveLevelRequiredException()
+        throw new ActiveLevelRequiredException("Un niveau actif est requis pour pouvoir jouer.")
       }
 
       return true
@@ -45,11 +44,12 @@ export class PlayPachinkoGameRemoteDatasource {
     }
   }
 
-  /**
-   * 1. Démarre la partie
-   */
+
   async startGame(userId: string, betAmount: number): Promise<StartGameResult> {
     try {
+      // Vérification directe du niveau avant d'autoriser le lancement du jeu
+      await this.checkUserActiveLevel(userId)
+
       const { data, error } = await this.supabase.rpc(
         'rpc_start_mario_game',
         {
@@ -62,7 +62,12 @@ export class PlayPachinkoGameRemoteDatasource {
       return data as StartGameResult
 
     } catch (error: any) {
-      if (error instanceof DatabaseException) throw error
+      if (
+        error instanceof ActiveLevelRequiredException || 
+        error instanceof DatabaseException
+      ) {
+        throw error
+      }
 
       throw new DatabaseException(
         error.message || 'Erreur lors du démarrage de la partie.'

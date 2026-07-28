@@ -1,12 +1,7 @@
 import { useApi } from '@/core/constants/supabase_client'
 import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
 import { DatabaseFailure, ActiveLevelRequiredFailure } from '@/core/errors/failure'
-import { 
-  PlayPachinkoGameRemoteDatasource, 
-  type StartGameResult, 
-  type RevealBrickResult, 
-  type CashoutResult 
-} from '../datasources/play_pachinko_game_remote_datasource'
+import { PlayPachinkoGameRemoteDatasource, type StartGameResult, type RevealBrickResult, type CashoutResult } from '../datasources/play_pachinko_game_remote_datasource'
 
 export class PlayPachinkoGameRepositoryImpl {
   private readonly datasource: PlayPachinkoGameRemoteDatasource

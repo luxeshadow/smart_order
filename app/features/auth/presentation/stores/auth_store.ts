@@ -21,12 +21,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   try {
 
-    // 🔥 Vérifie session Supabase
     const {
       data: { session }
     } = await supabase.auth.getSession()
 
-    // ❌ pas connecté
     if (!session?.user) {
 
       user.value = null

@@ -3,18 +3,17 @@ import { checkUserActiveLevel } from '@/core/utils/check_user_level'
 import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
 
 export class PlayRouletteGameRemoteDatasource {
-  // Utilisation de "any" pour éviter d'importer directement le client typé de Supabase
   constructor(private supabase: any) {}
 
   /**
-   * Vérification du niveau actif avant d'autoriser la Roulette
+   * Vérification du niveau actif
    */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
     try {
       const isActive = await checkUserActiveLevel(this.supabase, userId)
 
       if (!isActive) {
-        throw new ActiveLevelRequiredException()
+        throw new ActiveLevelRequiredException("Un niveau actif est requis pour utiliser la roulette.")
       }
 
       return true
@@ -27,8 +26,14 @@ export class PlayRouletteGameRemoteDatasource {
     }
   }
 
+  /**
+   * Récupère les données utilisateur en vérifiant d'abord si le niveau est actif
+   */
   async getUserData(userId: string) {
     try {
+      // Vérification du niveau actif avant toute opération sur le jeu
+      await this.checkUserActiveLevel(userId)
+
       const { data, error } = await this.supabase
         .from('users')
         .select('main_balance, phone_number')
@@ -38,7 +43,12 @@ export class PlayRouletteGameRemoteDatasource {
       if (error) throw new DatabaseException(error.message)
       return data
     } catch (error: any) {
-      if (error instanceof DatabaseException) throw error
+      if (
+        error instanceof ActiveLevelRequiredException || 
+        error instanceof DatabaseException
+      ) {
+        throw error
+      }
       throw new DatabaseException(
         error.message || "Erreur lors de la récupération des données utilisateur"
       )

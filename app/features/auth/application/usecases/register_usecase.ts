@@ -23,7 +23,7 @@ export class RegisterUseCase implements UseCase<User, RegisterParam> {
       ...param,
       role: 'client'
     }
-    console.log(payload)
+  
     return await this.repository.register(payload)
   }
 }

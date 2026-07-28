@@ -8,26 +8,22 @@ export class RegisterRemoteDatasource {
   async register(param: RegisterPayload): Promise<UserModel> {
     const emailClean = param.email.trim().toLowerCase()
 
-    // 1. Tentative d'inscription Auth dans Supabase
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: emailClean,
       password: param.password
     })
 
-    // 2. Gestion des erreurs renvoyées directement par Supabase Auth (ex: utilisateur déjà enregistré)
     if (authError) {
       const isAlreadyRegistered = authError.message
         .toLowerCase()
         .includes('already registered') || authError.message.toLowerCase().includes('already exists')
 
       if (isAlreadyRegistered) {
-        // Tente de renvoyer l'OTP
         const { error: resendError } = await this.supabase.auth.resend({
           type: 'signup',
           email: emailClean
         })
 
-        // Si Supabase refuse le renvoi, c'est que l'email est DÉJÀ confirmé/actif
         if (resendError) {
           throw new UserAlreadyExistsException('Un compte actif existe déjà avec cette adresse e-mail.')
         }
@@ -43,9 +39,6 @@ export class RegisterRemoteDatasource {
       throw new AuthException("Erreur lors de la création de l'identifiant.")
     }
 
-    // 3. VÉRIFICATION DE LA CONFIRMATION DE L'EMAIL DANS SUPABASE AUTH
-    // (a) Identités vides = Utilisateur déjà existant dans Auth
-    // (b) user.email_confirmed_at !== null = L'utilisateur a déjà confirmé son email
     const isEmailConfirmed = !!user.email_confirmed_at
     const hasEmptyIdentities = user.identities && user.identities.length === 0
 
@@ -54,7 +47,7 @@ export class RegisterRemoteDatasource {
     }
 
     if (hasEmptyIdentities || !isEmailConfirmed) {
-      // L'e-mail n'est pas encore confirmé -> On renvoie l'OTP et on redirige vers l'écran d'OTP
+
       await this.supabase.auth.resend({
         type: 'signup',
         email: emailClean
@@ -65,7 +58,6 @@ export class RegisterRemoteDatasource {
 
     const userId = user.id
 
-    // 4. Vérification si le téléphone est utilisé par un AUTRE utilisateur
     const { data: phoneUser, error: phoneCheckError } = await this.supabase
       .from('users')
       .select('id')
@@ -80,9 +72,6 @@ export class RegisterRemoteDatasource {
     if (phoneUser) {
       throw new UserAlreadyExistsException('Ce numéro de téléphone est déjà utilisé par un autre compte.')
     }
-
-    // 5. Création ou mise à jour (UPSERT) du profil utilisateur
-    // On utilise upsert() au lieu d'insert() au cas où la ligne 'users' a déjà été créée lors de la 1ère tentative
     const userModel = new UserModel({
       id: userId,
       username: param.userName,

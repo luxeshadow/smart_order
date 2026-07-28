@@ -30,41 +30,52 @@ const otpCode = ref("")
 const isLoading = ref(false)
 const isResending = ref(false)
 
-// 1. Timer d'expiration globale du code (10 minutes)
-const initialTimer = 600 
+// Persistance du timer de 10 minutes dans localStorage
+const initialTimer = 600 // 10 minutes
 const timer = ref(initialTimer)
-
-// 2. Timer de rechargement du bouton "Renvoyer" (60 secondes)
-const RESEND_COOLDOWN = 60
-const resendCooldownTimer = ref(0)
-const canResend = ref(true)
+const canResend = ref(false)
 
 let interval: any = null
-let cooldownInterval: any = null
 
-const startTimer = () => {
-  timer.value = initialTimer
+const TIMER_KEY = computed(() => `otp_expiry_${email.value || 'default'}`)
+
+// Restaure ou démarre le timer
+const startOrRestoreTimer = () => {
+  if (!email.value) return
+
+  const savedExpiry = localStorage.getItem(TIMER_KEY.value)
+  const now = Date.now()
+
+  if (savedExpiry) {
+    const expiryTime = parseInt(savedExpiry, 10)
+    const remainingSeconds = Math.floor((expiryTime - now) / 1000)
+
+    if (remainingSeconds > 0) {
+      timer.value = remainingSeconds
+      canResend.value = false
+    } else {
+      timer.value = 0
+      canResend.value = true
+      localStorage.removeItem(TIMER_KEY.value)
+      return
+    }
+  } else {
+    // Premier lancement : initialise 10 min
+    const targetExpiry = now + initialTimer * 1000
+    localStorage.setItem(TIMER_KEY.value, targetExpiry.toString())
+    timer.value = initialTimer
+    canResend.value = false
+  }
+
   if (interval) clearInterval(interval)
+
   interval = setInterval(() => {
     if (timer.value > 0) {
       timer.value--
     } else {
-      clearInterval(interval)
-    }
-  }, 1000)
-}
-
-const startResendCooldown = () => {
-  canResend.value = false
-  resendCooldownTimer.value = RESEND_COOLDOWN
-  if (cooldownInterval) clearInterval(cooldownInterval)
-
-  cooldownInterval = setInterval(() => {
-    if (resendCooldownTimer.value > 0) {
-      resendCooldownTimer.value--
-    } else {
       canResend.value = true
-      clearInterval(cooldownInterval)
+      clearInterval(interval)
+      localStorage.removeItem(TIMER_KEY.value)
     }
   }, 1000)
 }
@@ -72,7 +83,7 @@ const startResendCooldown = () => {
 const formatTimer = computed(() => {
   const minutes = Math.floor(timer.value / 60)
   const seconds = timer.value % 60
-  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 })
 
 // Vérification de l'OTP
@@ -95,6 +106,7 @@ const handleVerify = async () => {
       isLoading.value = false
     } else {
       showToast("Vérification réussie !", "fi-rr-check", "success")
+      localStorage.removeItem(TIMER_KEY.value)
       
       setTimeout(() => {
         if (type.value === 'email_change') {
@@ -111,7 +123,7 @@ const handleVerify = async () => {
   }
 }
 
-// Renvoi réel de l'OTP avec vérification du quota (Max 2 par 24h)
+// Renvoi réel de l'OTP avec vérification du quota
 const handleResend = async () => {
   if (!canResend.value || isResending.value) return
 
@@ -126,14 +138,14 @@ const handleResend = async () => {
     const result = await resendOtpUseCase.execute({ email: email.value })
 
     if (result instanceof Failure) {
-      // Affiche l'erreur si le quota (2 renvois / 24h) est dépassé ou autre problème
       showToast(result.message, "fi-rr-time-out", "error")
     } else {
       showToast("Un nouveau code vous a été envoyé", "fi-rr-refresh", "success")
       
-      // Réinitialise le timer d'expiration globale et démarre le cooldown du bouton
-      startTimer()
-      startResendCooldown()
+      // Réinitialise l'expiration à 10 min
+      const targetExpiry = Date.now() + initialTimer * 1000
+      localStorage.setItem(TIMER_KEY.value, targetExpiry.toString())
+      startOrRestoreTimer()
     }
   } catch (error) {
     showToast("Impossible de renvoyer le code pour le moment", "fi-rr-shield-exclamation", "error")
@@ -148,12 +160,11 @@ onMounted(() => {
     router.push(type.value === 'email_change' ? "/auth/profile" : "/auth/register")
     return
   }
-  startTimer()
+  startOrRestoreTimer()
 })
 
 onUnmounted(() => {
   if (interval) clearInterval(interval)
-  if (cooldownInterval) clearInterval(cooldownInterval)
 })
 </script>
 
@@ -192,28 +203,21 @@ onUnmounted(() => {
           maxlength="6"
         />
 
-        <div class="timer-container">
-          <p v-if="timer > 0" class="timer-text">
-            Le code expire dans <span class="time">{{ formatTimer }}</span>
-          </p>
+        <!-- Zone alignée sur une même ligne baseline -->
+        <div class="resend-line">
+          <button
+            @click="handleResend"
+            class="resend-btn"
+            :disabled="!canResend || isResending"
+            :style="{ color: canResend ? AppColor.primary.base : '#9ca3af' }"
+          >
+            <i class="fi fi-rr-refresh" :class="{ 'spin-icon': isResending }"></i>
+            <span>{{ isResending ? 'Envoi...' : 'Renvoyer le code' }}</span>
+          </button>
 
-          <!-- Bouton de renvoi avec gestion des états -->
-          <div class="resend-wrapper">
-            <button
-              v-if="canResend"
-              @click="handleResend"
-              class="resend-btn"
-              :disabled="isResending"
-              :style="{ color: AppColor.primary.base }"
-            >
-              <i class="fi fi-rr-refresh" :class="{ 'spin-icon': isResending }"></i>
-              <span>{{ isResending ? 'Envoi en cours...' : 'Renvoyer le code' }}</span>
-            </button>
-
-            <span v-else class="cooldown-text">
-              Renvoyer disponible dans {{ resendCooldownTimer }}s
-            </span>
-          </div>
+          <span v-if="!canResend" class="timer-text">
+            ({{ formatTimer }})
+          </span>
         </div>
       </div>
 
@@ -239,13 +243,36 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-.cooldown-text {
-  font-size: 13px;
-  color: #9ca3af;
+/* Alignement parfait sur la même ligne baseline */
+.resend-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.resend-wrapper {
-  margin-top: 8px;
+.resend-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.resend-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.timer-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
 }
 
 /* App Bar Style */
@@ -339,33 +366,6 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 25px;
-}
-
-.timer-container {
-  display: flex;
-  justify-content: center;
-  min-height: 20px;
-}
-
-.timer-text {
-  font-size: 13px;
-  color: #999;
-}
-
-.time {
-  font-weight: 700;
-  color: #333;
-}
-
-.resend-btn {
-  background: none;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .footer-link {
