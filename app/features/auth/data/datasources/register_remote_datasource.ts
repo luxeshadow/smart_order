@@ -8,29 +8,28 @@ export class RegisterRemoteDatasource {
   async register(param: RegisterPayload): Promise<UserModel> {
     const emailClean = param.email.trim().toLowerCase()
 
-    // 1. Inscription Auth dans Supabase
+    // 1. Tentative d'inscription Auth dans Supabase
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: emailClean,
       password: param.password
     })
 
-    // 2. Gestion des erreurs d'authentification directes
+    // 2. Gestion des erreurs renvoyées directement par Supabase Auth (ex: utilisateur déjà enregistré)
     if (authError) {
       const isAlreadyRegistered = authError.message
         .toLowerCase()
         .includes('already registered') || authError.message.toLowerCase().includes('already exists')
 
       if (isAlreadyRegistered) {
-        // Envoi/Renvoi de l'OTP
+        // Tente de renvoyer l'OTP
         const { error: resendError } = await this.supabase.auth.resend({
           type: 'signup',
           email: emailClean
         })
 
+        // Si Supabase refuse le renvoi, c'est que l'email est DÉJÀ confirmé/actif
         if (resendError) {
-          throw new UserAlreadyExistsException(
-            'Un compte actif existe déjà avec cette adresse e-mail.'
-          )
+          throw new UserAlreadyExistsException('Un compte actif existe déjà avec cette adresse e-mail.')
         }
 
         throw new UserUnconfirmedException(emailClean)
@@ -39,36 +38,23 @@ export class RegisterRemoteDatasource {
       throw new AuthException(authError.message)
     }
 
-    // 3. Cas des identités vides (Compte déjà existant non confirmé dans Supabase Auth)
-    if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
-      await this.supabase.auth.resend({
-        type: 'signup',
-        email: emailClean
-      })
-
-      throw new UserUnconfirmedException(emailClean)
-    }
-
-    if (!authData?.user) {
+    const user = authData?.user
+    if (!user) {
       throw new AuthException("Erreur lors de la création de l'identifiant.")
     }
 
-    const userId = authData.user.id
+    // 3. VÉRIFICATION DE LA CONFIRMATION DE L'EMAIL DANS SUPABASE AUTH
+    // (a) Identités vides = Utilisateur déjà existant dans Auth
+    // (b) user.email_confirmed_at !== null = L'utilisateur a déjà confirmé son email
+    const isEmailConfirmed = !!user.email_confirmed_at
+    const hasEmptyIdentities = user.identities && user.identities.length === 0
 
-    // 4. VERIFICATION EN BDD : Est-ce que le profil utilisateur existe DÉJÀ par ID ou par Email ?
-    const { data: existingProfile, error: profileCheckError } = await this.supabase
-      .from('users')
-      .select('id, phone_number, email')
-      .or(`id.eq.${userId},email.eq.${emailClean}`)
-      .maybeSingle()
-
-    if (profileCheckError) {
-      throw new DatabaseException(profileCheckError.message)
+    if (isEmailConfirmed) {
+      throw new UserAlreadyExistsException('Un compte actif existe déjà avec cette adresse e-mail.')
     }
 
-    // Si le profil existe déjà en BDD, c'est que l'utilisateur avait déjà tenté de s'inscrire sans valider son OTP !
-    if (existingProfile) {
-      // Renvoi du code OTP
+    if (hasEmptyIdentities || !isEmailConfirmed) {
+      // L'e-mail n'est pas encore confirmé -> On renvoie l'OTP et on redirige vers l'écran d'OTP
       await this.supabase.auth.resend({
         type: 'signup',
         email: emailClean
@@ -77,11 +63,14 @@ export class RegisterRemoteDatasource {
       throw new UserUnconfirmedException(emailClean)
     }
 
-    // 5. Vérification séparée pour le numéro de téléphone (s'il appartient à un AUTRE compte)
+    const userId = user.id
+
+    // 4. Vérification si le téléphone est utilisé par un AUTRE utilisateur
     const { data: phoneUser, error: phoneCheckError } = await this.supabase
       .from('users')
       .select('id')
       .eq('phone_number', param.phoneNumber)
+      .neq('id', userId)
       .maybeSingle()
 
     if (phoneCheckError) {
@@ -89,10 +78,11 @@ export class RegisterRemoteDatasource {
     }
 
     if (phoneUser) {
-      throw new UserAlreadyExistsException(
-        'Ce numéro de téléphone est déjà utilisé.'
-      )
+      throw new UserAlreadyExistsException('Ce numéro de téléphone est déjà utilisé par un autre compte.')
     }
+
+    // 5. Création ou mise à jour (UPSERT) du profil utilisateur
+    // On utilise upsert() au lieu d'insert() au cas où la ligne 'users' a déjà été créée lors de la 1ère tentative
     const userModel = new UserModel({
       id: userId,
       username: param.userName,
@@ -102,24 +92,15 @@ export class RegisterRemoteDatasource {
       referredBy: param.referredBy
     })
 
-    const { data, error: insertError } = await this.supabase
+    const { data, error: upsertError } = await this.supabase
       .from('users')
-      .insert(userModel.toSupabase())
+      .upsert(userModel.toSupabase(), { onConflict: 'id' })
       .select()
       .single()
 
-    if (insertError || !data) {
-      if (insertError?.code === '23505' || insertError?.message?.includes('duplicate key')) {
-        await this.supabase.auth.resend({
-          type: 'signup',
-          email: emailClean
-        })
-        throw new UserUnconfirmedException(emailClean)
-      }
-
+    if (upsertError || !data) {
       throw new DatabaseException(
-        insertError?.message ||
-        'Erreur lors de la création du profil utilisateur.'
+        upsertError?.message || 'Erreur lors de la création du profil utilisateur.'
       )
     }
 
