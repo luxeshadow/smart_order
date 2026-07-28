@@ -174,40 +174,7 @@ const handleRegister = async () => {
   </div>
 </template>
 
-<template>
-  <div class="register-page">
-    <div class="auth-card">
-      <div class="logo-container">
-        <img :src="AppImage.Logo" alt="Logo" class="app-logo" />
-      </div>
 
-      <header class="header-content">
-        <p class="subtitle">Créez votre compte en quelques secondes</p>
-      </header>
-
-      <div class="form-group">
-        <Input id="user" label="Nom d'utilisateur*" v-model="form.userName" icon="fi-rr-user" />
-        <Input id="email" label="Email*" v-model="form.email" icon="fi-rr-at" />
-
-        <Input id="phone" label="Téléphone*" type="tel" v-model="form.phoneNumber" icon="fi-rr-phone-call" />
-
-        <Input id="pass" label="Mot de passe*" type="password" v-model="form.password" icon="fi-rr-lock" />
-
-        <Input id="confirm-pass" label="Confirmer le mot de passe*" type="password" v-model="form.confirmPassword"
-          icon="fi-rr-lock" />
-      </div>
-
-      <Button label="S'inscrire" :loading="isLoading" @click="handleRegister" />
-
-      <div class="footer-link">
-        <span>Déjà membre ?</span>
-        <NuxtLink to="/auth/login" class="login-link" :style="{ color: AppColor.primary.base }">
-          Se connecter
-        </NuxtLink>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .register-page {
