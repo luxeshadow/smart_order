@@ -67,7 +67,6 @@ export class RegisterRemoteDatasource {
       )
     }
 
-    // 4. MAINTENANT, si l'email nécessite confirmation, on informe l'application
     const isEmailConfirmed = !!user.email_confirmed_at
     if (!isEmailConfirmed) {
       throw new UserUnconfirmedException(emailClean)

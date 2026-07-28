@@ -27,7 +27,7 @@ const STEP_MULT = 0.25
 // ⚙️ OPTION AMOVIBLE :
 // false = Seule la case cliquée s'affiche
 // true  = Révèle toute la ligne si le joueur perd (comportement original)
-const REVEAL_FULL_ROW_ON_LOSE = false
+const REVEAL_FULL_ROW_ON_LOSE = true
 
 const router = useRouter()
 const authStore = useAuthStore()
