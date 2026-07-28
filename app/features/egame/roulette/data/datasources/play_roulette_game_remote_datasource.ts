@@ -1,13 +1,9 @@
-// features/transaction/data/datasources/play_roulette_game_remote_datasource.ts
 import { checkUserActiveLevel } from '@/core/utils/check_user_level'
 import { DatabaseException, ActiveLevelRequiredException } from '@/core/errors/exception'
 
 export class PlayRouletteGameRemoteDatasource {
   constructor(private supabase: any) {}
 
-  /**
-   * Vérification du niveau actif
-   */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
     try {
       const isActive = await checkUserActiveLevel(this.supabase, userId)
@@ -26,12 +22,8 @@ export class PlayRouletteGameRemoteDatasource {
     }
   }
 
-  /**
-   * Récupère les données utilisateur en vérifiant d'abord si le niveau est actif
-   */
   async getUserData(userId: string) {
     try {
-      // Vérification du niveau actif avant toute opération sur le jeu
       await this.checkUserActiveLevel(userId)
 
       const { data, error } = await this.supabase
