@@ -164,3 +164,98 @@ Les endpoints Nuxt présents dans `server/api` servent principalement de passere
 - Les paiements et SMS nécessitent des clés API valides dans `.env`.
 - L'application est configurée en `ssr: false`, donc elle fonctionne comme une SPA Nuxt.
 - Le module PWA est activé avec mise à jour automatique du service worker.
+
+met a jours 
+DECLARE
+  v_user_id UUID := auth.uid();
+  v_balance NUMERIC;
+  v_grid JSONB := '[]'::jsonb;
+  v_items TEXT[];
+  v_session_id UUID;
+  r INT;
+  i INT;
+  j INT;
+  v_temp TEXT;
+BEGIN
+
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Utilisateur non authentifié.';
+  END IF;
+
+
+  SELECT main_balance
+  INTO v_balance
+  FROM public.users
+  WHERE id = v_user_id
+  FOR UPDATE;
+
+
+  IF v_balance IS NULL OR v_balance < p_bet_amount THEN
+    RAISE EXCEPTION 'Solde insuffisant.';
+  END IF;
+
+
+  UPDATE public.users
+  SET main_balance = main_balance - p_bet_amount
+  WHERE id = v_user_id;
+
+
+  -- 8 lignes : 4 bombes + 2 champignons
+  FOR r IN 0..7 LOOP
+
+    v_items := ARRAY[
+      'bomb',
+      'bomb',
+      'bomb',
+      'bomb',
+      'mushroom',
+      'mushroom'
+    ];
+
+
+    -- Mélange aléatoire
+    FOR i IN REVERSE 6..2 LOOP
+      j := floor(random() * i) + 1;
+
+      v_temp := v_items[i];
+      v_items[i] := v_items[j];
+      v_items[j] := v_temp;
+    END LOOP;
+
+
+    -- Ajoute une ligne de 6 cases
+    v_grid := jsonb_insert(
+      v_grid,
+      ARRAY[r::text],
+      to_jsonb(v_items),
+      true
+    );
+
+  END LOOP;
+
+
+  INSERT INTO public.game_sessions (
+    user_id,
+    bet_amount,
+    current_level,
+    grid,
+    status
+  )
+  VALUES (
+    v_user_id,
+    p_bet_amount,
+    0,
+    v_grid,
+    'IN_PROGRESS'
+  )
+  RETURNING id INTO v_session_id;
+
+
+  RETURN jsonb_build_object(
+    'session_id',
+    v_session_id,
+    'new_balance',
+    v_balance - p_bet_amount
+  );
+
+END;
