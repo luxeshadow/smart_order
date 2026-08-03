@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { AppColor } from '@/core/constants/app_colors'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
 import Input from '@/core/components/client/mobile/Input.vue'
@@ -47,9 +45,7 @@ type PaymentMethod = {
 
 const paymentMethods: PaymentMethod[] = [
   { id: 'tmoney', label: 'T-Money', image: AppImage.Yas },
-  { id: 'flooz', label: 'Moov Money (Togo)', image: AppImage.Flooz },
-  { id: 'moov_benin', label: 'Moov Money (Bénin)', image: AppImage.Flooz },
-  { id: 'moov_ci', label: "Moov Money (Côte d'Ivoire)", image: AppImage.Flooz }
+  { id: 'flooz', label: 'Moov Money', image: AppImage.Flooz }
 ]
 
 const defaultMethod: PaymentMethod = {
@@ -62,15 +58,7 @@ const selectedMethod = computed<PaymentMethod>(() => {
   return paymentMethods.find(m => m.id === form.value.method) ?? defaultMethod
 })
 
-// Vérifie si la méthode sélectionnée est désactivée
-const isMethodDisabled = computed(() => {
-  return ['moov_benin', 'moov_ci'].includes(form.value.method)
-})
-
 const buttonLabel = computed(() => {
-  if (isMethodDisabled.value) {
-    return 'Indisponible'
-  }
   if (isLoading.value && countdown.value > 0) {
     return `Confirmation (${countdown.value}s)`
   }
@@ -116,11 +104,6 @@ const resetForm = () => {
 }
 
 const handleDeposit = async () => {
-  if (isMethodDisabled.value) {
-    showToast("Ce service est actuellement indisponible", "fi-rr-info", "error")
-    return
-  }
-
   if (!authStore.user?.id) {
     showToast(
       'Utilisateur non connecté',
@@ -236,7 +219,6 @@ onUnmounted(() => {
   stopCountdown()
 })
 </script>
-
 <template>
   <div class="deposit-page">
     <nav class="app-bar">
@@ -256,14 +238,6 @@ onUnmounted(() => {
         <h2 class="title">Recharger mon compte</h2>
         <p class="subtitle">Complétez les informations ci-dessous</p>
       </header>
-
-      <!-- Message d'alerte pour les services indisponibles -->
-      <Transition name="fade">
-        <div v-if="isMethodDisabled" class="alert-box">
-          <i class="fi fi-rr-info"></i>
-          <span>Les recharges via ce réseau sont suspendues pour le moment.</span>
-        </div>
-      </Transition>
 
       <div class="form-group">
         <div class="custom-select-group">
@@ -314,17 +288,16 @@ onUnmounted(() => {
         />
       </div>
 
-      <Button
-        :label="buttonLabel"
-        :loading="isLoading"
-        :disabled="isLoading || countdown > 0 || isMethodDisabled"
-        :class="{ 'pulse-btn': countdown > 0 }"
-        @click="handleDeposit"
-      />
+     <Button
+  :label="buttonLabel"
+  :loading="isLoading"
+  :disabled="isLoading || countdown > 0"
+  :class="{ 'pulse-btn': countdown > 0 }"
+  @click="handleDeposit"/>
 
-      <p v-if="countdown > 0" class="timer-hint">
-        Ne quittez pas cette page, confirmation en cours...
-      </p>
+<p v-if="countdown > 0" class="timer-hint">
+  Ne quittez pas cette page, confirmation en cours...
+</p>
     </div>
   </div>
 </template>
@@ -344,6 +317,7 @@ onUnmounted(() => {
 }
 
 .back-btn {
+
   width: 45px;
   height: 45px;
   background-color: #f8f9fa;
@@ -380,21 +354,6 @@ onUnmounted(() => {
   padding: 40px 30px;
   border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
-}
-
-/* Alert Box */
-.alert-box {
-  background-color: #fff5f5;
-  border: 1px solid #feb2b2;
-  color: #c53030;
-  padding: 12px 15px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  font-size: 13px;
-  font-weight: 500;
 }
 
 /* Custom Select CSS */
@@ -453,7 +412,7 @@ onUnmounted(() => {
   right: 0;
   background: white;
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1.px solid #eee;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   z-index: 100;
   overflow: hidden;
@@ -500,7 +459,6 @@ onUnmounted(() => {
     padding: 20px 0;
   }
 }
-
 .timer-hint {
   margin-top: 14px;
   text-align: center;
@@ -514,17 +472,28 @@ onUnmounted(() => {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.015); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes fadePulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
 }
-
 .logo-container { text-align: center; margin-bottom: 15px; }
 .app-logo { height: 70px; }
 .header-content { text-align: center; margin-bottom: 25px; }
@@ -532,9 +501,7 @@ onUnmounted(() => {
 .subtitle { color: #95a5a6; font-size: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
 
-/* Animations */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+/* Animation */
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.2s ease; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
 </style>
