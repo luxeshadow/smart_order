@@ -76,13 +76,13 @@ export class PaygateService implements PaymentServiceInterface {
         response.status === 6 ||
         response.status === 201
       ) {
-        depositStatus = 'pending'
+        depositStatus = 'rejected'
       } else {
         depositStatus = 'rejected'
       }
 
       // ⚠️ On ne met à jour la base Supabase que si le statut est DÉFINITIF
-      if (depositStatus !== 'pending') {
+      if (depositStatus !== 'rejected') {
         await this.supabase
           .from('deposits')
           .update({ status: depositStatus })
