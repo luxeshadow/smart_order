@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
 import Input from '@/core/components/client/mobile/Input.vue'
@@ -13,13 +14,10 @@ import { PaygateService } from '~/services/payment/paygate/paygate_service'
 import { CinetpayService } from '~/services/payment/cinetpay/cinetpay_service'
 
 const { showToast } = useToast()
-
 const router = useRouter()
 const authStore = useAuthStore()
 
-let paymentService: PaymentServiceInterface
-
-paymentService = new PaygateService()
+let paymentService: PaymentServiceInterface = new PaygateService()
 // paymentService = new CinetpayService()
 
 const depositRepository = new DepositRepositoryImpl()
@@ -119,7 +117,7 @@ const handleDeposit = async () => {
 
   try {
     /**
-     * ✅ 1) Création dépôt local
+     * ✅ 1) Création du dépôt en local (Base de données)
      */
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
@@ -134,7 +132,7 @@ const handleDeposit = async () => {
     }
 
     /**
-     * ✅ 2) Création paiement dynamique
+     * ✅ 2) Déclenchement de la demande de paiement
      */
     const paymentRes = await paymentService.createPayment({
       phone_number: form.value.phoneNumber,
@@ -153,72 +151,71 @@ const handleDeposit = async () => {
       '#2ecc71'
     )
 
+    // Lancement du décompte visuel de 15 secondes
+    startCountdown(15)
+
     /**
-     * ✅ 3) Attente dynamique avec polling (Max 35 secondes)
+     * ⏳ 3) PAUSE INITIALE DE 5 SECONDES
+     * On laisse 5s à l'opérateur pour envoyer le prompt USSD et à l'utilisateur pour saisir son code
      */
-    const maxSeconds = 35
-    startCountdown(maxSeconds)
-
-    let isCompleted = false
-    let isRejected = false
-
-    // Pause de 5 secondes avant le 1er check pour laisser le temps à l'invite USSD d'arriver
     await new Promise(resolve => setTimeout(resolve, 5000))
 
-    const pollInterval = 4000
-    const totalAttempts = Math.floor((maxSeconds - 5) * 1000 / pollInterval)
+    /**
+     * 🔄 4) POLLING / VÉRIFICATIONS RÉPÉTÉES
+     * Effectue jusqu'à 4 tentatives (t=5s, t=8s, t=11s, t=14s)
+     */
+    let isSuccess = false
+    let lastStatusRes: any = null
+    const maxAttempts = 4 
 
-    for (let attempt = 0; attempt < totalAttempts; attempt++) {
-      const statusRes = await paymentService.checkPaymentStatus(
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      lastStatusRes = await paymentService.checkPaymentStatus(
         String(paymentRes.tx_reference),
         identifier
       )
 
-      if (statusRes.transaction_status === 'completed') {
-        isCompleted = true
+      // Succès confirmé par Paygate
+      if (
+        lastStatusRes.status === 0 &&
+        lastStatusRes.transaction_status === 'completed'
+      ) {
+        isSuccess = true
         break
       }
 
-      // Si c'est la toute dernière tentative et qu'on n'a pas eu de statut 0, on considère la session expirée
-      if (attempt === totalAttempts - 1) {
-        isRejected = true
-      } else {
-        await new Promise(resolve => setTimeout(resolve, pollInterval))
+      // Échec explicite ou annulation par l'utilisateur
+      if (lastStatusRes.transaction_status === 'rejected') {
+        break
+      }
+
+      // Attente de 3 secondes avant la prochaine tentative
+      if (attempt < maxAttempts - 1) {
+        await new Promise(resolve => setTimeout(resolve, 3000))
       }
     }
 
-    stopCountdown()
-
-    if (isCompleted) {
-      showToast(
-        'Recharge réussie !',
-        'fi-rr-check',
-        'success',
-        '#2ecc71'
+    if (!isSuccess) {
+      throw new Error(
+        lastStatusRes?.message || 'Paiement non validé ou délai dépassé'
       )
-      resetForm()
-      setTimeout(() => {
-        router.push('/home')
-      }, 1000)
-
-    } else if (isRejected) {
-      throw new Error('Transaction annulée ou délai de validation dépassé.')
-
-    } else {
-      showToast(
-        'Vérification en cours. Si vous avez validé, votre solde sera crédité sous peu.',
-        'fi-rr-time-fast',
-        'normal',
-        '#f1c40f'
-      )
-      resetForm()
-      setTimeout(() => {
-        router.push('/home')
-      }, 2000)
     }
+
+    showToast(
+      'Recharge réussie !',
+      'fi-rr-check',
+      'success',
+      '#2ecc71'
+    )
+
+    resetForm()
+
+    setTimeout(() => {
+      router.push('/home')
+    }, 1000)
 
   } catch (error: any) {
     resetForm()
+
     showToast(
       error.message || 'Erreur lors de la transaction',
       'fi-rr-shield-exclamation',
