@@ -47,13 +47,18 @@ export class PaygateService implements PaymentServiceInterface {
       body: { tx_reference: txReference }
     })
 
-    const depositStatus =
-      response.status === 0 ? 'completed' : 'rejected'
+    // 🔴 CORRECTION ICI : Si ce n'est pas 0 (ex: 2), on laisse en 'pending' 
+    // au lieu de forcer 'rejected'. Seul le statut 0 confirme le succès.
+    const depositStatus = response.status === 0 ? 'completed' : 'pending'
 
-    await this.supabase
-      .from('deposits')
-      .update({ status: depositStatus })
-      .eq('reference_id', identifier)
+    // On ne met à jour Supabase que si la transaction est validée (completed).
+    // Si c'est 'pending', on laisse le Webhook s'en charger plus tard !
+    if (depositStatus === 'completed') {
+      await this.supabase
+        .from('deposits')
+        .update({ status: 'completed' })
+        .eq('reference_id', identifier)
+    }
 
     return {
       status: response.status,

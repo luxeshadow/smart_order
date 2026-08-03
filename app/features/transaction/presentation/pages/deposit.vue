@@ -119,7 +119,7 @@ const handleDeposit = async () => {
 
   try {
     /**
-     * ✅ 1) création dépôt local
+     * ✅ 1) Création dépôt local
      */
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
@@ -134,7 +134,7 @@ const handleDeposit = async () => {
     }
 
     /**
-     * ✅ 2) création paiement dynamique
+     * ✅ 2) Création paiement dynamique
      */
     const paymentRes = await paymentService.createPayment({
       phone_number: form.value.phoneNumber,
@@ -154,42 +154,72 @@ const handleDeposit = async () => {
     )
 
     /**
-     * ✅ 3) attente confirmation
+     * ✅ 3) Attente dynamique avec polling (Max 35 secondes)
      */
-    startCountdown(15)
-    await new Promise(resolve => setTimeout(resolve, 15000))
+    const maxSeconds = 35
+    startCountdown(maxSeconds)
 
-    /**
-     * ✅ 4) check status dynamique
-     */
-    const statusRes = await paymentService.checkPaymentStatus(
-      String(paymentRes.tx_reference),
-      identifier
-    )
+    let isCompleted = false
+    let isRejected = false
 
-    if (
-      statusRes.status !== 0 ||
-      statusRes.transaction_status === 'rejected'
-    ) {
-      throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
+    // On boucle toutes les 5 secondes pendant max 35s
+    const pollInterval = 5000
+    const totalAttempts = Math.floor(maxSeconds * 1000 / pollInterval)
+
+    for (let attempt = 0; attempt < totalAttempts; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, pollInterval))
+
+      const statusRes = await paymentService.checkPaymentStatus(
+        String(paymentRes.tx_reference),
+        identifier
+      )
+
+      if (statusRes.transaction_status === 'completed') {
+        isCompleted = true
+        break
+      } else if (statusRes.transaction_status === 'rejected') {
+        isRejected = true
+        break
+      }
+      // Si c'est 'pending', la boucle continue d'attendre la validation USSD
     }
 
-    showToast(
-      'Recharge réussie !',
-      'fi-rr-check',
-      'success',
-      '#2ecc71'
-    )
+    stopCountdown()
 
-    resetForm()
+    /**
+     * ✅ 4) Traitement du résultat final
+     */
+    if (isCompleted) {
+      showToast(
+        'Recharge réussie !',
+        'fi-rr-check',
+        'success',
+        '#2ecc71'
+      )
+      resetForm()
+      setTimeout(() => {
+        router.push('/home')
+      }, 1000)
 
-    setTimeout(() => {
-      router.push('/home')
-    }, 1000)
+    } else if (isRejected) {
+      throw new Error('Le paiement a été rejeté ou annulé.')
+
+    } else {
+      // Si le délai de 35s est écoulé mais que c'est toujours 'pending'
+      showToast(
+        'Paiement en cours de traitement. Votre solde sera crédité sous peu.',
+        'fi-rr-time-fast',
+        'success',
+        '#f1c40f'
+      )
+      resetForm()
+      setTimeout(() => {
+        router.push('/home')
+      }, 2000)
+    }
 
   } catch (error: any) {
     resetForm()
-
     showToast(
       error.message || 'Erreur lors de la transaction',
       'fi-rr-shield-exclamation',
