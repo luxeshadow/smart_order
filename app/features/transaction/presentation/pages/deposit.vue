@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { AppImage } from '@/core/constants/app_images'
 import Button from '@/core/components/client/mobile/Button.vue'
 import Input from '@/core/components/client/mobile/Input.vue'
@@ -14,10 +13,13 @@ import { PaygateService } from '~/services/payment/paygate/paygate_service'
 import { CinetpayService } from '~/services/payment/cinetpay/cinetpay_service'
 
 const { showToast } = useToast()
+
 const router = useRouter()
 const authStore = useAuthStore()
 
-let paymentService: PaymentServiceInterface = new PaygateService()
+let paymentService: PaymentServiceInterface
+
+paymentService = new PaygateService()
 // paymentService = new CinetpayService()
 
 const depositRepository = new DepositRepositoryImpl()
@@ -117,7 +119,7 @@ const handleDeposit = async () => {
 
   try {
     /**
-     * ✅ 1) Création du dépôt en local (Base de données)
+     * ✅ 1) création dépôt local
      */
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
@@ -132,7 +134,7 @@ const handleDeposit = async () => {
     }
 
     /**
-     * ✅ 2) Déclenchement de la demande de paiement
+     * ✅ 2) création paiement dynamique
      */
     const paymentRes = await paymentService.createPayment({
       phone_number: form.value.phoneNumber,
@@ -151,53 +153,25 @@ const handleDeposit = async () => {
       '#2ecc71'
     )
 
-    // Lancement du décompte visuel de 15 secondes
-    startCountdown(15)
+    /**
+     * ✅ 3) attente confirmation
+     */
+    startCountdown(25)
+    await new Promise(resolve => setTimeout(resolve, 15000))
 
     /**
-     * ⏳ 3) PAUSE INITIALE DE 5 SECONDES
-     * On laisse 5s à l'opérateur pour envoyer le prompt USSD et à l'utilisateur pour saisir son code
+     * ✅ 4) check status dynamique
      */
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    const statusRes = await paymentService.checkPaymentStatus(
+      String(paymentRes.tx_reference),
+      identifier
+    )
 
-    /**
-     * 🔄 4) POLLING / VÉRIFICATIONS RÉPÉTÉES
-     * Effectue jusqu'à 4 tentatives (t=5s, t=8s, t=11s, t=14s)
-     */
-    let isSuccess = false
-    let lastStatusRes: any = null
-    const maxAttempts = 4 
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      lastStatusRes = await paymentService.checkPaymentStatus(
-        String(paymentRes.tx_reference),
-        identifier
-      )
-
-      // Succès confirmé par Paygate
-      if (
-        lastStatusRes.status === 0 &&
-        lastStatusRes.transaction_status === 'completed'
-      ) {
-        isSuccess = true
-        break
-      }
-
-      // Échec explicite ou annulation par l'utilisateur
-      if (lastStatusRes.transaction_status === 'rejected') {
-        break
-      }
-
-      // Attente de 3 secondes avant la prochaine tentative
-      if (attempt < maxAttempts - 1) {
-        await new Promise(resolve => setTimeout(resolve, 3000))
-      }
-    }
-
-    if (!isSuccess) {
-      throw new Error(
-        lastStatusRes?.message || 'Paiement non validé ou délai dépassé'
-      )
+    if (
+      statusRes.status !== 0 ||
+      statusRes.transaction_status === 'rejected'
+    ) {
+      throw new Error(statusRes.message || 'Paiement échoué ou rejeté')
     }
 
     showToast(
