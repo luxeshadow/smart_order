@@ -47,13 +47,14 @@ export class PaygateService implements PaymentServiceInterface {
       body: { tx_reference: txReference }
     })
 
-    // 🔴 CORRECTION ICI : Si ce n'est pas 0 (ex: 2), on laisse en 'pending' 
-    // au lieu de forcer 'rejected'. Seul le statut 0 confirme le succès.
-    const depositStatus = response.status === 0 ? 'completed' : 'pending'
+    // 1. Détermination du statut : seul le statut 0 (numérique ou string) indique le succès immédiat
+    const isSuccess = response.status === 0 || response.status === '0'
+    const depositStatus = isSuccess ? 'completed' : 'pending'
 
-    // On ne met à jour Supabase que si la transaction est validée (completed).
-    // Si c'est 'pending', on laisse le Webhook s'en charger plus tard !
-    if (depositStatus === 'completed') {
+    // 2. Mise à jour Supabase : UNIQUEMENT en cas de succès confirmé
+    // Tout autre statut (2, undefined, etc.) est laissé en 'pending' 
+    // pour permettre au polling de continuer ou au Webhook de finaliser plus tard.
+    if (isSuccess) {
       await this.supabase
         .from('deposits')
         .update({ status: 'completed' })

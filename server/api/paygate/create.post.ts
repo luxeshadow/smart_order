@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
 
   // 1. On construit l'adresse du Webhook de VOTRE backend
   // config.public.siteUrl est récupéré de votre variable d'environnement
-  const siteUrl = config.public.siteUrl || 'http://192.168.0.173:3000'
+  const siteUrl = config.public.siteUrl || 'http://smartorder.one'
   const webhookUrl = `${siteUrl}/api/paygate/webhook`
 
   try {

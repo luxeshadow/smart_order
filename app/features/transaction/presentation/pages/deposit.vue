@@ -162,13 +162,13 @@ const handleDeposit = async () => {
     let isCompleted = false
     let isRejected = false
 
-    // On boucle toutes les 5 secondes pendant max 35s
-    const pollInterval = 5000
-    const totalAttempts = Math.floor(maxSeconds * 1000 / pollInterval)
+    // Pause de 5 secondes avant le 1er check pour laisser le temps à l'invite USSD d'arriver
+    await new Promise(resolve => setTimeout(resolve, 5000))
+
+    const pollInterval = 4000
+    const totalAttempts = Math.floor((maxSeconds - 5) * 1000 / pollInterval)
 
     for (let attempt = 0; attempt < totalAttempts; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval))
-
       const statusRes = await paymentService.checkPaymentStatus(
         String(paymentRes.tx_reference),
         identifier
@@ -177,18 +177,18 @@ const handleDeposit = async () => {
       if (statusRes.transaction_status === 'completed') {
         isCompleted = true
         break
-      } else if (statusRes.transaction_status === 'rejected') {
-        isRejected = true
-        break
       }
-      // Si c'est 'pending', la boucle continue d'attendre la validation USSD
+
+      // Si c'est la toute dernière tentative et qu'on n'a pas eu de statut 0, on considère la session expirée
+      if (attempt === totalAttempts - 1) {
+        isRejected = true
+      } else {
+        await new Promise(resolve => setTimeout(resolve, pollInterval))
+      }
     }
 
     stopCountdown()
 
-    /**
-     * ✅ 4) Traitement du résultat final
-     */
     if (isCompleted) {
       showToast(
         'Recharge réussie !',
@@ -202,14 +202,13 @@ const handleDeposit = async () => {
       }, 1000)
 
     } else if (isRejected) {
-      throw new Error('Le paiement a été rejeté ou annulé.')
+      throw new Error('Transaction annulée ou délai de validation dépassé.')
 
     } else {
-      // Si le délai de 35s est écoulé mais que c'est toujours 'pending'
       showToast(
-        'Paiement en cours de traitement. Votre solde sera crédité sous peu.',
+        'Vérification en cours. Si vous avez validé, votre solde sera crédité sous peu.',
         'fi-rr-time-fast',
-        'success',
+        'normal',
         '#f1c40f'
       )
       resetForm()
