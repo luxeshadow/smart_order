@@ -20,8 +20,6 @@ export class WalletValidator {
       return "Le numéro doit être au format international valide (ex: 228XXXXXXXX)."
     }
 
-    // 🔥 doit commencer par un indicatif (donc PAS un numéro local court)
-    // règle simple : au moins 2-3 chiffres d'indicatif + reste
     if (cleanPhone.length < 10) {
       return "Ajoute l'indicatif pays (ex: 228..., 33..., 1...)."
     }

@@ -156,7 +156,7 @@ const handleDeposit = async () => {
     /**
      * ✅ 3) attente confirmation
      */
-    startCountdown(25)
+    startCountdown(35)
     await new Promise(resolve => setTimeout(resolve, 15000))
 
     /**
