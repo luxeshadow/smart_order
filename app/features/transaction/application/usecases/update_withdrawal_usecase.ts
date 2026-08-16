@@ -4,8 +4,7 @@ import type { UpdateWithdrawalRepository } from '../../domain/repository/update_
 import type { UpdateWithdrawalParam } from '../params/update_withdrawal_params'
 import { Failure } from '@/core/errors/failure'
 
-export class UpdateWithdrawalUseCase
-  implements UseCase<void, UpdateWithdrawalParam>
+export class UpdateWithdrawalUseCase implements UseCase<void, UpdateWithdrawalParam>
 {
   constructor(private repository: UpdateWithdrawalRepository) {}
 

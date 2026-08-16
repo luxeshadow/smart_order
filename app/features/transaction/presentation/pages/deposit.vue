@@ -118,9 +118,7 @@ const handleDeposit = async () => {
   isLoading.value = true
 
   try {
-    /**
-     * ✅ 1) création dépôt local
-     */
+ 
     const depositResult = await depositUseCase.execute({
       userId: String(authStore.user.id),
       depositPhoneNumber: form.value.phoneNumber,
@@ -133,9 +131,7 @@ const handleDeposit = async () => {
       throw new Error(depositResult.message)
     }
 
-    /**
-     * ✅ 2) création paiement dynamique
-     */
+ 
     const paymentRes = await paymentService.createPayment({
       phone_number: form.value.phoneNumber,
       amount: Number(form.value.amount),
@@ -153,15 +149,11 @@ const handleDeposit = async () => {
       '#2ecc71'
     )
 
-    /**
-     * ✅ 3) attente confirmation
-     */
+ 
     startCountdown(35)
     await new Promise(resolve => setTimeout(resolve, 15000))
 
-    /**
-     * ✅ 4) check status dynamique
-     */
+  
     const statusRes = await paymentService.checkPaymentStatus(
       String(paymentRes.tx_reference),
       identifier
@@ -274,7 +266,7 @@ onUnmounted(() => {
           label="Numéro de téléphone*"
           v-model="form.phoneNumber"
           icon="fi-rr-phone-call"
-          placeholder="Ex: 90 00 00 00"
+          placeholder="Ex: +22890000000"
           type="tel"
         />
 
@@ -303,7 +295,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* AppBar */
+
 .app-bar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -463,7 +455,7 @@ onUnmounted(() => {
   margin-top: 14px;
   text-align: center;
   font-size: 13px;
-  color: #95a5a6;
+  color: v-bind('AppColor.primary.base');
   animation: fadePulse 1s infinite;
 }
 

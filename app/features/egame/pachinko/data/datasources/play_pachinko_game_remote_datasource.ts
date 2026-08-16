@@ -23,9 +23,6 @@ export interface CashoutResult {
 export class PlayPachinkoGameRemoteDatasource {
   constructor(private readonly supabase: any) {}
 
-  /**
-   * Vérification isolée du niveau actif
-   */
   async checkUserActiveLevel(userId: string): Promise<boolean> {
     try {
       const isActive = await checkUserActiveLevel(this.supabase, userId)
@@ -47,7 +44,7 @@ export class PlayPachinkoGameRemoteDatasource {
 
   async startGame(userId: string, betAmount: number): Promise<StartGameResult> {
     try {
-      // Vérification directe du niveau avant d'autoriser le lancement du jeu
+
       await this.checkUserActiveLevel(userId)
 
       const { data, error } = await this.supabase.rpc(

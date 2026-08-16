@@ -4,10 +4,12 @@ export class DepositValidator {
     if (!params.depositPhoneNumber || !params.amount || !params.method) {
       return "Tous les champs sont obligatoires.";
     }
-
     const cleanPhone = String(params.depositPhoneNumber).replace(/\s/g, '');
-    if (cleanPhone.length < 8) {
-      return "Le numéro de téléphone n'est pas valide.";
+
+    const phoneWithPlusRegex = /^\+[1-9]\d{7,14}$/;
+
+    if (!phoneWithPlusRegex.test(cleanPhone)) {
+      return "Le numéro de téléphone doit commencer par l'indicatif avec '+' (ex: +22890000000).";
     }
 
     const amountValue = Number(params.amount);
