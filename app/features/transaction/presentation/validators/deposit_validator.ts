@@ -17,7 +17,7 @@ export class DepositValidator {
       return "Le montant doit être un nombre supérieur à 0.";
     }
 
-    if (amountValue < 10) {
+    if (amountValue < 1000) {
       return "Le montant minimum est de 1000 FCFA.";
     }
 
