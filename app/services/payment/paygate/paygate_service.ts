@@ -46,8 +46,8 @@ export class PaygateService implements PaymentServiceInterface {
     txReference: string,
     identifier: string
   ): Promise<PaymentCheckResponse> {
-    // Attendre 20 secondes avant tout
-    await this.delay(20000)
+   
+    await this.delay(8000)
 
     const response = await $fetch<any>('/api/paygate/check', {
       method: 'POST',
