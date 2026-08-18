@@ -64,14 +64,14 @@ const handleLogin = async () => {
     showToast(`Content de vous revoir, ${result.username} !`, "fi-rr-check", "success")
 
     setTimeout(() => {
-      if (result.role === 'admin') {
-        router.push('/dashboard')
-      } else {
-        router.push('/home')
-      }
-      isLoading.value = false
-    }, 1500)
+    if (result.role === 'admin') {
+      router.replace('/dashboard')
+    } else {
+      router.replace('/home')
+    }
 
+  isLoading.value = false
+}, 1500)
   } catch (error) {
     isLoading.value = false
     showToast("Erreur de connexion au serveur", "fi-rr-shield-exclamation", "error")

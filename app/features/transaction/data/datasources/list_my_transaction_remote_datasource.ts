@@ -9,16 +9,26 @@ export class ListMyTransactionRemoteDatasource {
     param: ListMyTransactionParam
   ): Promise<MyTransactionModel[]> {
     try {
+      const page = param.page || 1
+      const pageSize = param.pageSize || 10
+
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
       const [wResponse, dResponse] = await Promise.all([
         this.supabase
           .from('withdrawals')
           .select('*')
-          .eq('user_id', param.userId),
+          .eq('user_id', param.userId)
+          .order('created_at', { ascending: false })
+          .range(from, to),
 
         this.supabase
           .from('deposits')
           .select('*')
           .eq('user_id', param.userId)
+          .order('created_at', { ascending: false })
+          .range(from, to)
       ])
 
       if (wResponse.error) {
@@ -37,12 +47,27 @@ export class ListMyTransactionRemoteDatasource {
         MyTransactionModel.fromSupabase(d, 'deposit')
       )
 
-      return [...withdrawals, ...deposits]
+      const transactions = [
+        ...withdrawals,
+        ...deposits
+      ]
+
+      transactions.sort((a: any, b: any) => {
+        return (
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+        )
+      })
+
+      return transactions.slice(0, pageSize)
     } catch (error: any) {
-      if (error instanceof DatabaseException) throw error
+      if (error instanceof DatabaseException) {
+        throw error
+      }
 
       throw new DatabaseException(
-        error.message || 'Erreur lors de la récupération des transactions.'
+        error.message ||
+          'Erreur lors de la récupération des transactions.'
       )
     }
   }

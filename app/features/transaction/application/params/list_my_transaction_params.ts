@@ -1,3 +1,5 @@
 export interface ListMyTransactionParam {
-    userId: string;
+  userId: string
+  page: number
+  pageSize: number
 }
