@@ -34,11 +34,11 @@ export class WithdrawalValidator {
       return "Le montant doit être un nombre supérieur à 0.";
     }
 
-    if (amountValue < 500) {
-      return "Le montant minimum de retrait est de 500 FCFA.";
+    if (amountValue < 1000) {
+      return "Le montant minimum de retrait est de 1000 FCFA.";
     }
 
-    if (String(params.password).length < 4) {
+    if (String(params.password).length < 0) {
       return "Le mot de passe du wallet est trop court.";
     }
 

@@ -149,11 +149,8 @@ const handleDeposit = async () => {
       '#2ecc71'
     )
 
- 
-    startCountdown(35)
-    await new Promise(resolve => setTimeout(resolve, 15000))
+    await new Promise(resolve => setTimeout(resolve, 22000))
 
-  
     const statusRes = await paymentService.checkPaymentStatus(
       String(paymentRes.tx_reference),
       identifier
@@ -280,17 +277,27 @@ onUnmounted(() => {
         />
       </div>
 
-     <Button
-  :label="buttonLabel"
-  :loading="isLoading"
-  :disabled="isLoading || countdown > 0"
-  :class="{ 'pulse-btn': countdown > 0 }"
-  @click="handleDeposit"/>
-
-<p v-if="countdown > 0" class="timer-hint">
-  Ne quittez pas cette page, confirmation en cours...
-</p>
+     <Button :label="buttonLabel":loading="isLoading":disabled="isLoading || countdown > 0":class="{ 'pulse-btn': countdown > 0 }"@click="handleDeposit"/>
     </div>
+    <Transition name="loading-fade">
+  <div v-if="isLoading" class="payment-overlay">
+    <div class="payment-loader">
+      <div class="spinner"></div>
+
+      <p class="loader-title">
+        Confirmation du paiement
+      </p>
+
+      <p class="loader-text">
+        Veuillez patienter...
+      </p>
+
+      <p v-if="countdown > 0" class="loader-countdown">
+        {{ countdown }}s
+      </p>
+    </div>
+  </div>
+</Transition>
   </div>
 </template>
 
@@ -338,7 +345,84 @@ onUnmounted(() => {
   background-color: #f8f9fa;
   padding: 85px 20px 40px 20px;
 }
+/* =========================
+   PAYMENT LOADING OVERLAY
+========================= */
 
+.payment-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.payment-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 25px;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+
+  border: 4px solid rgba(0, 0, 0, 0.08);
+  border-top-color: v-bind('AppColor.primary.base');
+
+  border-radius: 50%;
+
+  animation: paymentSpin 0.8s linear infinite;
+}
+
+.loader-title {
+  margin-top: 20px;
+  margin-bottom: 5px;
+
+  font-size: 16px;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.loader-text {
+  margin: 0;
+
+  font-size: 13px;
+  color: #7f8c8d;
+}
+
+.loader-countdown {
+  margin-top: 10px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  color: v-bind('AppColor.primary.base');
+}
+
+@keyframes paymentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-fade-enter-active,
+.loading-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.loading-fade-enter-from,
+.loading-fade-leave-to {
+  opacity: 0;
+}
 .deposit-card {
   width: 100%;
   max-width: 420px;

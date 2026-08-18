@@ -47,7 +47,7 @@ export class PaygateService implements PaymentServiceInterface {
     identifier: string
   ): Promise<PaymentCheckResponse> {
    
-    await this.delay(8000)
+    // await this.delay(20000)
 
     const response = await $fetch<any>('/api/paygate/check', {
       method: 'POST',
