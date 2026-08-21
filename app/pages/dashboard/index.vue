@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+
 import AppBar from '@/core/components/admin/mobile/AppBar.vue'
 import BottomNavigationBar from '@/core/components/admin/mobile/BottomNavigationBar.vue'
 import StatContainer from '@/core/components/admin/mobile/StatContainer.vue'
 import ShopContainer from '@/core/components/admin/mobile/ShopContainer.vue'
 import ListUser from '@/core/components/admin/mobile/ListUser.vue'
-import AdminWithdrawalPage from '../../features/transaction/presentation/pages/users-withdrawal.vue'
-import ListProduct from '../../features/product/presentation/pages/list-product.vue'
+
+import AdminWithdrawalPage
+  from '../../features/transaction/presentation/pages/users-withdrawal.vue'
+
+import ListProduct
+  from '../../features/product/presentation/pages/list-product.vue'
+
 const activeTab = ref('dashboard')
-definePageMeta({
-  middleware: 'auth'
-})
+
 </script>
 
 <template>

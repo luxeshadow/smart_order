@@ -14,57 +14,42 @@ export default defineNuxtRouteMiddleware(async (to) => {
   ]
 
   try {
+    /*
+     * ==========================
+     * RÉCUPÉRATION UTILISATEUR
+     * ==========================
+     */
+
     const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession()
-
-    let authUser: User | undefined =
-      session?.user ?? undefined
-
-    if (!authUser && !sessionError) {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser()
-
-      authUser = user ?? undefined
-    }
+      data: { user: authUser },
+      error: userError
+    } = await supabase.auth.getUser()
 
     /*
-     * ============================
-     * UTILISATEUR NON CONNECTÉ
-     * ============================
+     * ==========================
+     * NON CONNECTÉ
+     * ==========================
      */
-    if (!authUser) {
-      // Les pages d'auth restent accessibles
+
+    if (userError || !authUser) {
       if (authPages.includes(to.path)) {
         return
       }
 
-      // Dashboard interdit sans connexion
       if (to.path.startsWith('/dashboard')) {
         return navigateTo('/auth/login', {
           replace: true
         })
       }
 
-      /*
-       * Ton comportement actuel :
-       * les autres routes renvoient vers home.
-       */
-      if (to.path !== '/home') {
-        return navigateTo('/home', {
-          replace: true
-        })
-      }
-
+      // Laisser les pages publiques accessibles
       return
     }
 
     /*
-     * ============================
+     * ==========================
      * UTILISATEUR CONNECTÉ
-     * ============================
+     * ==========================
      */
 
     const {
@@ -76,11 +61,20 @@ export default defineNuxtRouteMiddleware(async (to) => {
       .eq('id', authUser.id)
       .single<DbUser>()
 
-    /*
-     * Session valide mais utilisateur absent
-     * dans la table users.
-     */
-    if (dbError || !dbUser) {
+    if (dbError) {
+      console.error(
+        'Erreur récupération utilisateur :',
+        dbError
+      )
+
+      return
+    }
+
+    if (!dbUser) {
+      console.error(
+        'Utilisateur absent de la table users'
+      )
+
       await supabase.auth.signOut()
 
       return navigateTo('/auth/login', {
@@ -90,6 +84,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const role = dbUser.role
 
+    /*
+     * ==========================
+     * PAGE LOGIN / REGISTER
+     * ==========================
+     */
 
     if (authPages.includes(to.path)) {
       if (role === 'admin') {
@@ -103,17 +102,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
       })
     }
 
-    if (to.path.startsWith('/dashboard')) {
-      if (role !== 'admin') {
-        return navigateTo('/home', {
-          replace: true
-        })
-      }
+    /*
+     * ==========================
+     * PROTECTION ADMIN
+     * ==========================
+     */
+
+    if (
+      to.path.startsWith('/dashboard') &&
+      role !== 'admin'
+    ) {
+      return navigateTo('/home', {
+        replace: true
+      })
     }
+
+    // Sinon laisser Nuxt continuer normalement
+    return
 
   } catch (error) {
     console.error(
-      'Erreur Critique Middleware Auth :',
+      'Erreur middleware auth :',
       error
     )
 
@@ -122,9 +131,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
         replace: true
       })
     }
-
-    return navigateTo('/home', {
-      replace: true
-    })
   }
 })
