@@ -362,30 +362,33 @@ const vibrate = () => {
   box-sizing: border-box;
 }
 
-/* =========================
+/* =========================================================
    PAGE
-========================= */
+========================================================= */
 
 .profile-page {
   padding: 15px;
   padding-top: 85px;
-  background: #fff;
+
+  background: #ffffff;
+
   min-height: 100vh;
 }
 
-/* =========================
+/* =========================================================
    APP BAR
-========================= */
+========================================================= */
 
 .app-bar {
   position: fixed;
+
   top: 0;
   left: 0;
   right: 0;
 
   height: 65px;
 
-  background: white;
+  background: #ffffff;
 
   display: flex;
   align-items: center;
@@ -401,16 +404,27 @@ const vibrate = () => {
   width: 45px;
   height: 45px;
 
-  background-color: #f8f9fa;
+  border: 1px solid #eeeeee;
 
-  border: 1px solid #eee;
   border-radius: 14px;
+
+  background: #f8f9fa;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
+
+  font-size: 20px;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.back-btn:active {
+  transform: scale(0.92);
 }
 
 .app-bar-title {
@@ -418,40 +432,43 @@ const vibrate = () => {
 
   text-align: center;
 
-  font-weight: 800;
   font-size: 17px;
+  font-weight: 800;
 
-  color: #111;
+  color: #111111;
 }
 
 .spacer {
   width: 45px;
 }
 
-/* =========================
+/* =========================================================
    HERO WALLET
-========================= */
+========================================================= */
 
 .hero-wallet {
   position: relative;
 
   width: 100%;
-  height: 280px;
-
-  border-radius: 30px;
+  height: 290px;
 
   overflow: hidden;
+
+  border-radius: 30px;
 
   margin-bottom: 25px;
 
   padding: 20px;
 
-  isolation: isolate;
+  background: #111111;
 
-  background: #111;
+  isolation: isolate;
 }
 
-/* Background Logo_1 */
+/* =========================================================
+   IMAGE DE FOND : LOGO_1
+========================================================= */
+
 .hero-bg {
   position: absolute;
 
@@ -466,72 +483,71 @@ const vibrate = () => {
   z-index: 0;
 
   pointer-events: none;
-}
-
-/* =========================
-   FILLES LOGO_2
-========================= */
-
-.hero-girl {
-  position: absolute;
-
-  right: -18px;
-  bottom: -8px;
-
-  width: 315px;
-  max-width: none;
-
-  height: auto;
-
-  object-fit: contain;
-
-  z-index: 1;
-  pointer-events: none;
   user-select: none;
-
-  -webkit-user-drag: none;
 }
 
-/* =========================
-   OVERLAY
-========================= */
+/* =========================================================
+   OVERLAY SUR LE FOND
+========================================================= */
 
 .hero-overlay {
   position: absolute;
 
   inset: 0;
 
-  z-index: 2;
+  z-index: 1;
 
   pointer-events: none;
 
-  /*
-    Plus sombre à gauche pour garder
-    le texte lisible.
-
-    Plus transparent à droite
-    pour voir Logo_2 correctement.
-  */
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.72) 0%,
-      rgba(0, 0, 0, 0.60) 28%,
-      rgba(0, 0, 0, 0.40) 50%,
-      rgba(0, 0, 0, 0.12) 72%,
-      rgba(0, 0, 0, 0.05) 100%
-    );
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.68) 25%,
+    rgba(0, 0, 0, 0.48) 48%,
+    rgba(0, 0, 0, 0.18) 70%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
 }
 
-/* =========================
-   HERO CONTENT
-========================= */
+/* =========================================================
+   FILLE : LOGO_2
+========================================================= */
+
+.hero-girl {
+  position: absolute;
+
+  /*
+    Grande taille volontaire.
+    La fille prend pratiquement toute
+    la partie droite de la carte.
+  */
+  width: 410px;
+  max-width: none;
+  height: auto;
+
+  right: -70px;
+  bottom: -70px;
+
+  object-fit: contain;
+
+  z-index: 2;
+
+  pointer-events: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+}
+
+/* =========================================================
+   CONTENU HERO
+========================================================= */
 
 .hero-content {
   position: relative;
 
   z-index: 3;
 
+  width: 100%;
   height: 100%;
 
   display: flex;
@@ -539,19 +555,19 @@ const vibrate = () => {
   justify-content: space-between;
 }
 
-/* =========================
-   USER
-========================= */
+/* =========================================================
+   LIGNE PROFIL
+========================================================= */
 
 .user-profile-row {
   position: relative;
+
+  z-index: 4;
 
   display: flex;
   align-items: center;
 
   gap: 12px;
-
-  z-index: 4;
 }
 
 .avatar-container {
@@ -559,63 +575,70 @@ const vibrate = () => {
 }
 
 .avatar-img {
+  display: block;
+
   width: 50px;
   height: 50px;
+
+  object-fit: cover;
 
   border-radius: 15px;
 
   border: 2px solid rgba(255, 255, 255, 0.4);
-
-  display: block;
-
-  object-fit: cover;
 }
 
+/* =========================================================
+   INFOS UTILISATEUR
+========================================================= */
+
 .user-info {
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
-
-  min-width: 0;
 }
 
 .welcome-text {
+  margin-bottom: 4px;
+
   font-size: 10px;
-
-  color: rgba(255, 255, 255, 0.65);
-
   font-weight: 700;
-
-  text-transform: uppercase;
 
   line-height: 1;
 
-  margin-bottom: 4px;
+  text-transform: uppercase;
+
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .user-name {
-  font-size: 18px;
-
-  color: #fff;
-
-  font-weight: 900;
-
   margin: 0;
+
+  max-width: 145px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  font-size: 18px;
+  font-weight: 900;
 
   line-height: 1.1;
 
-  max-width: 150px;
-
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  color: #ffffff;
 }
 
-/* =========================
-   SETTINGS BUTTON
-========================= */
+/* =========================================================
+   BOUTON TRANSFERT
+========================================================= */
 
 .settings-btn {
+  position: relative;
+
+  z-index: 5;
+
   margin-left: auto;
 
   width: 42px;
@@ -623,33 +646,31 @@ const vibrate = () => {
 
   flex-shrink: 0;
 
-  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.16);
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
-  border: 1px solid rgba(255, 255, 255, 0.15);
-
-  border-radius: 13px;
-
-  color: #fff;
-
-  cursor: pointer;
+  color: #ffffff;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
+  cursor: pointer;
+
   transition:
     transform 0.2s ease,
-    opacity 0.2s ease,
-    background 0.2s ease;
-
-  z-index: 5;
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .settings-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .settings-btn:active {
@@ -657,20 +678,21 @@ const vibrate = () => {
 }
 
 .settings-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
+
   cursor: not-allowed;
 }
 
-/* =========================
+/* =========================================================
    SPINNER
-========================= */
+========================================================= */
 
 .mini-spinner {
   width: 18px;
   height: 18px;
 
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid #fff;
+  border-top-color: #ffffff;
 
   border-radius: 50%;
 
@@ -683,30 +705,29 @@ const vibrate = () => {
   }
 }
 
-/* =========================
-   BALANCE
-========================= */
+/* =========================================================
+   SOLDE PRINCIPAL
+========================================================= */
 
 .main-balance-display {
   position: relative;
 
   z-index: 4;
 
-  max-width: 58%;
+  max-width: 55%;
 }
 
 .balance-label {
   display: block;
 
+  margin-bottom: 4px;
+
   font-size: 11px;
-
   font-weight: 700;
-
-  color: rgba(255, 255, 255, 0.6);
 
   text-transform: uppercase;
 
-  margin-bottom: 3px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .amount-row {
@@ -717,81 +738,77 @@ const vibrate = () => {
 }
 
 .amount {
-  font-size: 36px;
-
-  font-weight: 900;
-
-  color: #fff;
-
   margin: 0;
 
+  font-size: 36px;
+  font-weight: 900;
+
   line-height: 1;
+
+  color: #ffffff;
 }
 
 .currency {
+  margin-left: 5px;
+
   font-size: 14px;
-
-  color: #fff;
-
   font-weight: 800;
 
-  margin-left: 5px;
+  color: #ffffff;
 }
 
-/* =========================
-   GLASS BALANCE
-========================= */
+/* =========================================================
+   BLOCS JOURNALIER / REMBOURSEMENT
+========================================================= */
 
 .glass-balances {
   position: relative;
 
   z-index: 4;
 
-  background: rgba(255, 255, 255, 0.11);
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  border: 1px solid rgba(255, 255, 255, 0.12);
-
-  border-radius: 20px;
-
-  padding: 12px 18px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  padding: 12px 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .glass-item {
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
 
   flex: 1;
 
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .glass-label {
+  margin-bottom: 2px;
+
   font-size: 9px;
-
   font-weight: 800;
-
-  color: rgba(255, 255, 255, 0.55);
 
   text-transform: uppercase;
 
-  margin-bottom: 2px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .glass-amount {
   font-size: 14px;
-
   font-weight: 900;
 
-  color: #fff;
-
   white-space: nowrap;
+
+  color: #ffffff;
 }
 
 .glass-amount small {
@@ -804,16 +821,16 @@ const vibrate = () => {
   width: 1px;
   height: 25px;
 
+  margin: 0 15px;
+
   flex-shrink: 0;
 
   background: rgba(255, 255, 255, 0.15);
-
-  margin: 0 15px;
 }
 
-/* =========================
+/* =========================================================
    MENU
-========================= */
+========================================================= */
 
 .menu-section {
   display: flex;
@@ -828,63 +845,77 @@ const vibrate = () => {
 
   padding: 16px;
 
-  background: #fbfbfb;
+  border: 1px solid #f5f5f5;
 
   border-radius: 20px;
 
-  border: 1px solid #f5f5f5;
+  background: #fbfbfb;
 
   cursor: pointer;
 
   transition:
     transform 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.menu-item:hover {
+  background: #f8f8f8;
 }
 
 .menu-item:active {
   transform: scale(0.98);
 }
 
+/* =========================================================
+   ICÔNE MENU
+========================================================= */
+
 .menu-icon {
   width: 40px;
   height: 40px;
 
+  margin-right: 15px;
+
   flex-shrink: 0;
-
-  background: white;
-
-  border-radius: 12px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  margin-right: 15px;
+  border: 1px solid #f0f0f0;
+
+  border-radius: 12px;
+
+  background: #ffffff;
 
   color: v-bind('AppColor.primary.base');
 
-  border: 1px solid #f0f0f0;
+  font-size: 17px;
 }
 
 .menu-item span {
   flex: 1;
 
+  font-size: 14px;
   font-weight: 700;
 
-  font-size: 14px;
-
-  color: #444;
+  color: #444444;
 }
 
 .arrow {
-  color: #aaa;
+  flex-shrink: 0;
+
+  margin-left: 10px;
 
   font-size: 18px;
+
+  color: #aaaaaa;
 }
 
-/* =========================
+/* =========================================================
    LOGOUT
-========================= */
+========================================================= */
 
 .menu-item.logout {
   margin-top: 5px;
@@ -894,63 +925,124 @@ const vibrate = () => {
   border-color: #ffe0e0;
 }
 
+.menu-item.logout:hover {
+  background: #ffeded;
+}
+
 .menu-item.logout .menu-icon {
+  border: none;
+
   background: #ff4757;
 
-  color: white;
-
-  border: none;
+  color: #ffffff;
 }
 
 .menu-item.logout span {
   color: #ff4757;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* =========================================================
+   RESPONSIVE : TABLETTES / GRANDS MOBILES
+========================================================= */
+
+@media (max-width: 600px) {
+  .hero-wallet {
+    height: 290px;
+  }
+
+  .hero-girl {
+    width: 400px;
+
+    right: -75px;
+    bottom: -68px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE : MOBILE 430px
+========================================================= */
 
 @media (max-width: 430px) {
-  .hero-girl {
-    width: 285px;
+  .profile-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 
-    right: -25px;
-    bottom: -5px;
+  .hero-wallet {
+    height: 285px;
+
+    padding: 18px;
+
+    border-radius: 27px;
+  }
+
+  .hero-girl {
+    /*
+      On conserve une grosse taille.
+      Ne pas remettre 200px ou 250px ici.
+    */
+    width: 380px;
+
+    right: -75px;
+    bottom: -62px;
   }
 
   .main-balance-display {
-    max-width: 57%;
+    max-width: 54%;
   }
 
   .amount {
     font-size: 33px;
   }
+
+  .glass-balances {
+    padding: 11px 14px;
+  }
 }
+
+/* =========================================================
+   RESPONSIVE : MOBILE 390px
+========================================================= */
 
 @media (max-width: 390px) {
   .hero-wallet {
-    height: 270px;
+    height: 280px;
 
-    padding: 18px;
+    padding: 17px;
   }
 
   .hero-girl {
-    width: 185px;
+    width: 365px;
 
-    right: -27px;
-    bottom: -3px;
+    right: -78px;
+    bottom: -57px;
+  }
+
+  .avatar-img {
+    width: 47px;
+    height: 47px;
+  }
+
+  .user-name {
+    max-width: 125px;
+
+    font-size: 17px;
+  }
+
+  .main-balance-display {
+    max-width: 53%;
   }
 
   .amount {
     font-size: 30px;
   }
 
-  .main-balance-display {
-    max-width: 55%;
+  .currency {
+    font-size: 12px;
   }
 
   .glass-balances {
-    padding: 11px 14px;
+    padding: 11px 13px;
   }
 
   .glass-divider {
@@ -962,20 +1054,50 @@ const vibrate = () => {
   }
 }
 
-@media (max-width: 350px) {
-  .hero-girl {
-    width: 165px;
+/* =========================================================
+   RESPONSIVE : PETITS MOBILES 360px
+========================================================= */
 
-    right: -30px;
+@media (max-width: 360px) {
+  .hero-wallet {
+    height: 275px;
+
+    padding: 16px;
   }
 
-  .amount {
-    font-size: 27px;
+  .hero-girl {
+    width: 345px;
+
+    right: -78px;
+    bottom: -52px;
+  }
+
+  .avatar-img {
+    width: 45px;
+    height: 45px;
+  }
+
+  .welcome-text {
+    font-size: 9px;
   }
 
   .user-name {
-    font-size: 16px;
     max-width: 110px;
+
+    font-size: 16px;
+  }
+
+  .settings-btn {
+    width: 39px;
+    height: 39px;
+  }
+
+  .amount {
+    font-size: 28px;
+  }
+
+  .balance-label {
+    font-size: 10px;
   }
 
   .glass-label {
@@ -984,6 +1106,68 @@ const vibrate = () => {
 
   .glass-amount {
     font-size: 11px;
+  }
+
+  .glass-divider {
+    margin: 0 8px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE : TRÈS PETITS ÉCRANS
+========================================================= */
+
+@media (max-width: 330px) {
+  .hero-wallet {
+    height: 265px;
+
+    padding: 15px;
+  }
+
+  .hero-girl {
+    width: 320px;
+
+    right: -75px;
+    bottom: -45px;
+  }
+
+  .main-balance-display {
+    max-width: 52%;
+  }
+
+  .amount {
+    font-size: 25px;
+  }
+
+  .currency {
+    font-size: 11px;
+  }
+
+  .glass-balances {
+    padding: 10px 11px;
+  }
+
+  .glass-amount {
+    font-size: 10px;
+  }
+
+  .glass-amount small {
+    font-size: 8px;
+  }
+
+  .menu-item {
+    padding: 14px;
+  }
+
+  .menu-icon {
+    width: 37px;
+    height: 37px;
+
+    margin-right: 12px;
+  }
+
+  .menu-item span {
+    font-size: 13px;
   }
 }
 </style>
