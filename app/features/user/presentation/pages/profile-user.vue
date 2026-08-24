@@ -478,7 +478,7 @@ const vibrate = () => {
   right: -18px;
   bottom: -8px;
 
-  width: 215px;
+  width: 315px;
   max-width: none;
 
   height: auto;
@@ -486,7 +486,6 @@ const vibrate = () => {
   object-fit: contain;
 
   z-index: 1;
-
   pointer-events: none;
   user-select: none;
 
