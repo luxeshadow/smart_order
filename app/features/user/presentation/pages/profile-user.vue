@@ -140,524 +140,291 @@ const vibrate = () => {
 
 <template>
   <div class="profile-page">
-
-    <!-- =========================
-         HEADER
-    ========================== -->
     <nav class="app-bar">
-      <button
-        class="back-btn"
-        @click="router.back()"
-      >
+      <button class="back-btn" @click="router.back()">
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
 
-      <span class="app-bar-title">
-        Mon Compte
-      </span>
+      <span class="app-bar-title">Mon Compte</span>
 
       <div class="spacer"></div>
     </nav>
 
-
-    <!-- =========================
-         HERO PRINCIPAL
-    ========================== -->
-    <section class="hero-wallet">
-
-      <!-- Background -->
+    <div class="hero-wallet">
+      <!-- Image de fond -->
       <img
         :src="AppImage.Logo_1"
-        alt=""
+        alt="background"
         class="hero-bg"
       />
 
-      <!-- Overlay -->
-      <div class="hero-overlay"></div>
-
-      <!--
-        LOGO 2
-        La fille devient un élément principal du design.
-      -->
+      <!-- Fille avec téléphone -->
       <img
         :src="AppImage.Logo_2"
-        alt=""
+        alt="Smart girl"
         class="hero-girl"
       />
 
+      <!-- Dégradé -->
+      <div class="hero-overlay"></div>
 
-      <!-- =========================
-           HAUT DE LA CARTE
-      ========================== -->
-      <div class="hero-top">
+      <!-- Contenu -->
+      <div class="hero-content">
+        <div class="user-profile-row">
+          <div class="avatar-container">
+            <img
+              :src="AppImage.Profile"
+              alt="Avatar"
+              class="avatar-img"
+            />
+          </div>
 
-        <div class="profile-mini">
-          <img
-            :src="AppImage.Profile"
-            alt="Avatar"
-            class="avatar-img"
-          />
-
-          <div class="profile-text">
-            <span class="welcome-text">
-              Bienvenue,
-            </span>
+          <div class="user-info">
+            <span class="welcome-text">Bienvenue,</span>
 
             <h1 class="user-name">
               {{ user?.username || 'Utilisateur' }}
             </h1>
           </div>
+
+          <button
+            class="settings-btn"
+            @click="handleTransferRefund"
+            :disabled="isTransferring"
+            :class="{ 'btn-loading': isTransferring }"
+          >
+            <i
+              v-if="!isTransferring"
+              class="fi fi-rr-money-transfer-coin-arrow"
+            ></i>
+
+            <div
+              v-else
+              class="mini-spinner"
+            ></div>
+          </button>
         </div>
 
-
-        <button
-          class="transfer-btn"
-          @click="handleTransferRefund"
-          :disabled="isTransferring"
-        >
-          <i
-            v-if="!isTransferring"
-            class="fi fi-rr-money-transfer-coin-arrow"
-          ></i>
-
-          <div
-            v-else
-            class="mini-spinner"
-          ></div>
-        </button>
-
-      </div>
-
-
-      <!-- =========================
-           SOLDE
-      ========================== -->
-      <div class="hero-balance">
-
-        <span class="balance-label">
-          Solde disponible
-        </span>
-
-        <div class="amount-row">
-          <span class="amount">
-            {{ formatBalance(mainBalance) }}
+        <div class="main-balance-display">
+          <span class="balance-label">
+            Solde Principal
           </span>
 
-          <span class="currency">
-            XOF
-          </span>
-        </div>
+          <div class="amount-row">
+            <h2 class="amount">
+              {{ formatBalance(mainBalance) }}
+            </h2>
 
-      </div>
-
-
-      <!-- petit texte décoratif -->
-      <div class="hero-status">
-        <span class="status-dot"></span>
-        <span>Compte actif</span>
-      </div>
-
-    </section>
-
-
-
-    <!-- =========================
-         BALANCES SECONDAIRES
-         sorties du Hero
-    ========================== -->
-
-    <section class="balance-summary">
-
-      <div class="summary-card">
-
-        <div class="summary-icon">
-          <i class="fi fi-rr-chart-histogram"></i>
-        </div>
-
-        <div class="summary-content">
-          <span class="summary-label">
-            Journalier
-          </span>
-
-          <div class="summary-amount">
-            {{ formatBalance(dailyEarnings) }}
-            <small>XOF</small>
+            <span class="currency">
+              XOF
+            </span>
           </div>
         </div>
 
-      </div>
+        <div class="glass-balances">
+          <div class="glass-item">
+            <span class="glass-label">
+              Journalier
+            </span>
 
+            <span class="glass-amount">
+              {{ formatBalance(dailyEarnings) }}
+              <small>XOF</small>
+            </span>
+          </div>
 
-      <div class="summary-card">
+          <div class="glass-divider"></div>
 
-        <div class="summary-icon">
-          <i class="fi fi-rr-refund-alt"></i>
-        </div>
+          <div class="glass-item">
+            <span class="glass-label">
+              Remboursement
+            </span>
 
-        <div class="summary-content">
-          <span class="summary-label">
-            Remboursement
-          </span>
-
-          <div class="summary-amount">
-            {{ formatBalance(refundBalance) }}
-            <small>XOF</small>
+            <span class="glass-amount">
+              {{ formatBalance(refundBalance) }}
+              <small>XOF</small>
+            </span>
           </div>
         </div>
-
       </div>
-
-    </section>
-
-
-
-    <!-- =========================
-         TITRE MENU
-    ========================== -->
-
-    <div class="section-header">
-      <span>Mon espace</span>
     </div>
 
-
-
-    <!-- =========================
-         MENU
-    ========================== -->
-
     <div class="menu-section">
-
       <div
         class="menu-item"
         @click="router.push('/auth/update-profile')"
       >
-
         <div class="menu-icon">
           <i class="fi fi-rr-user"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Modifier mes informations
-          </span>
-
-          <span class="menu-description">
-            Profil et informations personnelles
-          </span>
-        </div>
+        <span>Modifier mes informations</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
-
-
 
       <div
         class="menu-item"
         @click="router.push('/assistance/ai')"
       >
-
         <div class="menu-icon">
           <i class="fi fi-rr-user-headset"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Assistance
-          </span>
-
-          <span class="menu-description">
-            Besoin d'aide ?
-          </span>
-        </div>
+        <span>Assistance</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
-
-
 
       <div
         class="menu-item"
         @click="router.push('/transaction/history-transaction')"
       >
-
         <div class="menu-icon">
           <i class="fi fi-rr-time-past"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Historique des flux
-          </span>
-
-          <span class="menu-description">
-            Toutes vos transactions
-          </span>
-        </div>
+        <span>Historique des flux</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
-
-
-
-      <!-- =========================
-           JEUX
-      ========================== -->
-
-      <div class="section-header games-title">
-        <span>Egames</span>
-      </div>
-
 
       <div
-        class="menu-item game-item"
+        class="menu-item"
         @click="router.push('/game/roulette-game')"
       >
-
-        <div class="menu-icon game-icon">
+        <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Lucky Wheel
-          </span>
-
-          <span class="menu-description">
-            Tentez votre chance
-          </span>
-        </div>
+        <span>Egames Lucky Wheel</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
 
-
-
       <div
-        class="menu-item game-item"
+        class="menu-item"
         @click="router.push('/game/pachinko-game')"
       >
-
-        <div class="menu-icon game-icon">
+        <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Pachinko
-          </span>
-
-          <span class="menu-description">
-            Jouez et gagnez
-          </span>
-        </div>
+        <span>Egames Pachinko</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
 
-
-
       <div
-        class="menu-item game-item"
+        class="menu-item"
         @click="router.push('/game/plane-game')"
       >
-
-        <div class="menu-icon game-icon">
+        <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Plane Arena
-          </span>
-
-          <span class="menu-description">
-            Jusqu'où irez-vous ?
-          </span>
-        </div>
+        <span>Egames Plane Arena</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
 
-
-
-      <!-- =========================
-           PARTAGE
-      ========================== -->
-
       <div
-        class="menu-item share-item"
+        class="menu-item"
         @click="handleShareReferral"
       >
-
-        <div class="menu-icon share-icon">
+        <div class="menu-icon">
           <i class="fi fi-rr-share"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Partager mon lien
-          </span>
-
-          <span class="menu-description">
-            Invitez vos proches
-          </span>
-        </div>
+        <span>Partager mon lien</span>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
-
       </div>
-
-
-
-      <!-- =========================
-           LOGOUT
-      ========================== -->
 
       <div
         class="menu-item logout"
         @click="handleLogout"
       >
-
         <div class="menu-icon">
           <i class="fi fi-rr-exit"></i>
         </div>
 
-        <div class="menu-content">
-          <span class="menu-title">
-            Se déconnecter
-          </span>
-
-          <span class="menu-description">
-            Quitter votre session
-          </span>
-        </div>
-
+        <span>Se déconnecter</span>
       </div>
-
     </div>
 
-
     <Footer />
-
   </div>
 </template>
 
-
-
 <style scoped>
-
-/* =========================================================
-   GLOBAL
-========================================================= */
-
 * {
   box-sizing: border-box;
 }
 
-.profile-page {
-  min-height: 100vh;
-
-  padding:
-    82px
-    14px
-    110px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #ffffff 55%,
-      #fafafa 100%
-    );
-}
-
-
-/* =========================================================
-   HEADER
-========================================================= */
+/* =========================
+   APP BAR
+========================= */
 
 .app-bar {
   position: fixed;
-
   top: 0;
   left: 0;
   right: 0;
 
-  height: 66px;
+  height: 65px;
 
-  padding: 0 14px;
+  background: white;
 
   display: flex;
   align-items: center;
 
-  background:
-    rgba(255, 255, 255, 0.94);
-
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-
-  border-bottom:
-    1px solid rgba(0, 0, 0, 0.045);
+  padding: 0 15px;
 
   z-index: 1000;
-}
 
+  border-bottom: 1px solid #f1f1f1;
+}
 
 .back-btn {
-  width: 44px;
-  height: 44px;
+  width: 45px;
+  height: 45px;
 
-  border: 1px solid #ededed;
+  background-color: #f8f9fa;
 
-  border-radius: 15px;
-
-  background: #ffffff;
-
-  color: #161616;
+  border: 1px solid #eee;
+  border-radius: 14px;
 
   display: flex;
-  justify-content: center;
   align-items: center;
-
-  font-size: 22px;
+  justify-content: center;
 
   cursor: pointer;
-
-  box-shadow:
-    0 5px 18px
-    rgba(0, 0, 0, 0.05);
-
-  transition:
-    transform 0.2s ease;
 }
-
-
-.back-btn:active {
-  transform: scale(0.92);
-}
-
 
 .app-bar-title {
   flex: 1;
 
   text-align: center;
 
+  font-weight: 800;
   font-size: 17px;
-  font-weight: 900;
 
-  color: #151515;
+  color: #111;
 }
-
 
 .spacer {
-  width: 44px;
+  width: 45px;
 }
+
+.profile-page {
+  min-height: 100vh;
+  padding: 82px 14px 110px;
+
+  background: #ffffff;
+}
+
+
 
 
 /* =========================================================
@@ -667,28 +434,31 @@ const vibrate = () => {
 .hero-wallet {
   position: relative;
 
-  height: 330px;
-
   width: 100%;
+
+  /*
+   * Hero volontairement plus compact.
+   */
+  height: 255px;
 
   overflow: hidden;
 
-  border-radius: 32px;
+  border-radius: 28px;
 
-  padding: 20px;
+  padding: 18px;
 
-  background: #161019;
+  background: #111111;
 
   isolation: isolate;
 
   box-shadow:
-    0 18px 40px
-    rgba(24, 10, 42, 0.17);
+    0 12px 30px
+    rgba(0, 0, 0, 0.10);
 }
 
 
 /* =========================================================
-   BACKGROUND
+   BACKGROUND LOGO 1
 ========================================================= */
 
 .hero-bg {
@@ -706,7 +476,7 @@ const vibrate = () => {
 
   pointer-events: none;
 
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 
@@ -723,62 +493,56 @@ const vibrate = () => {
 
   pointer-events: none;
 
-  background:
-    linear-gradient(
-      90deg,
-
-      rgba(9, 5, 16, 0.92) 0%,
-
-      rgba(12, 6, 19, 0.83) 28%,
-
-      rgba(12, 6, 19, 0.50) 53%,
-
-      rgba(12, 6, 19, 0.08) 82%,
-
-      rgba(12, 6, 19, 0) 100%
-    );
+  /*
+   * Pas de violet ajouté.
+   * Simple noir transparent pour garder
+   * les vraies couleurs de Logo_1.
+   */
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.60) 35%,
+    rgba(0, 0, 0, 0.30) 60%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
 }
 
 
 /* =========================================================
-   LOGO 2 / FILLE
+   PERSONNAGE LOGO 2
 ========================================================= */
 
 .hero-girl {
   position: absolute;
 
   /*
-   * Beaucoup plus grande que précédemment.
-   *
-   * Elle doit presque toucher
-   * le haut et le bas.
+   * Hero moins haut mais personnage
+   * toujours très présent.
    */
-  width: 440px;
+  width: 365px;
 
   max-width: none;
 
   height: auto;
 
-  right: -92px;
-
-  bottom: -92px;
+  right: -72px;
+  bottom: -88px;
 
   z-index: 2;
 
   object-fit: contain;
 
   pointer-events: none;
-
   user-select: none;
 
   -webkit-user-drag: none;
 
   filter:
     drop-shadow(
-      -14px
-      12px
-      20px
-      rgba(0, 0, 0, 0.15)
+      -8px
+      7px
+      14px
+      rgba(0, 0, 0, 0.12)
     );
 }
 
@@ -793,95 +557,80 @@ const vibrate = () => {
   z-index: 5;
 
   display: flex;
-
   justify-content: space-between;
-
   align-items: flex-start;
 }
 
 
 /* =========================================================
-   PROFILE
+   PROFIL
 ========================================================= */
 
 .profile-mini {
   display: flex;
-
   align-items: center;
 
-  gap: 11px;
+  gap: 10px;
 }
 
 
 .avatar-img {
-  width: 48px;
+  width: 46px;
+  height: 46px;
 
-  height: 48px;
+  flex-shrink: 0;
 
-  border-radius: 16px;
+  border-radius: 15px;
 
   object-fit: cover;
 
-  border:
-    2px solid
-    rgba(255, 255, 255, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.60);
 
   background: #ffffff;
-
-  box-shadow:
-    0 5px 15px
-    rgba(0, 0, 0, 0.12);
 }
 
 
 .profile-text {
-  display: flex;
-
-  flex-direction: column;
-
   min-width: 0;
+
+  display: flex;
+  flex-direction: column;
 }
 
 
 .welcome-text {
   margin-bottom: 3px;
 
-  font-size: 10px;
-
+  font-size: 9px;
   font-weight: 700;
 
   text-transform: uppercase;
 
-  letter-spacing: 0.7px;
+  letter-spacing: 0.5px;
 
-  color:
-    rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 
 .user-name {
   margin: 0;
 
-  max-width: 150px;
+  max-width: 145px;
 
   overflow: hidden;
 
   white-space: nowrap;
-
   text-overflow: ellipsis;
 
-  font-size: 18px;
-
+  font-size: 17px;
   font-weight: 900;
-
-  line-height: 1.05;
 
   color: #ffffff;
 }
 
 
 /* =========================================================
-   TRANSFER BUTTON
+   BOUTON TRANSFERT
 ========================================================= */
 
 .transfer-btn {
@@ -889,43 +638,29 @@ const vibrate = () => {
 
   z-index: 10;
 
-  width: 45px;
-
-  height: 45px;
+  width: 42px;
+  height: 42px;
 
   flex-shrink: 0;
 
   display: flex;
-
+  align-items: center;
   justify-content: center;
 
-  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.20);
 
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
 
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.14);
 
-  background:
-    rgba(255, 255, 255, 0.14);
-
-  backdrop-filter: blur(14px);
-
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
   color: #ffffff;
 
-  font-size: 18px;
+  font-size: 17px;
 
   cursor: pointer;
-
-  box-shadow:
-    inset
-    0
-    1px
-    0
-    rgba(255, 255, 255, 0.13);
 
   transition:
     transform 0.2s ease,
@@ -934,45 +669,43 @@ const vibrate = () => {
 
 
 .transfer-btn:active {
-  transform: scale(0.9);
+  transform: scale(0.90);
 }
 
 
 .transfer-btn:disabled {
   opacity: 0.6;
+
+  cursor: not-allowed;
 }
 
 
 /* =========================================================
-   MAIN BALANCE
+   SOLDE PRINCIPAL
 ========================================================= */
 
 .hero-balance {
   position: absolute;
 
-  left: 20px;
+  left: 18px;
 
-  top: 124px;
+  top: 110px;
 
   z-index: 4;
 
-  max-width: 60%;
+  max-width: 58%;
 }
 
 
 .balance-label {
   display: block;
 
-  margin-bottom: 7px;
+  margin-bottom: 6px;
 
-  font-size: 11px;
-
+  font-size: 10px;
   font-weight: 700;
 
-  letter-spacing: 0.5px;
-
-  color:
-    rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 
@@ -981,40 +714,37 @@ const vibrate = () => {
 
   align-items: flex-end;
 
-  gap: 7px;
+  gap: 6px;
 }
 
 
 .amount {
   font-size: clamp(
-    32px,
+    29px,
     8vw,
-    42px
+    37px
   );
 
-  line-height: 0.92;
+  line-height: 0.95;
 
   font-weight: 950;
 
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
 
   color: #ffffff;
-
-  text-shadow:
-    0 4px 20px
-    rgba(0, 0, 0, 0.18);
 }
 
 
 .currency {
-  padding-bottom: 3px;
+  padding-bottom: 2px;
 
-  font-size: 13px;
-
+  font-size: 12px;
   font-weight: 900;
 
-  color:
-    v-bind('AppColor.primary.base');
+  /*
+   * Couleur principale de ton application.
+   */
+  color: v-bind('AppColor.primary.base');
 }
 
 
@@ -1025,68 +755,53 @@ const vibrate = () => {
 .hero-status {
   position: absolute;
 
-  left: 20px;
-
-  bottom: 25px;
+  left: 18px;
+  bottom: 18px;
 
   z-index: 5;
 
   display: inline-flex;
-
   align-items: center;
 
-  gap: 7px;
+  gap: 6px;
 
-  padding:
-    7px
-    10px;
+  padding: 6px 9px;
 
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 
   border-radius: 50px;
 
-  background:
-    rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.10);
 
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
-  -webkit-backdrop-filter: blur(10px);
-
-  font-size: 10px;
-
+  font-size: 9px;
   font-weight: 700;
 
-  color:
-    rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 
 .status-dot {
   width: 6px;
-
   height: 6px;
 
   border-radius: 50%;
 
-  background: #3ddc84;
-
-  box-shadow:
-    0 0 8px
-    rgba(61, 220, 132, 0.75);
+  /*
+   * Suppression du vert.
+   * On utilise la couleur principale.
+   */
+  background: v-bind('AppColor.primary.base');
 }
 
 
 /* =========================================================
-   SUMMARY BALANCES
+   CARTES BALANCES SECONDAIRES
 ========================================================= */
 
 .balance-summary {
-  position: relative;
-
-  z-index: 10;
-
   display: grid;
 
   grid-template-columns:
@@ -1095,57 +810,51 @@ const vibrate = () => {
   gap: 10px;
 
   margin-top: 12px;
-
-  margin-bottom: 28px;
+  margin-bottom: 25px;
 }
 
 
 .summary-card {
   min-width: 0;
 
-  padding: 14px;
+  padding: 13px;
 
   display: flex;
-
   align-items: center;
 
   gap: 10px;
 
-  border:
-    1px solid
-    #eeeeee;
+  border: 1px solid #eeeeee;
 
-  border-radius: 20px;
+  border-radius: 18px;
 
-  background:
-    #ffffff;
+  background: #ffffff;
 
   box-shadow:
-    0 7px 22px
-    rgba(0, 0, 0, 0.04);
+    0 5px 18px
+    rgba(0, 0, 0, 0.035);
 }
 
 
 .summary-icon {
-  width: 38px;
-
-  height: 38px;
+  width: 37px;
+  height: 37px;
 
   flex-shrink: 0;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
-  border-radius: 13px;
+  border-radius: 12px;
 
+  /*
+   * Plus de violet.
+   */
   background:
     color-mix(
       in srgb,
-      v-bind('AppColor.primary.base')
-      11%,
+      v-bind('AppColor.primary.base') 10%,
       white
     );
 
@@ -1160,16 +869,14 @@ const vibrate = () => {
   min-width: 0;
 
   display: flex;
-
   flex-direction: column;
 }
 
 
 .summary-label {
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 
   font-size: 9px;
-
   font-weight: 800;
 
   text-transform: uppercase;
@@ -1182,11 +889,9 @@ const vibrate = () => {
   overflow: hidden;
 
   text-overflow: ellipsis;
-
   white-space: nowrap;
 
-  font-size: 14px;
-
+  font-size: 13px;
   font-weight: 900;
 
   color: #202020;
@@ -1203,17 +908,13 @@ const vibrate = () => {
 
 
 /* =========================================================
-   SECTION HEADER
+   TITRES SECTIONS
 ========================================================= */
 
 .section-header {
-  padding:
-    0
-    4px
-    9px;
+  padding: 0 4px 9px;
 
   font-size: 13px;
-
   font-weight: 900;
 
   color: #181818;
@@ -1233,7 +934,6 @@ const vibrate = () => {
 
 .menu-section {
   display: flex;
-
   flex-direction: column;
 
   gap: 9px;
@@ -1243,65 +943,62 @@ const vibrate = () => {
 .menu-item {
   position: relative;
 
-  display: flex;
+  min-height: 66px;
 
+  padding: 11px 13px;
+
+  display: flex;
   align-items: center;
 
-  min-height: 68px;
+  border: 1px solid #eeeeee;
 
-  padding:
-    12px
-    14px;
-
-  border:
-    1px solid
-    #eeeeee;
-
-  border-radius: 20px;
+  border-radius: 18px;
 
   background: #ffffff;
 
   cursor: pointer;
 
   box-shadow:
-    0 4px 15px
+    0 4px 14px
     rgba(0, 0, 0, 0.025);
 
   transition:
     transform 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+    background 0.18s ease;
 }
 
 
 .menu-item:active {
-  transform:
-    scale(0.98);
+  transform: scale(0.98);
 }
 
 
-.menu-icon {
-  width: 43px;
+/* =========================================================
+   MENU ICON
+========================================================= */
 
-  height: 43px;
+.menu-icon {
+  width: 42px;
+  height: 42px;
 
   flex-shrink: 0;
 
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
   margin-right: 13px;
 
-  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  border-radius: 13px;
+
+  /*
+   * Toutes les icônes utilisent
+   * désormais la couleur principale.
+   */
   background:
     color-mix(
       in srgb,
-      v-bind('AppColor.primary.base')
-      9%,
+      v-bind('AppColor.primary.base') 9%,
       white
     );
 
@@ -1318,16 +1015,14 @@ const vibrate = () => {
   flex: 1;
 
   display: flex;
-
   flex-direction: column;
 }
 
 
 .menu-title {
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 
   font-size: 14px;
-
   font-weight: 800;
 
   color: #292929;
@@ -1336,7 +1031,6 @@ const vibrate = () => {
 
 .menu-description {
   font-size: 10px;
-
   font-weight: 600;
 
   color: #a2a2a2;
@@ -1355,26 +1049,38 @@ const vibrate = () => {
 
 
 /* =========================================================
-   GAME
+   JEUX
+   Même couleur que l'application
 ========================================================= */
 
 .game-icon {
   background:
-    rgba(125, 74, 255, 0.09);
+    color-mix(
+      in srgb,
+      v-bind('AppColor.primary.base') 9%,
+      white
+    );
 
-  color: #744cff;
+  color:
+    v-bind('AppColor.primary.base');
 }
 
 
 /* =========================================================
-   SHARE
+   PARTAGE
+   Suppression du vert
 ========================================================= */
 
 .share-icon {
   background:
-    rgba(33, 188, 104, 0.10);
+    color-mix(
+      in srgb,
+      v-bind('AppColor.primary.base') 9%,
+      white
+    );
 
-  color: #1faa62;
+  color:
+    v-bind('AppColor.primary.base');
 }
 
 
@@ -1385,17 +1091,14 @@ const vibrate = () => {
 .menu-item.logout {
   margin-top: 7px;
 
-  border-color:
-    rgba(255, 71, 87, 0.12);
+  border-color: rgba(255, 71, 87, 0.12);
 
-  background:
-    rgba(255, 71, 87, 0.055);
+  background: rgba(255, 71, 87, 0.055);
 }
 
 
 .menu-item.logout .menu-icon {
-  background:
-    rgba(255, 71, 87, 0.11);
+  background: rgba(255, 71, 87, 0.10);
 
   color: #ff4757;
 }
@@ -1412,116 +1115,104 @@ const vibrate = () => {
 
 .mini-spinner {
   width: 18px;
-
   height: 18px;
 
   border:
     2px solid
-    rgba(255, 255, 255, 0.3);
+    rgba(255, 255, 255, 0.30);
 
-  border-top-color:
-    #ffffff;
+  border-top-color: #ffffff;
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
-  animation:
-    spin
-    0.8s
-    linear
-    infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 
 @keyframes spin {
-
   100% {
-    transform:
-      rotate(360deg);
+    transform: rotate(360deg);
   }
-
 }
 
 
 /* =========================================================
-   MOBILE <= 430
+   MOBILE <= 430PX
 ========================================================= */
 
 @media (max-width: 430px) {
 
   .hero-wallet {
-    height: 315px;
+    height: 250px;
 
-    border-radius: 28px;
+    border-radius: 26px;
   }
 
 
   .hero-girl {
-    width: 420px;
+    width: 355px;
 
-    right: -105px;
+    right: -78px;
 
-    bottom: -83px;
+    bottom: -84px;
   }
 
 
   .hero-balance {
-    top: 119px;
+    top: 106px;
   }
 
 
   .amount {
-    font-size: 35px;
+    font-size: 33px;
   }
-
 }
 
 
 /* =========================================================
-   MOBILE <= 390
+   MOBILE <= 390PX
 ========================================================= */
 
 @media (max-width: 390px) {
 
   .profile-page {
     padding-left: 12px;
-
     padding-right: 12px;
   }
 
 
   .hero-wallet {
-    height: 305px;
+    height: 245px;
 
-    padding: 17px;
+    padding: 16px;
   }
 
 
   .hero-girl {
-    width: 395px;
+    width: 340px;
 
-    right: -105px;
+    right: -82px;
 
-    bottom: -72px;
+    bottom: -78px;
   }
 
 
   .hero-balance {
-    left: 17px;
+    left: 16px;
 
-    top: 115px;
+    top: 103px;
   }
 
 
   .hero-status {
-    left: 17px;
+    left: 16px;
 
-    bottom: 20px;
+    bottom: 16px;
   }
 
 
   .amount {
-    font-size: 32px;
+    font-size: 30px;
   }
 
 
@@ -1531,13 +1222,12 @@ const vibrate = () => {
 
 
   .summary-card {
-    padding: 12px;
+    padding: 11px;
   }
 
 
   .summary-icon {
     width: 34px;
-
     height: 34px;
   }
 
@@ -1545,51 +1235,49 @@ const vibrate = () => {
   .summary-amount {
     font-size: 12px;
   }
-
 }
 
 
 /* =========================================================
-   MOBILE <= 350
+   MOBILE <= 350PX
 ========================================================= */
 
 @media (max-width: 350px) {
 
   .hero-wallet {
-    height: 290px;
+    height: 235px;
   }
 
 
   .hero-girl {
-    width: 370px;
+    width: 320px;
 
-    right: -110px;
+    right: -86px;
 
-    bottom: -65px;
+    bottom: -72px;
   }
 
 
   .avatar-img {
-    width: 44px;
-
-    height: 44px;
+    width: 42px;
+    height: 42px;
   }
 
 
   .user-name {
     max-width: 105px;
 
-    font-size: 16px;
+    font-size: 15px;
   }
 
 
   .hero-balance {
-    top: 108px;
+    top: 98px;
   }
 
 
   .amount {
-    font-size: 29px;
+    font-size: 27px;
   }
 
 
@@ -1607,7 +1295,6 @@ const vibrate = () => {
 
   .summary-icon {
     width: 31px;
-
     height: 31px;
 
     border-radius: 10px;
@@ -1617,7 +1304,6 @@ const vibrate = () => {
   .summary-amount {
     font-size: 11px;
   }
-
 }
 
 </style>
