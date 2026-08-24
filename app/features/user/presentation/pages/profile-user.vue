@@ -912,7 +912,7 @@ const vibrate = () => {
 
 @media (max-width: 430px) {
   .hero-girl {
-    width: 205px;
+    width: 285px;
 
     right: -25px;
     bottom: -5px;
