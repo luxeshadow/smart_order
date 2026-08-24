@@ -140,243 +140,446 @@ const vibrate = () => {
 
 <template>
   <div class="profile-page">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
     <nav class="app-bar">
-      <button class="back-btn" @click="router.back()">
+      <button
+        class="back-btn"
+        @click="router.back()"
+      >
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
 
-      <span class="app-bar-title">Mon Compte</span>
+      <span class="app-bar-title">
+        Mon Compte
+      </span>
 
       <div class="spacer"></div>
     </nav>
 
-    <div class="hero-wallet">
-      <!-- Image de fond -->
+
+    <!-- =========================
+         HERO PRINCIPAL
+    ========================== -->
+    <section class="hero-wallet">
+
+      <!-- Background -->
       <img
         :src="AppImage.Logo_1"
-        alt="background"
+        alt=""
         class="hero-bg"
       />
 
-      <!-- Fille avec téléphone -->
+      <!-- Overlay -->
+      <div class="hero-overlay"></div>
+
+      <!--
+        LOGO 2
+        La fille devient un élément principal du design.
+      -->
       <img
         :src="AppImage.Logo_2"
-        alt="Smart girl"
+        alt=""
         class="hero-girl"
       />
 
-      <!-- Dégradé -->
-      <div class="hero-overlay"></div>
 
-      <!-- Contenu -->
-      <div class="hero-content">
-        <div class="user-profile-row">
-          <div class="avatar-container">
-            <img
-              :src="AppImage.Profile"
-              alt="Avatar"
-              class="avatar-img"
-            />
-          </div>
+      <!-- =========================
+           HAUT DE LA CARTE
+      ========================== -->
+      <div class="hero-top">
 
-          <div class="user-info">
-            <span class="welcome-text">Bienvenue,</span>
+        <div class="profile-mini">
+          <img
+            :src="AppImage.Profile"
+            alt="Avatar"
+            class="avatar-img"
+          />
+
+          <div class="profile-text">
+            <span class="welcome-text">
+              Bienvenue,
+            </span>
 
             <h1 class="user-name">
               {{ user?.username || 'Utilisateur' }}
             </h1>
           </div>
-
-          <button
-            class="settings-btn"
-            @click="handleTransferRefund"
-            :disabled="isTransferring"
-            :class="{ 'btn-loading': isTransferring }"
-          >
-            <i
-              v-if="!isTransferring"
-              class="fi fi-rr-money-transfer-coin-arrow"
-            ></i>
-
-            <div
-              v-else
-              class="mini-spinner"
-            ></div>
-          </button>
         </div>
 
-        <div class="main-balance-display">
-          <span class="balance-label">
-            Solde Principal
+
+        <button
+          class="transfer-btn"
+          @click="handleTransferRefund"
+          :disabled="isTransferring"
+        >
+          <i
+            v-if="!isTransferring"
+            class="fi fi-rr-money-transfer-coin-arrow"
+          ></i>
+
+          <div
+            v-else
+            class="mini-spinner"
+          ></div>
+        </button>
+
+      </div>
+
+
+      <!-- =========================
+           SOLDE
+      ========================== -->
+      <div class="hero-balance">
+
+        <span class="balance-label">
+          Solde disponible
+        </span>
+
+        <div class="amount-row">
+          <span class="amount">
+            {{ formatBalance(mainBalance) }}
           </span>
 
-          <div class="amount-row">
-            <h2 class="amount">
-              {{ formatBalance(mainBalance) }}
-            </h2>
-
-            <span class="currency">
-              XOF
-            </span>
-          </div>
+          <span class="currency">
+            XOF
+          </span>
         </div>
 
-        <div class="glass-balances">
-          <div class="glass-item">
-            <span class="glass-label">
-              Journalier
-            </span>
-
-            <span class="glass-amount">
-              {{ formatBalance(dailyEarnings) }}
-              <small>XOF</small>
-            </span>
-          </div>
-
-          <div class="glass-divider"></div>
-
-          <div class="glass-item">
-            <span class="glass-label">
-              Remboursement
-            </span>
-
-            <span class="glass-amount">
-              {{ formatBalance(refundBalance) }}
-              <small>XOF</small>
-            </span>
-          </div>
-        </div>
       </div>
+
+
+      <!-- petit texte décoratif -->
+      <div class="hero-status">
+        <span class="status-dot"></span>
+        <span>Compte actif</span>
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         BALANCES SECONDAIRES
+         sorties du Hero
+    ========================== -->
+
+    <section class="balance-summary">
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+          <i class="fi fi-rr-chart-histogram"></i>
+        </div>
+
+        <div class="summary-content">
+          <span class="summary-label">
+            Journalier
+          </span>
+
+          <div class="summary-amount">
+            {{ formatBalance(dailyEarnings) }}
+            <small>XOF</small>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+          <i class="fi fi-rr-refund-alt"></i>
+        </div>
+
+        <div class="summary-content">
+          <span class="summary-label">
+            Remboursement
+          </span>
+
+          <div class="summary-amount">
+            {{ formatBalance(refundBalance) }}
+            <small>XOF</small>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         TITRE MENU
+    ========================== -->
+
+    <div class="section-header">
+      <span>Mon espace</span>
     </div>
 
+
+
+    <!-- =========================
+         MENU
+    ========================== -->
+
     <div class="menu-section">
+
       <div
         class="menu-item"
         @click="router.push('/auth/update-profile')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-user"></i>
         </div>
 
-        <span>Modifier mes informations</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Modifier mes informations
+          </span>
+
+          <span class="menu-description">
+            Profil et informations personnelles
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
+
 
       <div
         class="menu-item"
         @click="router.push('/assistance/ai')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-user-headset"></i>
         </div>
 
-        <span>Assistance</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Assistance
+          </span>
+
+          <span class="menu-description">
+            Besoin d'aide ?
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
+
 
       <div
         class="menu-item"
         @click="router.push('/transaction/history-transaction')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-time-past"></i>
         </div>
 
-        <span>Historique des flux</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Historique des flux
+          </span>
+
+          <span class="menu-description">
+            Toutes vos transactions
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
+      <!-- =========================
+           JEUX
+      ========================== -->
+
+      <div class="section-header games-title">
+        <span>Egames</span>
+      </div>
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/roulette-game')"
       >
-        <div class="menu-icon">
+
+        <div class="menu-icon game-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Lucky Wheel</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Lucky Wheel
+          </span>
+
+          <span class="menu-description">
+            Tentez votre chance
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/pachinko-game')"
       >
-        <div class="menu-icon">
+
+        <div class="menu-icon game-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Pachinko</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Pachinko
+          </span>
+
+          <span class="menu-description">
+            Jouez et gagnez
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/plane-game')"
       >
-        <div class="menu-icon">
+
+        <div class="menu-icon game-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Plane Arena</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Plane Arena
+          </span>
+
+          <span class="menu-description">
+            Jusqu'où irez-vous ?
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
+      <!-- =========================
+           PARTAGE
+      ========================== -->
+
       <div
-        class="menu-item"
+        class="menu-item share-item"
         @click="handleShareReferral"
       >
-        <div class="menu-icon">
+
+        <div class="menu-icon share-icon">
           <i class="fi fi-rr-share"></i>
         </div>
 
-        <span>Partager mon lien</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Partager mon lien
+          </span>
+
+          <span class="menu-description">
+            Invitez vos proches
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
+
+
+      <!-- =========================
+           LOGOUT
+      ========================== -->
 
       <div
         class="menu-item logout"
         @click="handleLogout"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-exit"></i>
         </div>
 
-        <span>Se déconnecter</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Se déconnecter
+          </span>
+
+          <span class="menu-description">
+            Quitter votre session
+          </span>
+        </div>
+
       </div>
+
     </div>
 
+
     <Footer />
+
   </div>
 </template>
 
+
+
 <style scoped>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
 * {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
-
 .profile-page {
-  padding: 15px;
-  padding-top: 85px;
-
-  background: #ffffff;
-
   min-height: 100vh;
+
+  padding:
+    82px
+    14px
+    110px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #ffffff 55%,
+      #fafafa 100%
+    );
 }
 
+
 /* =========================================================
-   APP BAR
+   HEADER
 ========================================================= */
 
 .app-bar {
@@ -386,46 +589,59 @@ const vibrate = () => {
   left: 0;
   right: 0;
 
-  height: 65px;
+  height: 66px;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border-bottom:
+    1px solid rgba(0, 0, 0, 0.045);
+
+  z-index: 1000;
+}
+
+
+.back-btn {
+  width: 44px;
+  height: 44px;
+
+  border: 1px solid #ededed;
+
+  border-radius: 15px;
 
   background: #ffffff;
 
-  display: flex;
-  align-items: center;
-
-  padding: 0 15px;
-
-  z-index: 1000;
-
-  border-bottom: 1px solid #f1f1f1;
-}
-
-.back-btn {
-  width: 45px;
-  height: 45px;
-
-  border: 1px solid #eeeeee;
-
-  border-radius: 14px;
-
-  background: #f8f9fa;
+  color: #161616;
 
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+
+  font-size: 22px;
 
   cursor: pointer;
 
-  font-size: 20px;
+  box-shadow:
+    0 5px 18px
+    rgba(0, 0, 0, 0.05);
 
   transition:
-    transform 0.2s ease,
-    background 0.2s ease;
+    transform 0.2s ease;
 }
+
 
 .back-btn:active {
   transform: scale(0.92);
 }
+
 
 .app-bar-title {
   flex: 1;
@@ -433,40 +649,46 @@ const vibrate = () => {
   text-align: center;
 
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 900;
 
-  color: #111111;
+  color: #151515;
 }
+
 
 .spacer {
-  width: 45px;
+  width: 44px;
 }
 
+
 /* =========================================================
-   HERO WALLET
+   HERO
 ========================================================= */
 
 .hero-wallet {
   position: relative;
 
+  height: 330px;
+
   width: 100%;
-  height: 290px;
 
   overflow: hidden;
 
-  border-radius: 30px;
-
-  margin-bottom: 25px;
+  border-radius: 32px;
 
   padding: 20px;
 
-  background: #111111;
+  background: #161019;
 
   isolation: isolate;
+
+  box-shadow:
+    0 18px 40px
+    rgba(24, 10, 42, 0.17);
 }
 
+
 /* =========================================================
-   IMAGE DE FOND : LOGO_1
+   BACKGROUND
 ========================================================= */
 
 .hero-bg {
@@ -483,11 +705,13 @@ const vibrate = () => {
   z-index: 0;
 
   pointer-events: none;
-  user-select: none;
+
+  transform: scale(1.03);
 }
 
+
 /* =========================================================
-   OVERLAY SUR LE FOND
+   OVERLAY
 ========================================================= */
 
 .hero-overlay {
@@ -499,334 +723,509 @@ const vibrate = () => {
 
   pointer-events: none;
 
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.78) 0%,
-    rgba(0, 0, 0, 0.68) 25%,
-    rgba(0, 0, 0, 0.48) 48%,
-    rgba(0, 0, 0, 0.18) 70%,
-    rgba(0, 0, 0, 0.04) 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+
+      rgba(9, 5, 16, 0.92) 0%,
+
+      rgba(12, 6, 19, 0.83) 28%,
+
+      rgba(12, 6, 19, 0.50) 53%,
+
+      rgba(12, 6, 19, 0.08) 82%,
+
+      rgba(12, 6, 19, 0) 100%
+    );
 }
 
+
 /* =========================================================
-   FILLE : LOGO_2
+   LOGO 2 / FILLE
 ========================================================= */
 
 .hero-girl {
   position: absolute;
 
   /*
-    Grande taille volontaire.
-    La fille prend pratiquement toute
-    la partie droite de la carte.
-  */
-  width: 410px;
+   * Beaucoup plus grande que précédemment.
+   *
+   * Elle doit presque toucher
+   * le haut et le bas.
+   */
+  width: 440px;
+
   max-width: none;
+
   height: auto;
 
-  right: -70px;
-  bottom: -70px;
+  right: -92px;
 
-  object-fit: contain;
+  bottom: -92px;
 
   z-index: 2;
 
+  object-fit: contain;
+
   pointer-events: none;
+
   user-select: none;
 
   -webkit-user-drag: none;
+
+  filter:
+    drop-shadow(
+      -14px
+      12px
+      20px
+      rgba(0, 0, 0, 0.15)
+    );
 }
+
 
 /* =========================================================
-   CONTENU HERO
+   HERO TOP
 ========================================================= */
 
-.hero-content {
-  position: relative;
-
-  z-index: 3;
-
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* =========================================================
-   LIGNE PROFIL
-========================================================= */
-
-.user-profile-row {
-  position: relative;
-
-  z-index: 4;
-
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-}
-
-.avatar-container {
-  flex-shrink: 0;
-}
-
-.avatar-img {
-  display: block;
-
-  width: 50px;
-  height: 50px;
-
-  object-fit: cover;
-
-  border-radius: 15px;
-
-  border: 2px solid rgba(255, 255, 255, 0.4);
-}
-
-/* =========================================================
-   INFOS UTILISATEUR
-========================================================= */
-
-.user-info {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.welcome-text {
-  margin-bottom: 4px;
-
-  font-size: 10px;
-  font-weight: 700;
-
-  line-height: 1;
-
-  text-transform: uppercase;
-
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.user-name {
-  margin: 0;
-
-  max-width: 145px;
-
-  overflow: hidden;
-
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  font-size: 18px;
-  font-weight: 900;
-
-  line-height: 1.1;
-
-  color: #ffffff;
-}
-
-/* =========================================================
-   BOUTON TRANSFERT
-========================================================= */
-
-.settings-btn {
+.hero-top {
   position: relative;
 
   z-index: 5;
 
-  margin-left: auto;
-
-  width: 42px;
-  height: 42px;
-
-  flex-shrink: 0;
-
-  border: 1px solid rgba(255, 255, 255, 0.18);
-
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.16);
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  color: #ffffff;
-
   display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.profile-mini {
+  display: flex;
+
   align-items: center;
-  justify-content: center;
 
-  cursor: pointer;
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    opacity 0.2s ease;
+  gap: 11px;
 }
 
-.settings-btn:hover {
-  background: rgba(255, 255, 255, 0.24);
+
+.avatar-img {
+  width: 48px;
+
+  height: 48px;
+
+  border-radius: 16px;
+
+  object-fit: cover;
+
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.55);
+
+  background: #ffffff;
+
+  box-shadow:
+    0 5px 15px
+    rgba(0, 0, 0, 0.12);
 }
 
-.settings-btn:active {
-  transform: scale(0.9);
+
+.profile-text {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
 }
 
-.settings-btn:disabled {
-  opacity: 0.65;
 
-  cursor: not-allowed;
-}
+.welcome-text {
+  margin-bottom: 3px;
 
-/* =========================================================
-   SPINNER
-========================================================= */
+  font-size: 10px;
 
-.mini-spinner {
-  width: 18px;
-  height: 18px;
-
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-
-  border-radius: 50%;
-
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* =========================================================
-   SOLDE PRINCIPAL
-========================================================= */
-
-.main-balance-display {
-  position: relative;
-
-  z-index: 4;
-
-  max-width: 55%;
-}
-
-.balance-label {
-  display: block;
-
-  margin-bottom: 4px;
-
-  font-size: 11px;
   font-weight: 700;
 
   text-transform: uppercase;
 
-  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.7px;
+
+  color:
+    rgba(255, 255, 255, 0.62);
 }
 
-.amount-row {
-  display: flex;
-  align-items: baseline;
 
-  flex-wrap: nowrap;
-}
-
-.amount {
+.user-name {
   margin: 0;
 
-  font-size: 36px;
+  max-width: 150px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  font-size: 18px;
+
   font-weight: 900;
 
-  line-height: 1;
+  line-height: 1.05;
 
   color: #ffffff;
 }
 
-.currency {
-  margin-left: 5px;
-
-  font-size: 14px;
-  font-weight: 800;
-
-  color: #ffffff;
-}
 
 /* =========================================================
-   BLOCS JOURNALIER / REMBOURSEMENT
+   TRANSFER BUTTON
 ========================================================= */
 
-.glass-balances {
+.transfer-btn {
   position: relative;
+
+  z-index: 10;
+
+  width: 45px;
+
+  height: 45px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.22);
+
+  border-radius: 15px;
+
+  background:
+    rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(14px);
+
+  -webkit-backdrop-filter: blur(14px);
+
+  color: #ffffff;
+
+  font-size: 18px;
+
+  cursor: pointer;
+
+  box-shadow:
+    inset
+    0
+    1px
+    0
+    rgba(255, 255, 255, 0.13);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.transfer-btn:active {
+  transform: scale(0.9);
+}
+
+
+.transfer-btn:disabled {
+  opacity: 0.6;
+}
+
+
+/* =========================================================
+   MAIN BALANCE
+========================================================= */
+
+.hero-balance {
+  position: absolute;
+
+  left: 20px;
+
+  top: 124px;
 
   z-index: 4;
 
+  max-width: 60%;
+}
+
+
+.balance-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+
+  color:
+    rgba(255, 255, 255, 0.62);
+}
+
+
+.amount-row {
   display: flex;
+
+  align-items: flex-end;
+
+  gap: 7px;
+}
+
+
+.amount {
+  font-size: clamp(
+    32px,
+    8vw,
+    42px
+  );
+
+  line-height: 0.92;
+
+  font-weight: 950;
+
+  letter-spacing: -1.5px;
+
+  color: #ffffff;
+
+  text-shadow:
+    0 4px 20px
+    rgba(0, 0, 0, 0.18);
+}
+
+
+.currency {
+  padding-bottom: 3px;
+
+  font-size: 13px;
+
+  font-weight: 900;
+
+  color:
+    v-bind('AppColor.primary.base');
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.hero-status {
+  position: absolute;
+
+  left: 20px;
+
+  bottom: 25px;
+
+  z-index: 5;
+
+  display: inline-flex;
+
   align-items: center;
-  justify-content: space-between;
 
-  padding: 12px 18px;
+  gap: 7px;
 
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding:
+    7px
+    10px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  border-radius: 50px;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(10px);
+
+  -webkit-backdrop-filter: blur(10px);
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  color:
+    rgba(255, 255, 255, 0.72);
+}
+
+
+.status-dot {
+  width: 6px;
+
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #3ddc84;
+
+  box-shadow:
+    0 0 8px
+    rgba(61, 220, 132, 0.75);
+}
+
+
+/* =========================================================
+   SUMMARY BALANCES
+========================================================= */
+
+.balance-summary {
+  position: relative;
+
+  z-index: 10;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 12px;
+
+  margin-bottom: 28px;
+}
+
+
+.summary-card {
+  min-width: 0;
+
+  padding: 14px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid
+    #eeeeee;
 
   border-radius: 20px;
 
-  background: rgba(255, 255, 255, 0.12);
+  background:
+    #ffffff;
 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 7px 22px
+    rgba(0, 0, 0, 0.04);
 }
 
-.glass-item {
-  min-width: 0;
 
-  flex: 1;
+.summary-icon {
+  width: 38px;
+
+  height: 38px;
+
+  flex-shrink: 0;
 
   display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 13px;
+
+  background:
+    color-mix(
+      in srgb,
+      v-bind('AppColor.primary.base')
+      11%,
+      white
+    );
+
+  color:
+    v-bind('AppColor.primary.base');
+
+  font-size: 16px;
+}
+
+
+.summary-content {
+  min-width: 0;
+
+  display: flex;
+
   flex-direction: column;
 }
 
-.glass-label {
-  margin-bottom: 2px;
+
+.summary-label {
+  margin-bottom: 4px;
 
   font-size: 9px;
+
   font-weight: 800;
 
   text-transform: uppercase;
 
-  color: rgba(255, 255, 255, 0.55);
+  color: #999999;
 }
 
-.glass-amount {
-  font-size: 14px;
-  font-weight: 900;
+
+.summary-amount {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 
   white-space: nowrap;
 
-  color: #ffffff;
+  font-size: 14px;
+
+  font-weight: 900;
+
+  color: #202020;
 }
 
-.glass-amount small {
-  font-size: 9px;
 
-  opacity: 0.7;
+.summary-amount small {
+  margin-left: 2px;
+
+  font-size: 8px;
+
+  color: #999999;
 }
 
-.glass-divider {
-  width: 1px;
-  height: 25px;
 
-  margin: 0 15px;
+/* =========================================================
+   SECTION HEADER
+========================================================= */
 
-  flex-shrink: 0;
+.section-header {
+  padding:
+    0
+    4px
+    9px;
 
-  background: rgba(255, 255, 255, 0.15);
+  font-size: 13px;
+
+  font-weight: 900;
+
+  color: #181818;
 }
+
+
+.games-title {
+  margin-top: 12px;
+
+  padding-top: 5px;
+}
+
 
 /* =========================================================
    MENU
@@ -834,340 +1233,391 @@ const vibrate = () => {
 
 .menu-section {
   display: flex;
+
   flex-direction: column;
 
-  gap: 10px;
+  gap: 9px;
 }
 
+
 .menu-item {
+  position: relative;
+
   display: flex;
+
   align-items: center;
 
-  padding: 16px;
+  min-height: 68px;
 
-  border: 1px solid #f5f5f5;
+  padding:
+    12px
+    14px;
+
+  border:
+    1px solid
+    #eeeeee;
 
   border-radius: 20px;
 
-  background: #fbfbfb;
+  background: #ffffff;
 
   cursor: pointer;
 
+  box-shadow:
+    0 4px 15px
+    rgba(0, 0, 0, 0.025);
+
   transition:
-    transform 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.menu-item:hover {
-  background: #f8f8f8;
-}
 
 .menu-item:active {
-  transform: scale(0.98);
+  transform:
+    scale(0.98);
 }
 
-/* =========================================================
-   ICÔNE MENU
-========================================================= */
 
 .menu-icon {
-  width: 40px;
-  height: 40px;
+  width: 43px;
 
-  margin-right: 15px;
+  height: 43px;
 
   flex-shrink: 0;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
-  border: 1px solid #f0f0f0;
+  margin-right: 13px;
 
-  border-radius: 12px;
+  border-radius: 14px;
 
-  background: #ffffff;
+  background:
+    color-mix(
+      in srgb,
+      v-bind('AppColor.primary.base')
+      9%,
+      white
+    );
 
-  color: v-bind('AppColor.primary.base');
+  color:
+    v-bind('AppColor.primary.base');
 
   font-size: 17px;
 }
 
-.menu-item span {
+
+.menu-content {
+  min-width: 0;
+
   flex: 1;
 
-  font-size: 14px;
-  font-weight: 700;
+  display: flex;
 
-  color: #444444;
+  flex-direction: column;
 }
+
+
+.menu-title {
+  margin-bottom: 3px;
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  color: #292929;
+}
+
+
+.menu-description {
+  font-size: 10px;
+
+  font-weight: 600;
+
+  color: #a2a2a2;
+}
+
 
 .arrow {
+  margin-left: 8px;
+
   flex-shrink: 0;
 
-  margin-left: 10px;
+  color: #b6b6b6;
 
-  font-size: 18px;
-
-  color: #aaaaaa;
+  font-size: 17px;
 }
+
+
+/* =========================================================
+   GAME
+========================================================= */
+
+.game-icon {
+  background:
+    rgba(125, 74, 255, 0.09);
+
+  color: #744cff;
+}
+
+
+/* =========================================================
+   SHARE
+========================================================= */
+
+.share-icon {
+  background:
+    rgba(33, 188, 104, 0.10);
+
+  color: #1faa62;
+}
+
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
 .menu-item.logout {
-  margin-top: 5px;
+  margin-top: 7px;
 
-  background: #fff5f5;
+  border-color:
+    rgba(255, 71, 87, 0.12);
 
-  border-color: #ffe0e0;
+  background:
+    rgba(255, 71, 87, 0.055);
 }
 
-.menu-item.logout:hover {
-  background: #ffeded;
-}
 
 .menu-item.logout .menu-icon {
-  border: none;
+  background:
+    rgba(255, 71, 87, 0.11);
 
-  background: #ff4757;
-
-  color: #ffffff;
-}
-
-.menu-item.logout span {
   color: #ff4757;
 }
 
-/* =========================================================
-   RESPONSIVE : TABLETTES / GRANDS MOBILES
-========================================================= */
 
-@media (max-width: 600px) {
-  .hero-wallet {
-    height: 290px;
-  }
-
-  .hero-girl {
-    width: 400px;
-
-    right: -75px;
-    bottom: -68px;
-  }
+.menu-item.logout .menu-title {
+  color: #ff4757;
 }
 
+
 /* =========================================================
-   RESPONSIVE : MOBILE 430px
+   SPINNER
+========================================================= */
+
+.mini-spinner {
+  width: 18px;
+
+  height: 18px;
+
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.3);
+
+  border-top-color:
+    #ffffff;
+
+  border-radius:
+    50%;
+
+  animation:
+    spin
+    0.8s
+    linear
+    infinite;
+}
+
+
+@keyframes spin {
+
+  100% {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE <= 430
 ========================================================= */
 
 @media (max-width: 430px) {
-  .profile-page {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
 
   .hero-wallet {
-    height: 285px;
+    height: 315px;
 
-    padding: 18px;
-
-    border-radius: 27px;
+    border-radius: 28px;
   }
+
 
   .hero-girl {
-    /*
-      On conserve une grosse taille.
-      Ne pas remettre 200px ou 250px ici.
-    */
-    width: 380px;
+    width: 420px;
 
-    right: -75px;
-    bottom: -62px;
+    right: -105px;
+
+    bottom: -83px;
   }
 
-  .main-balance-display {
-    max-width: 54%;
+
+  .hero-balance {
+    top: 119px;
   }
+
 
   .amount {
-    font-size: 33px;
+    font-size: 35px;
   }
 
-  .glass-balances {
-    padding: 11px 14px;
-  }
 }
 
+
 /* =========================================================
-   RESPONSIVE : MOBILE 390px
+   MOBILE <= 390
 ========================================================= */
 
 @media (max-width: 390px) {
+
+  .profile-page {
+    padding-left: 12px;
+
+    padding-right: 12px;
+  }
+
+
   .hero-wallet {
-    height: 280px;
+    height: 305px;
 
     padding: 17px;
   }
 
+
   .hero-girl {
-    width: 365px;
+    width: 395px;
 
-    right: -78px;
-    bottom: -57px;
+    right: -105px;
+
+    bottom: -72px;
   }
 
-  .avatar-img {
-    width: 47px;
-    height: 47px;
+
+  .hero-balance {
+    left: 17px;
+
+    top: 115px;
   }
 
-  .user-name {
-    max-width: 125px;
 
-    font-size: 17px;
+  .hero-status {
+    left: 17px;
+
+    bottom: 20px;
   }
 
-  .main-balance-display {
-    max-width: 53%;
-  }
 
   .amount {
-    font-size: 30px;
+    font-size: 32px;
   }
+
 
   .currency {
+    font-size: 11px;
+  }
+
+
+  .summary-card {
+    padding: 12px;
+  }
+
+
+  .summary-icon {
+    width: 34px;
+
+    height: 34px;
+  }
+
+
+  .summary-amount {
     font-size: 12px;
   }
 
-  .glass-balances {
-    padding: 11px 13px;
-  }
-
-  .glass-divider {
-    margin: 0 10px;
-  }
-
-  .glass-amount {
-    font-size: 12px;
-  }
 }
 
+
 /* =========================================================
-   RESPONSIVE : PETITS MOBILES 360px
+   MOBILE <= 350
 ========================================================= */
 
-@media (max-width: 360px) {
-  .hero-wallet {
-    height: 275px;
+@media (max-width: 350px) {
 
-    padding: 16px;
+  .hero-wallet {
+    height: 290px;
   }
+
 
   .hero-girl {
-    width: 345px;
+    width: 370px;
 
-    right: -78px;
-    bottom: -52px;
+    right: -110px;
+
+    bottom: -65px;
   }
+
 
   .avatar-img {
-    width: 45px;
-    height: 45px;
+    width: 44px;
+
+    height: 44px;
   }
 
-  .welcome-text {
-    font-size: 9px;
-  }
 
   .user-name {
-    max-width: 110px;
+    max-width: 105px;
 
     font-size: 16px;
   }
 
-  .settings-btn {
-    width: 39px;
-    height: 39px;
+
+  .hero-balance {
+    top: 108px;
   }
+
 
   .amount {
-    font-size: 28px;
+    font-size: 29px;
   }
 
-  .balance-label {
-    font-size: 10px;
+
+  .balance-summary {
+    gap: 7px;
   }
 
-  .glass-label {
-    font-size: 8px;
+
+  .summary-card {
+    gap: 7px;
+
+    padding: 10px;
   }
 
-  .glass-amount {
+
+  .summary-icon {
+    width: 31px;
+
+    height: 31px;
+
+    border-radius: 10px;
+  }
+
+
+  .summary-amount {
     font-size: 11px;
   }
 
-  .glass-divider {
-    margin: 0 8px;
-  }
 }
 
-/* =========================================================
-   RESPONSIVE : TRÈS PETITS ÉCRANS
-========================================================= */
-
-@media (max-width: 330px) {
-  .hero-wallet {
-    height: 265px;
-
-    padding: 15px;
-  }
-
-  .hero-girl {
-    width: 320px;
-
-    right: -75px;
-    bottom: -45px;
-  }
-
-  .main-balance-display {
-    max-width: 52%;
-  }
-
-  .amount {
-    font-size: 25px;
-  }
-
-  .currency {
-    font-size: 11px;
-  }
-
-  .glass-balances {
-    padding: 10px 11px;
-  }
-
-  .glass-amount {
-    font-size: 10px;
-  }
-
-  .glass-amount small {
-    font-size: 8px;
-  }
-
-  .menu-item {
-    padding: 14px;
-  }
-
-  .menu-icon {
-    width: 37px;
-    height: 37px;
-
-    margin-right: 12px;
-  }
-
-  .menu-item span {
-    font-size: 13px;
-  }
-}
 </style>
