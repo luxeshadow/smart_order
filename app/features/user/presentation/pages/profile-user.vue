@@ -140,226 +140,377 @@ const vibrate = () => {
 
 <template>
   <div class="profile-page">
+
     <nav class="app-bar">
-      <button class="back-btn" @click="router.back()">
+      <button
+        class="back-btn"
+        @click="router.back()"
+      >
         <i class="fi fi-rr-arrow-small-left"></i>
       </button>
 
-      <span class="app-bar-title">Mon Compte</span>
+      <span class="app-bar-title">
+        Mon Compte
+      </span>
 
       <div class="spacer"></div>
     </nav>
 
-    <div class="hero-wallet">
-      <!-- Image de fond -->
+
+    <section class="hero-wallet">
+
       <img
         :src="AppImage.Logo_1"
-        alt="background"
+        alt=""
         class="hero-bg"
       />
 
-      <!-- Fille avec téléphone -->
-      <img
-        :src="AppImage.Logo_2"
-        alt="Smart girl"
-        class="hero-girl"
-      />
-
-      <!-- Dégradé -->
       <div class="hero-overlay"></div>
 
-      <!-- Contenu -->
-      <div class="hero-content">
-        <div class="user-profile-row">
-          <div class="avatar-container">
-            <img
-              :src="AppImage.Profile"
-              alt="Avatar"
-              class="avatar-img"
-            />
-          </div>
+      <!-- <img
+        :src="AppImage.Logo_2"
+        alt=""
+        class="hero-girl"
+      /> -->
 
-          <div class="user-info">
-            <span class="welcome-text">Bienvenue,</span>
+      <div class="hero-top">
+
+        <div class="profile-mini">
+          <img
+            :src="AppImage.Profile"
+            alt="Avatar"
+            class="avatar-img"
+          />
+
+          <div class="profile-text">
+            <span class="welcome-text">
+              Bienvenue,
+            </span>
 
             <h1 class="user-name">
               {{ user?.username || 'Utilisateur' }}
             </h1>
           </div>
-
-          <button
-            class="settings-btn"
-            @click="handleTransferRefund"
-            :disabled="isTransferring"
-            :class="{ 'btn-loading': isTransferring }"
-          >
-            <i
-              v-if="!isTransferring"
-              class="fi fi-rr-money-transfer-coin-arrow"
-            ></i>
-
-            <div
-              v-else
-              class="mini-spinner"
-            ></div>
-          </button>
         </div>
 
-        <div class="main-balance-display">
-          <span class="balance-label">
-            Solde Principal
+
+        <button
+          class="transfer-btn"
+          @click="handleTransferRefund"
+          :disabled="isTransferring"
+        >
+          <i
+            v-if="!isTransferring"
+            class="fi fi-rr-money-transfer-coin-arrow"
+          ></i>
+
+          <div
+            v-else
+            class="mini-spinner"
+          ></div>
+        </button>
+
+      </div>
+
+      <div class="hero-balance">
+
+        <span class="balance-label">
+          Solde disponible
+        </span>
+
+        <div class="amount-row">
+          <span class="amount">
+            {{ formatBalance(mainBalance) }}
           </span>
 
-          <div class="amount-row">
-            <h2 class="amount">
-              {{ formatBalance(mainBalance) }}
-            </h2>
-
-            <span class="currency">
-              XOF
-            </span>
-          </div>
+          <span class="currency">
+            XOF
+          </span>
         </div>
 
-        <div class="glass-balances">
-          <div class="glass-item">
-            <span class="glass-label">
-              Journalier
-            </span>
-
-            <span class="glass-amount">
-              {{ formatBalance(dailyEarnings) }}
-              <small>XOF</small>
-            </span>
-          </div>
-
-          <div class="glass-divider"></div>
-
-          <div class="glass-item">
-            <span class="glass-label">
-              Remboursement
-            </span>
-
-            <span class="glass-amount">
-              {{ formatBalance(refundBalance) }}
-              <small>XOF</small>
-            </span>
-          </div>
-        </div>
       </div>
+
+      <div class="hero-status">
+        <span class="status-dot"></span>
+        <span>Compte actif</span>
+      </div>
+
+    </section>
+
+    <section class="balance-summary">
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+          <i class="fi fi-rr-chart-histogram"></i>
+        </div>
+
+        <div class="summary-content">
+          <span class="summary-label">
+            Journalier
+          </span>
+
+          <div class="summary-amount">
+            {{ formatBalance(dailyEarnings) }}
+            <small>XOF</small>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="summary-card">
+
+        <div class="summary-icon">
+          <i class="fi fi-rr-refund-alt"></i>
+        </div>
+
+        <div class="summary-content">
+          <span class="summary-label">
+            Remboursement
+          </span>
+
+          <div class="summary-amount">
+            {{ formatBalance(refundBalance) }}
+            <small>XOF</small>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <div class="section-header">
+      <span>Mon espace</span>
     </div>
 
     <div class="menu-section">
+
       <div
         class="menu-item"
         @click="router.push('/auth/update-profile')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-user"></i>
         </div>
 
-        <span>Modifier mes informations</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Modifier mes informations
+          </span>
+
+          <span class="menu-description">
+            Profil et informations personnelles
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
+
 
       <div
         class="menu-item"
         @click="router.push('/assistance/ai')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-user-headset"></i>
         </div>
 
-        <span>Assistance</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Assistance
+          </span>
+
+          <span class="menu-description">
+            Besoin d'aide ?
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
+
 
       <div
         class="menu-item"
         @click="router.push('/transaction/history-transaction')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-time-past"></i>
         </div>
 
-        <span>Historique des flux</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Historique des flux
+          </span>
+
+          <span class="menu-description">
+            Toutes vos transactions
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+      <div class="section-header games-title">
+        <span>Egames</span>
+      </div>
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/roulette-game')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Lucky Wheel</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Lucky Wheel
+          </span>
+
+          <span class="menu-description">
+            Tentez votre chance
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/pachinko-game')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Pachinko</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Pachinko
+          </span>
+
+          <span class="menu-description">
+            Jouez et gagnez
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
+
       <div
-        class="menu-item"
+        class="menu-item game-item"
         @click="router.push('/game/plane-game')"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-gamepad"></i>
         </div>
 
-        <span>Egames Plane Arena</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Plane Arena
+          </span>
+
+          <span class="menu-description">
+            Jusqu'où irez-vous ?
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
 
+
       <div
-        class="menu-item"
+        class="menu-item share-item"
         @click="handleShareReferral"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-share"></i>
         </div>
 
-        <span>Partager mon lien</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Partager mon lien
+          </span>
+
+          <span class="menu-description">
+            Invitez vos proches
+          </span>
+        </div>
 
         <i class="fi fi-rr-angle-small-right arrow"></i>
+
       </div>
+
 
       <div
         class="menu-item logout"
         @click="handleLogout"
       >
+
         <div class="menu-icon">
           <i class="fi fi-rr-exit"></i>
         </div>
 
-        <span>Se déconnecter</span>
+        <div class="menu-content">
+          <span class="menu-title">
+            Se déconnecter
+          </span>
+
+          <span class="menu-description">
+            Quitter votre session
+          </span>
+        </div>
+
       </div>
+
     </div>
 
+
     <Footer />
+
   </div>
 </template>
 
+
+
 <style scoped>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
 * {
   box-sizing: border-box;
+}
+
+/* =========================
+   PAGE
+========================= */
+
+.profile-page {
+  padding: 15px;
+  padding-top: 85px;
+  background: #fff;
+  min-height: 100vh;
 }
 
 /* =========================
@@ -417,15 +568,6 @@ const vibrate = () => {
   width: 45px;
 }
 
-.profile-page {
-  min-height: 100vh;
-  padding: 82px 14px 110px;
-
-  background: #ffffff;
-}
-
-
-
 
 /* =========================================================
    HERO
@@ -434,32 +576,22 @@ const vibrate = () => {
 .hero-wallet {
   position: relative;
 
-  width: 100%;
+  height: 200px;
 
-  /*
-   * Hero volontairement plus compact.
-   */
-  height: 255px;
+  width: 100%;
 
   overflow: hidden;
 
-  border-radius: 28px;
+  border-radius: 32px;
 
-  padding: 18px;
+  padding: 20px;
 
-  background: #111111;
+  background: #161019;
 
   isolation: isolate;
 
-  box-shadow:
-    0 12px 30px
-    rgba(0, 0, 0, 0.10);
 }
 
-
-/* =========================================================
-   BACKGROUND LOGO 1
-========================================================= */
 
 .hero-bg {
   position: absolute;
@@ -476,13 +608,10 @@ const vibrate = () => {
 
   pointer-events: none;
 
-  transform: scale(1.02);
+  transform: scale(1.03);
 }
 
 
-/* =========================================================
-   OVERLAY
-========================================================= */
 
 .hero-overlay {
   position: absolute;
@@ -493,56 +622,62 @@ const vibrate = () => {
 
   pointer-events: none;
 
-  /*
-   * Pas de violet ajouté.
-   * Simple noir transparent pour garder
-   * les vraies couleurs de Logo_1.
-   */
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.78) 0%,
-    rgba(0, 0, 0, 0.60) 35%,
-    rgba(0, 0, 0, 0.30) 60%,
-    rgba(0, 0, 0, 0.05) 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+
+      rgba(9, 5, 16, 0.589) 0%,
+
+      rgba(12, 6, 19, 0.384) 28%,
+
+      rgba(12, 6, 19, 0.50) 53%,
+
+      rgba(12, 6, 19, 0.08) 82%,
+
+      rgba(12, 6, 19, 0) 100%
+    );
 }
 
 
 /* =========================================================
-   PERSONNAGE LOGO 2
+   LOGO 2 / FILLE
 ========================================================= */
 
 .hero-girl {
   position: absolute;
 
   /*
-   * Hero moins haut mais personnage
-   * toujours très présent.
+   * Beaucoup plus grande que précédemment.
+   *
+   * Elle doit presque toucher
+   * le haut et le bas.
    */
-  width: 365px;
+  width: 440px;
 
   max-width: none;
 
   height: auto;
 
-  right: -72px;
-  bottom: -88px;
+  right: -92px;
+
+  bottom: -92px;
 
   z-index: 2;
 
   object-fit: contain;
 
   pointer-events: none;
+
   user-select: none;
 
   -webkit-user-drag: none;
 
   filter:
     drop-shadow(
-      -8px
-      7px
-      14px
-      rgba(0, 0, 0, 0.12)
+      -14px
+      12px
+      20px
+      rgba(0, 0, 0, 0.15)
     );
 }
 
@@ -557,80 +692,95 @@ const vibrate = () => {
   z-index: 5;
 
   display: flex;
+
   justify-content: space-between;
+
   align-items: flex-start;
 }
 
 
 /* =========================================================
-   PROFIL
+   PROFILE
 ========================================================= */
 
 .profile-mini {
   display: flex;
+
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 }
 
 
 .avatar-img {
-  width: 46px;
-  height: 46px;
+  width: 48px;
 
-  flex-shrink: 0;
+  height: 48px;
 
-  border-radius: 15px;
+  border-radius: 16px;
 
   object-fit: cover;
 
-  border: 2px solid rgba(255, 255, 255, 0.60);
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.55);
 
   background: #ffffff;
+
+  box-shadow:
+    0 5px 15px
+    rgba(0, 0, 0, 0.12);
 }
 
 
 .profile-text {
-  min-width: 0;
-
   display: flex;
+
   flex-direction: column;
+
+  min-width: 0;
 }
 
 
 .welcome-text {
   margin-bottom: 3px;
 
-  font-size: 9px;
+  font-size: 10px;
+
   font-weight: 700;
 
   text-transform: uppercase;
 
-  letter-spacing: 0.5px;
+  letter-spacing: 0.7px;
 
-  color: rgba(255, 255, 255, 0.65);
+  color:
+    rgba(255, 255, 255, 0.62);
 }
 
 
 .user-name {
   margin: 0;
 
-  max-width: 145px;
+  max-width: 150px;
 
   overflow: hidden;
 
   white-space: nowrap;
+
   text-overflow: ellipsis;
 
-  font-size: 17px;
+  font-size: 18px;
+
   font-weight: 900;
+
+  line-height: 1.05;
 
   color: #ffffff;
 }
 
 
 /* =========================================================
-   BOUTON TRANSFERT
+   TRANSFER BUTTON
 ========================================================= */
 
 .transfer-btn {
@@ -638,29 +788,43 @@ const vibrate = () => {
 
   z-index: 10;
 
-  width: 42px;
-  height: 42px;
+  width: 45px;
+
+  height: 45px;
 
   flex-shrink: 0;
 
   display: flex;
-  align-items: center;
+
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.20);
+  align-items: center;
 
-  border-radius: 14px;
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.22);
 
-  background: rgba(255, 255, 255, 0.14);
+  border-radius: 15px;
 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background:
+    rgba(255, 255, 255, 0.14);
+
+  backdrop-filter: blur(14px);
+
+  -webkit-backdrop-filter: blur(14px);
 
   color: #ffffff;
 
-  font-size: 17px;
+  font-size: 18px;
 
   cursor: pointer;
+
+  box-shadow:
+    inset
+    0
+    1px
+    0
+    rgba(255, 255, 255, 0.13);
 
   transition:
     transform 0.2s ease,
@@ -669,43 +833,45 @@ const vibrate = () => {
 
 
 .transfer-btn:active {
-  transform: scale(0.90);
+  transform: scale(0.9);
 }
 
 
 .transfer-btn:disabled {
   opacity: 0.6;
-
-  cursor: not-allowed;
 }
 
 
 /* =========================================================
-   SOLDE PRINCIPAL
+   MAIN BALANCE
 ========================================================= */
 
 .hero-balance {
   position: absolute;
 
-  left: 18px;
+  left: 20px;
 
-  top: 110px;
+  top: 124px;
 
   z-index: 4;
 
-  max-width: 58%;
+  max-width: 60%;
 }
 
 
 .balance-label {
   display: block;
 
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 
-  font-size: 10px;
+  font-size: 11px;
+
   font-weight: 700;
 
-  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.5px;
+
+  color:
+    rgba(255, 255, 255, 0.62);
 }
 
 
@@ -714,94 +880,102 @@ const vibrate = () => {
 
   align-items: flex-end;
 
-  gap: 6px;
+  gap: 7px;
 }
 
 
 .amount {
   font-size: clamp(
-    29px,
+    32px,
     8vw,
-    37px
+    42px
   );
 
-  line-height: 0.95;
+  line-height: 0.92;
 
   font-weight: 950;
 
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
 
   color: #ffffff;
+
+  text-shadow:
+    0 4px 20px
+    rgba(0, 0, 0, 0.18);
 }
 
 
 .currency {
-  padding-bottom: 2px;
+  padding-bottom: 3px;
 
-  font-size: 12px;
+  font-size: 13px;
+
   font-weight: 900;
 
-  /*
-   * Couleur principale de ton application.
-   */
-  color: v-bind('AppColor.primary.base');
+  color:
+    v-bind('AppColor.primary.base');
 }
-
-
-/* =========================================================
-   STATUS
-========================================================= */
 
 .hero-status {
   position: absolute;
 
-  left: 18px;
-  bottom: 18px;
+  left: 20px;
+
+  bottom: 15px;
 
   z-index: 5;
 
   display: inline-flex;
+
   align-items: center;
 
-  gap: 6px;
+  gap: 7px;
 
-  padding: 6px 9px;
+  padding:
+    7px
+    10px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
 
   border-radius: 50px;
 
-  background: rgba(255, 255, 255, 0.10);
+  background:
+    rgba(255, 255, 255, 0.08);
 
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 
-  font-size: 9px;
+  -webkit-backdrop-filter: blur(10px);
+
+  font-size: 10px;
+
   font-weight: 700;
 
-  color: rgba(255, 255, 255, 0.72);
+  color:
+    rgba(255, 255, 255, 0.72);
 }
 
 
 .status-dot {
   width: 6px;
+
   height: 6px;
 
   border-radius: 50%;
 
-  /*
-   * Suppression du vert.
-   * On utilise la couleur principale.
-   */
-  background: v-bind('AppColor.primary.base');
+  background: #3ddc84;
+
+  box-shadow:
+    0 0 8px
+    rgba(61, 220, 132, 0.75);
 }
 
-
-/* =========================================================
-   CARTES BALANCES SECONDAIRES
-========================================================= */
-
 .balance-summary {
+  position: relative;
+
+  z-index: 10;
+
   display: grid;
 
   grid-template-columns:
@@ -810,51 +984,53 @@ const vibrate = () => {
   gap: 10px;
 
   margin-top: 12px;
-  margin-bottom: 25px;
+
+  margin-bottom: 28px;
 }
 
 
 .summary-card {
   min-width: 0;
 
-  padding: 13px;
+  padding: 14px;
 
   display: flex;
+
   align-items: center;
 
   gap: 10px;
 
-  border: 1px solid #eeeeee;
+ 
 
-  border-radius: 18px;
+  border-radius: 20px;
 
-  background: #ffffff;
+  background:
+    #ffffff;
 
-  box-shadow:
-    0 5px 18px
-    rgba(0, 0, 0, 0.035);
+  
 }
 
 
 .summary-icon {
-  width: 37px;
-  height: 37px;
+  width: 38px;
+
+  height: 38px;
 
   flex-shrink: 0;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
-  border-radius: 12px;
+  border-radius: 13px;
 
-  /*
-   * Plus de violet.
-   */
   background:
     color-mix(
       in srgb,
-      v-bind('AppColor.primary.base') 10%,
+      v-bind('AppColor.primary.base')
+      11%,
       white
     );
 
@@ -869,14 +1045,16 @@ const vibrate = () => {
   min-width: 0;
 
   display: flex;
+
   flex-direction: column;
 }
 
 
 .summary-label {
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 
   font-size: 9px;
+
   font-weight: 800;
 
   text-transform: uppercase;
@@ -889,9 +1067,11 @@ const vibrate = () => {
   overflow: hidden;
 
   text-overflow: ellipsis;
+
   white-space: nowrap;
 
-  font-size: 13px;
+  font-size: 14px;
+
   font-weight: 900;
 
   color: #202020;
@@ -906,15 +1086,14 @@ const vibrate = () => {
   color: #999999;
 }
 
-
-/* =========================================================
-   TITRES SECTIONS
-========================================================= */
-
 .section-header {
-  padding: 0 4px 9px;
+  padding:
+    0
+    4px
+    9px;
 
   font-size: 13px;
+
   font-weight: 900;
 
   color: #181818;
@@ -927,13 +1106,9 @@ const vibrate = () => {
   padding-top: 5px;
 }
 
-
-/* =========================================================
-   MENU
-========================================================= */
-
 .menu-section {
   display: flex;
+
   flex-direction: column;
 
   gap: 9px;
@@ -943,62 +1118,61 @@ const vibrate = () => {
 .menu-item {
   position: relative;
 
-  min-height: 66px;
-
-  padding: 11px 13px;
-
   display: flex;
+
   align-items: center;
 
-  border: 1px solid #eeeeee;
+  min-height: 68px;
 
-  border-radius: 18px;
+  padding:
+    12px
+    14px;
 
-  background: #ffffff;
+ 
+
+  border-radius: 20px;
+
+  /* background: #ffffff; */
 
   cursor: pointer;
 
-  box-shadow:
-    0 4px 14px
-    rgba(0, 0, 0, 0.025);
+ 
 
   transition:
     transform 0.18s ease,
-    background 0.18s ease;
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 
 .menu-item:active {
-  transform: scale(0.98);
+  transform:
+    scale(0.98);
 }
 
 
-/* =========================================================
-   MENU ICON
-========================================================= */
-
 .menu-icon {
-  width: 42px;
-  height: 42px;
+  width: 43px;
+
+  height: 43px;
 
   flex-shrink: 0;
 
-  margin-right: 13px;
-
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
-  border-radius: 13px;
+  margin-right: 13px;
 
-  /*
-   * Toutes les icônes utilisent
-   * désormais la couleur principale.
-   */
+  border-radius: 14px;
+
   background:
     color-mix(
       in srgb,
-      v-bind('AppColor.primary.base') 9%,
+      v-bind('AppColor.primary.base')
+      9%,
       white
     );
 
@@ -1015,14 +1189,16 @@ const vibrate = () => {
   flex: 1;
 
   display: flex;
+
   flex-direction: column;
 }
 
 
 .menu-title {
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 
   font-size: 14px;
+
   font-weight: 800;
 
   color: #292929;
@@ -1031,6 +1207,7 @@ const vibrate = () => {
 
 .menu-description {
   font-size: 10px;
+
   font-weight: 600;
 
   color: #a2a2a2;
@@ -1049,56 +1226,37 @@ const vibrate = () => {
 
 
 /* =========================================================
-   JEUX
-   Même couleur que l'application
+   GAME
 ========================================================= */
 
 .game-icon {
   background:
-    color-mix(
-      in srgb,
-      v-bind('AppColor.primary.base') 9%,
-      white
-    );
+    rgba(125, 74, 255, 0.09);
 
-  color:
-    v-bind('AppColor.primary.base');
+  color: #744cff;
 }
-
-
-/* =========================================================
-   PARTAGE
-   Suppression du vert
-========================================================= */
 
 .share-icon {
   background:
-    color-mix(
-      in srgb,
-      v-bind('AppColor.primary.base') 9%,
-      white
-    );
+    rgba(33, 188, 104, 0.10);
 
-  color:
-    v-bind('AppColor.primary.base');
+  color: #1faa62;
 }
-
-
-/* =========================================================
-   LOGOUT
-========================================================= */
 
 .menu-item.logout {
   margin-top: 7px;
 
-  border-color: rgba(255, 71, 87, 0.12);
+  border-color:
+    rgba(255, 71, 87, 0.12);
 
-  background: rgba(255, 71, 87, 0.055);
+  background:
+    rgba(255, 71, 87, 0.055);
 }
 
 
 .menu-item.logout .menu-icon {
-  background: rgba(255, 71, 87, 0.10);
+  background:
+    rgba(255, 71, 87, 0.11);
 
   color: #ff4757;
 }
@@ -1108,111 +1266,118 @@ const vibrate = () => {
   color: #ff4757;
 }
 
-
-/* =========================================================
-   SPINNER
-========================================================= */
-
 .mini-spinner {
   width: 18px;
+
   height: 18px;
 
   border:
     2px solid
-    rgba(255, 255, 255, 0.30);
+    rgba(255, 255, 255, 0.3);
 
-  border-top-color: #ffffff;
+  border-top-color:
+    #ffffff;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  animation: spin 0.8s linear infinite;
+  animation:
+    spin
+    0.8s
+    linear
+    infinite;
 }
 
 
 @keyframes spin {
+
   100% {
-    transform: rotate(360deg);
+    transform:
+      rotate(360deg);
   }
+
 }
 
 
 /* =========================================================
-   MOBILE <= 430PX
+   MOBILE <= 430
 ========================================================= */
 
 @media (max-width: 430px) {
 
   .hero-wallet {
-    height: 250px;
+    height: 215px;
 
-    border-radius: 26px;
+    border-radius: 28px;
   }
 
 
   .hero-girl {
-    width: 355px;
+    width: 420px;
 
-    right: -78px;
+    right: -105px;
 
-    bottom: -84px;
+    bottom: -83px;
   }
 
 
   .hero-balance {
-    top: 106px;
+    top: 89px;
   }
 
 
   .amount {
-    font-size: 33px;
+    font-size: 35px;
   }
+
 }
 
 
 /* =========================================================
-   MOBILE <= 390PX
+   MOBILE <= 390
 ========================================================= */
 
 @media (max-width: 390px) {
 
   .profile-page {
     padding-left: 12px;
+
     padding-right: 12px;
   }
 
 
   .hero-wallet {
-    height: 245px;
+    height: 205px;
 
-    padding: 16px;
+    padding: 17px;
   }
 
 
   .hero-girl {
-    width: 340px;
+    width: 395px;
 
-    right: -82px;
+    right: -105px;
 
-    bottom: -78px;
+    bottom: -72px;
   }
 
 
   .hero-balance {
-    left: 16px;
+    left: 17px;
 
-    top: 103px;
+    top: 95px;
   }
 
 
   .hero-status {
-    left: 16px;
+    left: 17px;
 
-    bottom: 16px;
+    bottom: 25px;
   }
 
 
   .amount {
-    font-size: 30px;
+    font-size: 32px;
   }
 
 
@@ -1222,12 +1387,13 @@ const vibrate = () => {
 
 
   .summary-card {
-    padding: 11px;
+    padding: 12px;
   }
 
 
   .summary-icon {
     width: 34px;
+
     height: 34px;
   }
 
@@ -1235,39 +1401,41 @@ const vibrate = () => {
   .summary-amount {
     font-size: 12px;
   }
+
 }
 
 
 /* =========================================================
-   MOBILE <= 350PX
+   MOBILE <= 350
 ========================================================= */
 
 @media (max-width: 350px) {
 
   .hero-wallet {
-    height: 235px;
+    height: 220px;
   }
 
 
   .hero-girl {
-    width: 320px;
+    width: 370px;
 
-    right: -86px;
+    right: -110px;
 
-    bottom: -72px;
+    bottom: -65px;
   }
 
 
   .avatar-img {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+
+    height: 44px;
   }
 
 
   .user-name {
     max-width: 105px;
 
-    font-size: 15px;
+    font-size: 16px;
   }
 
 
@@ -1277,7 +1445,7 @@ const vibrate = () => {
 
 
   .amount {
-    font-size: 27px;
+    font-size: 29px;
   }
 
 
@@ -1295,6 +1463,7 @@ const vibrate = () => {
 
   .summary-icon {
     width: 31px;
+
     height: 31px;
 
     border-radius: 10px;
@@ -1304,6 +1473,7 @@ const vibrate = () => {
   .summary-amount {
     font-size: 11px;
   }
+
 }
 
 </style>

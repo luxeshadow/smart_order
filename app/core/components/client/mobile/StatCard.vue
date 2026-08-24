@@ -22,8 +22,8 @@ import { ListMyLevelRepositoryImpl } from '@/features/level/data/repositories/li
 
 // Props
 defineProps({
-  stockValue: { type: String, default: "1,250,000" },
-  currentAssets: { type: String, default: "3,945" }
+  stockValue: { type: String, default: "5,250,000" },
+  currentAssets: { type: String, default: "6,147" }
 })
 
 const authStore = useAuthStore()
