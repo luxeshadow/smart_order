@@ -357,6 +357,28 @@ const vibrate = () => {
         <i class="fi fi-rr-angle-small-right arrow"></i>
 
       </div>
+       <div
+        class="menu-item share-item"
+        @click="handleShareReferral"
+      >
+
+        <div class="menu-icon">
+          <i class="fi fi-rr-share"></i>
+        </div>
+
+        <div class="menu-content">
+          <span class="menu-title">
+            Partager mon lien
+          </span>
+
+          <span class="menu-description">
+            Invitez vos proches
+          </span>
+        </div>
+
+        <i class="fi fi-rr-angle-small-right arrow"></i>
+
+      </div>
 
 
       <div class="section-header games-title">
@@ -438,28 +460,7 @@ const vibrate = () => {
       </div>
 
 
-      <div
-        class="menu-item share-item"
-        @click="handleShareReferral"
-      >
-
-        <div class="menu-icon">
-          <i class="fi fi-rr-share"></i>
-        </div>
-
-        <div class="menu-content">
-          <span class="menu-title">
-            Partager mon lien
-          </span>
-
-          <span class="menu-description">
-            Invitez vos proches
-          </span>
-        </div>
-
-        <i class="fi fi-rr-angle-small-right arrow"></i>
-
-      </div>
+     
 
 
       <div
@@ -495,9 +496,6 @@ const vibrate = () => {
 
 <style scoped>
 
-/* =========================================================
-   GLOBAL
-========================================================= */
 * {
   box-sizing: border-box;
 }
