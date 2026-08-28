@@ -54,6 +54,19 @@ onMounted(() => {
   </div>
 </template>
 
+<style>
+/* Supprime le flash bleu affiché par les navigateurs mobiles au toucher. */
+button,
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.menu-item {
+  -webkit-tap-highlight-color: transparent;
+}
+</style>
+
 <style scoped>
 .desktop-block {
   position: fixed;

@@ -500,10 +500,6 @@ const vibrate = () => {
   box-sizing: border-box;
 }
 
-/* =========================
-   PAGE
-========================= */
-
 .profile-page {
   padding: 15px;
   padding-top: 85px;
