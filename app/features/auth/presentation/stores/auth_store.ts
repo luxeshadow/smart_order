@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { UserModel } from '../../data/models/user_model'
 import type { User } from '../../domain/entities/user'
 import { useApi } from '@/core/constants/supabase_client'
+import { useTransactionStore } from '@/features/transaction/presentation/stores/transaction_store'
+import { useLevelStore } from '@/features/level/presentation/stores/level_store'
+import { useOrderStore } from '@/features/order/presentation/stores/my_order_item_store'
 
 export const useAuthStore = defineStore('auth', () => {
 
@@ -108,19 +111,24 @@ export const useAuthStore = defineStore('auth', () => {
 
     const supabase = useApi()
 
+    // Effacer immédiatement toutes les données liées à l'utilisateur courant.
+    user.value = null
+    error.value = null
+    useTransactionStore().reset()
+    useLevelStore().resetUserLevels()
+    useOrderStore().reset()
+
+    if (import.meta.client) {
+      localStorage.removeItem('smart_order_user')
+    }
+
     try {
       await supabase.auth.signOut()
     } catch (e) {
       console.error('Erreur logout Supabase', e)
     }
 
-    user.value = null
-
-    if (import.meta.client) {
-      localStorage.removeItem('smart_order_user')
-    }
-
-    navigateTo('/home')
+    await navigateTo('/home')
   }
 
   return {

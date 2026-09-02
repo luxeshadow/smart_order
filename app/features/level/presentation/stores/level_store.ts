@@ -18,10 +18,15 @@ export const useLevelStore = defineStore('level', () => {
     }
   }
 
+  function resetUserLevels() {
+    myLevels.value = []
+  }
+
   return {
     levels,
     myLevels,
     updateLevels,
-    updateMyLevels
+    updateMyLevels,
+    resetUserLevels
   }
 })

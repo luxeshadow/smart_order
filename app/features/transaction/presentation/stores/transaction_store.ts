@@ -69,6 +69,13 @@ export const useTransactionStore = defineStore('transaction', () => {
     isLoading.value = false
   }
 
+  function reset() {
+    mainBalance.value = null
+    dailyEarnings.value = 0
+    refundBalance.value = 0
+    resetHistory()
+  }
+
   return {
     mainBalance,
     dailyEarnings,
@@ -83,6 +90,7 @@ export const useTransactionStore = defineStore('transaction', () => {
     isLoading,
     hasMore,
     fetchTransactions,
-    resetHistory
+    resetHistory,
+    reset
   }
 })

@@ -13,6 +13,11 @@ export const useOrderStore = defineStore('orders', {
     },
     setCurrentIndex(val: number) {
         this.currentIndex = val;
+    },
+    reset() {
+        this.items = [];
+        this.loading = false;
+        this.currentIndex = 0;
     }
   }
 })
