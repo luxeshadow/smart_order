@@ -1,7 +1,3 @@
 <script setup lang="ts">
-import VerifyOtp from '../../features/auth/presentation/pages/verify-otp.vue'
+await navigateTo('/auth/login', { replace: true })
 </script>
-
-<template>
-  <VerifyOtp />
-</template>

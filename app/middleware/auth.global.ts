@@ -10,7 +10,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const authPages = [
     '/auth/login',
     '/auth/register',
-    '/auth/forgot-password'
+    '/auth/forgot-password',
+    '/auth/verify-otp'
   ]
 
   try {

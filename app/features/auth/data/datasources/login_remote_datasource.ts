@@ -1,4 +1,4 @@
-import { AuthException, DatabaseException, UserUnconfirmedException } from '@/core/errors/exception'
+import { AuthException, DatabaseException } from '@/core/errors/exception'
 import { UserModel } from '../models/user_model'
 import type { LoginParam } from '../../application/params/login_params'
 
@@ -17,10 +17,6 @@ export class LoginRemoteDatasource {
 
       if (authError || !authData.user || !authData.session) {
         const msg = authError?.message?.toLowerCase() || ''
-
-        if (msg.includes("email not confirmed")) {
-          throw new UserUnconfirmedException(emailClean)
-        }
 
         throw new AuthException(this.translateError(authError?.message))
       }
@@ -51,8 +47,7 @@ export class LoginRemoteDatasource {
     } catch (error: any) {
       if (
         error instanceof AuthException || 
-        error instanceof DatabaseException ||
-        error instanceof UserUnconfirmedException
+        error instanceof DatabaseException
       ) {
         throw error
       }
@@ -63,7 +58,9 @@ export class LoginRemoteDatasource {
   private translateError(message?: string): string {
     if (!message) return "Identifiants invalides."
     if (message.includes("Invalid login credentials")) return "Email ou mot de passe incorrect."
-    if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email avant de vous connecter."
+    if (message.toLowerCase().includes("email not confirmed")) {
+      return "La confirmation d'email doit être désactivée dans Supabase."
+    }
     return message
   }
 }

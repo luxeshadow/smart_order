@@ -39,22 +39,6 @@ const handleLogin = async () => {
     })
 
     if (result instanceof Failure) {
-      if (result instanceof UserUnconfirmedFailure) {
-        showToast("Veuillez valider votre code de confirmation", "fi-rr-time-out", "error")
-        
-        setTimeout(() => {
-          router.push({
-            path: '/auth/verify-otp',
-            query: { 
-              email: result.email,
-              type: 'registration'
-            }
-          })
-          isLoading.value = false
-        }, 1200)
-        return
-      }
-
       showToast(result.message, 'fi-rr-cross-circle', 'error')
       isLoading.value = false
       return

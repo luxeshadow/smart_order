@@ -2,13 +2,11 @@ import { RegisterRemoteDatasource } from '../datasources/register_remote_datasou
 import { 
   AuthException, 
   DatabaseException, 
-  UserAlreadyExistsException, 
-  UserUnconfirmedException 
+  UserAlreadyExistsException
 } from '@/core/errors/exception'
 import { 
   AuthFailure, 
   DatabaseFailure, 
-  UserUnconfirmedFailure, 
   Failure 
 } from '@/core/errors/failure'
 import type { RegisterRepository } from '../../domain/repository/register_repository'
@@ -31,10 +29,6 @@ export class RegisterRepositoryImpl implements RegisterRepository {
       return user
 
     } catch (error: any) {
-      if (error instanceof UserUnconfirmedException) {
-        return new UserUnconfirmedFailure(error.email)
-      }
-
       if (error instanceof UserAlreadyExistsException) {
         return new AuthFailure(error.message)
       }

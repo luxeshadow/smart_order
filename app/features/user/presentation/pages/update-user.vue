@@ -52,9 +52,6 @@ const handleUpdateProfile = async () => {
 
   isLoading.value = true
 
-  const normalizedFormEmail = form.value.email.trim().toLowerCase()
-  const hasEmailChanged = normalizedFormEmail !== originalEmail.value
-
   const param = {
     userId: user.value.id,
     userName: form.value.userName,
@@ -72,26 +69,6 @@ const handleUpdateProfile = async () => {
       return
     }
 
-    if (hasEmailChanged) {
-      showToast(
-        'Veuillez valider votre nouvel email',
-        'fi-rr-envelope-dot',
-        'success'
-      )
-
-      setTimeout(() => {
-        router.push({
-          path: '/auth/verify-otp',
-          query: {
-            email: form.value.email,
-            type: 'email_change'
-          }
-        })
-        isLoading.value = false
-      }, 1500)
-
-      return
-    }
     authStore.updateUser({
       username: form.value.userName,
       phoneNumber: form.value.phoneNumber,
@@ -175,24 +152,9 @@ const handleUpdateProfile = async () => {
         />
       </div>
 
-      <div
-        class="info-box"
-        v-if="form.email.trim().toLowerCase() !== originalEmail"
-      >
-        <i class="fi fi-rr-info"></i>
-        <p>
-          Le changement d'email nécessitera une nouvelle vérification par code
-          OTP.
-        </p>
-      </div>
-
       <div class="action-footer">
         <Button
-          :label="
-            form.email.trim().toLowerCase() !== originalEmail
-              ? 'Vérifier email'
-              : 'Enregistrer'
-          "
+          label="Enregistrer"
           :loading="isLoading"
           @click="handleUpdateProfile"
         />

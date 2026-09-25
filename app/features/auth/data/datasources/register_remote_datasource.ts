@@ -1,5 +1,5 @@
 import { UserModel } from '../models/user_model'
-import { AuthException, DatabaseException, UserAlreadyExistsException, UserUnconfirmedException } from '@/core/errors/exception'
+import { AuthException, DatabaseException, UserAlreadyExistsException } from '@/core/errors/exception'
 import type { RegisterPayload } from '../../application/params/register_params'
 
 export class RegisterRemoteDatasource {
@@ -45,6 +45,12 @@ export class RegisterRemoteDatasource {
       throw new AuthException("Erreur lors de la création du compte.")
     }
 
+    if (!authData.session) {
+      throw new AuthException(
+        "La confirmation d'email est encore activée dans Supabase. Désactivez l'option Confirm Email."
+      )
+    }
+
     // 3. Insérer le profil dans public.users D'ABORD
     const userModel = new UserModel({
       id: user.id,
@@ -67,11 +73,10 @@ export class RegisterRemoteDatasource {
       )
     }
 
-    const isEmailConfirmed = !!user.email_confirmed_at
-    if (!isEmailConfirmed) {
-      throw new UserUnconfirmedException(emailClean)
-    }
-
-    return UserModel.fromSupabase(userData)
+    return UserModel.fromSupabase(
+      userData,
+      authData.session?.access_token,
+      user.email
+    )
   }
 }

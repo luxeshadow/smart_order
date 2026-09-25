@@ -1,6 +1,6 @@
 import { LoginRemoteDatasource } from '../datasources/login_remote_datasource'
-import { AuthException, DatabaseException, UserUnconfirmedException } from '@/core/errors/exception'
-import { AuthFailure,UserUnconfirmedFailure , DatabaseFailure } from '@/core/errors/failure'
+import { AuthException, DatabaseException } from '@/core/errors/exception'
+import { AuthFailure, DatabaseFailure } from '@/core/errors/failure'
 import type { LoginRepository } from '../../domain/repository/login_repository'
 import type { User } from '../../domain/entities/user'
 import type { LoginParam } from '../../application/params/login_params'
@@ -20,10 +20,6 @@ export class LoginRepositoryImpl implements LoginRepository {
       const user = await this.datasource.login(param)
       return user
     } catch (error: any) {
-      if (error instanceof UserUnconfirmedException) {
-        return new UserUnconfirmedFailure(error.email)
-      }
-
       if (error instanceof AuthException) {
         return new AuthFailure(error.message)
       }

@@ -4,7 +4,7 @@ Smart Orders est une application web Nuxt/Vue pour gérer une plateforme de comm
 
 ## Fonctionnalités principales
 
-- Authentification utilisateur : inscription, connexion, vérification OTP, mot de passe oublié et réinitialisation.
+- Authentification utilisateur : inscription, connexion, mot de passe oublié et réinitialisation.
 - Profil utilisateur : consultation et mise à jour des informations du compte.
 - Commandes : consultation des commandes, validation des articles de commande et gestion des commissions.
 - Produits : listing des produits utilisés dans le système de commandes.
@@ -61,7 +61,6 @@ smart_order/
 
 - `/auth/login` : connexion
 - `/auth/register` : inscription
-- `/auth/verify-otp` : vérification OTP
 - `/home` : accueil client
 - `/dashboard` : tableau de bord administrateur
 - `/order/my-order` : commandes de l'utilisateur

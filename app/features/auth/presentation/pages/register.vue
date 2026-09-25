@@ -11,13 +11,15 @@ import { AppImage } from '@/core/constants/app_images'
 import { RegisterUseCase } from '../../application/usecases/register_usecase'
 import { RegisterRepositoryImpl } from '../../data/repositories/register_repository_impl'
 
-import { Failure, UserUnconfirmedFailure } from '@/core/errors/failure'
+import { Failure } from '@/core/errors/failure'
 import { useToast } from '../../../../core/utils/useToast'
+import { useAuthStore } from '../stores/auth_store'
 
 const { showToast } = useToast()
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const repository = new RegisterRepositoryImpl()
 const registerUseCase = new RegisterUseCase(repository)
@@ -77,27 +79,6 @@ const handleRegister = async () => {
     })
 
     if (result instanceof Failure) {
-      if (result instanceof UserUnconfirmedFailure) {
-        showToast(
-          "Un compte existe déjà avec cet e-mail. Un nouveau code OTP vous a été envoyé.",
-          "fi-rr-info",
-          "normal"
-        )
-
-        setTimeout(() => {
-          router.push({
-            path: '/auth/verify-otp',
-            query: {
-              email: result.email
-            }
-          })
-
-          isLoading.value = false
-        }, 1500)
-
-        return
-      }
-
       errorMessage.value = result.message
 
       showToast(
@@ -110,20 +91,16 @@ const handleRegister = async () => {
       return
     }
 
+    authStore.setUser(result)
+
     showToast(
-      "Inscription réussie ! Veuillez valider le code OTP envoyé par e-mail.",
+      "Inscription réussie ! Bienvenue sur Smart Orders.",
       "fi-rr-check",
       "success"
     )
 
     setTimeout(() => {
-      router.push({
-        path: '/auth/verify-otp',
-        query: {
-          email: form.value.email
-        }
-      })
-
+      router.replace('/home')
       isLoading.value = false
     }, 1500)
 
